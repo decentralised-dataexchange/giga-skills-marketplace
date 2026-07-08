@@ -1,0 +1,69 @@
+openapi: 3.1.0
+info:
+  title: iGrant.io Verifier API (education profile)
+  version: 1.0.0
+  description: Presentation requests and verification over OpenID4VP with DCQL.
+servers:
+  - url: https://sandbox.igrant.io/v2
+security:
+  - ApiKeyAuth: []
+paths:
+  /verifier/presentation-requests:
+    post:
+      operationId: createPresentationRequest
+      summary: Create an OpenID4VP presentation request with a DCQL query
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [purpose, dcqlQuery]
+              properties:
+                purpose: { type: string, description: Shown to the learner in the consent prompt }
+                dcqlQuery: { type: object, description: DCQL query selecting credentials and claims }
+                callbackUrl: { type: string, format: uri }
+      responses:
+        '201':
+          description: Request created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  requestId: { type: string }
+                  authorizationRequestUri: { type: string, description: openid4vp:// deep link for the wallet }
+                  qrCodePayload: { type: string }
+  /verifier/presentation-requests/{requestId}:
+    get:
+      operationId: getPresentationResult
+      summary: Fetch the status and verification result of a presentation request
+      parameters:
+        - name: requestId
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Result
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: { type: string, enum: [pending, presented, declined, expired] }
+                  verification:
+                    type: object
+                    properties:
+                      authenticity: { type: string, enum: [valid, invalid] }
+                      integrity: { type: string, enum: [valid, invalid] }
+                      issuerSignature: { type: string, enum: [valid, invalid, untrusted_issuer] }
+                      revocationStatus: { type: string, enum: [active, revoked, unknown] }
+                  disclosedClaims: { type: object }
+                  consentReference: { type: string }
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key

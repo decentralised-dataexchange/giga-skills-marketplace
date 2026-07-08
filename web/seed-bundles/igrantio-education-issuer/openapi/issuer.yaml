@@ -1,0 +1,103 @@
+openapi: 3.1.0
+info:
+  title: iGrant.io Issuer API (education profile)
+  version: 1.0.0
+  description: Credential issuance over OpenID4VCI for education credentials (W3C VC 2.0, SD-JWT VC).
+servers:
+  - url: https://sandbox.igrant.io/v2
+    description: Sandbox (API key required)
+security:
+  - ApiKeyAuth: []
+paths:
+  /issuer/credential-offer:
+    post:
+      operationId: createCredentialOffer
+      summary: Create an OpenID4VCI credential offer for a learner
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [learnerUlid, credentialType, claims]
+              properties:
+                learnerUlid: { type: string, description: Unique Learner Identifier from the NLR }
+                learnerDid: { type: string, description: Wallet-bound DID of the learner (optional at offer time) }
+                credentialType: { type: string, enum: [DiplomaCredential, TranscriptCredential, MicroCredential] }
+                claims: { type: object, description: Claims matching the credential schema }
+      responses:
+        '201':
+          description: Offer created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  offerId: { type: string }
+                  credentialOfferUri: { type: string, description: openid-credential-offer:// deep link for the wallet }
+                  qrCodePayload: { type: string }
+                  expiresAt: { type: string, format: date-time }
+        '400': { description: Claims do not match the credential schema }
+  /issuer/credentials/{credentialId}:
+    get:
+      operationId: getCredentialStatus
+      summary: Fetch issuance status and registry record for a credential
+      parameters:
+        - name: credentialId
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Credential record
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  credentialId: { type: string }
+                  status: { type: string, enum: [offered, issued, revoked, expired] }
+                  issuedAt: { type: string, format: date-time }
+                  registryReference: { type: string, description: National Certificate Registry entry id }
+  /issuer/credentials/{credentialId}/revoke:
+    post:
+      operationId: revokeCredential
+      summary: Revoke an issued credential (status list update)
+      parameters:
+        - name: credentialId
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                reason: { type: string }
+      responses:
+        '200': { description: Credential revoked }
+  /issuer/webhooks:
+    post:
+      operationId: registerIssuanceWebhook
+      summary: Register a callback for issuance lifecycle events
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [url, events]
+              properties:
+                url: { type: string, format: uri }
+                events:
+                  type: array
+                  items: { type: string, enum: [credential.offered, credential.issued, credential.revoked] }
+      responses:
+        '201': { description: Webhook registered }
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key

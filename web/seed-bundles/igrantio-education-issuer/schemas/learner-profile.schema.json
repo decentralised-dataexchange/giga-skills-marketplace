@@ -1,0 +1,63 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.igrant.io/education/learner-profile.schema.json",
+  "title": "NLRLearnerProfile",
+  "description": "National Learner Registry profile record (system of record for the ULID).",
+  "type": "object",
+  "required": [
+    "ulid",
+    "name",
+    "dateOfBirth",
+    "enrolmentState"
+  ],
+  "properties": {
+    "ulid": {
+      "type": "string",
+      "pattern": "^ULID-[0-9A-HJKMNP-TV-Z]{16}$"
+    },
+    "nationalIdRef": {
+      "type": "string",
+      "description": "Reference to the national identity, never the raw identifier"
+    },
+    "name": {
+      "type": "string"
+    },
+    "dateOfBirth": {
+      "type": "string",
+      "format": "date"
+    },
+    "guardian": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "relationship": {
+          "type": "string"
+        },
+        "nationalIdRef": {
+          "type": "string"
+        }
+      }
+    },
+    "school": {
+      "type": "string"
+    },
+    "enrolmentState": {
+      "type": "string",
+      "enum": [
+        "applied",
+        "flagged",
+        "approved",
+        "enrolled",
+        "withdrawn"
+      ]
+    },
+    "consentReferences": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  }
+}

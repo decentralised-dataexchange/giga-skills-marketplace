@@ -1,0 +1,63 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.igrant.io/education/diploma.schema.json",
+  "title": "DiplomaCredential",
+  "description": "Diploma as a W3C Verifiable Credential (vc-ed / Open Badges 3.0 aligned), encoded as SD-JWT VC.",
+  "type": "object",
+  "required": [
+    "credentialSubject"
+  ],
+  "properties": {
+    "credentialSubject": {
+      "type": "object",
+      "required": [
+        "ulid",
+        "name",
+        "achievement"
+      ],
+      "properties": {
+        "ulid": {
+          "type": "string",
+          "description": "Unique Learner Identifier from the National Learner Registry"
+        },
+        "name": {
+          "type": "string"
+        },
+        "dateOfBirth": {
+          "type": "string",
+          "format": "date",
+          "x-selectiveDisclosure": true
+        },
+        "achievement": {
+          "type": "object",
+          "required": [
+            "name",
+            "awardingInstitution",
+            "qualificationCode"
+          ],
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "e.g. Upper Secondary School Diploma"
+            },
+            "awardingInstitution": {
+              "type": "string"
+            },
+            "qualificationCode": {
+              "type": "string",
+              "description": "Code in the national qualification framework"
+            },
+            "grade": {
+              "type": "string",
+              "x-selectiveDisclosure": true
+            },
+            "awardedOn": {
+              "type": "string",
+              "format": "date"
+            }
+          }
+        }
+      }
+    }
+  }
+}

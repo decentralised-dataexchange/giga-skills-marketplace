@@ -1,0 +1,29 @@
+### Worked example: issue an upper-secondary diploma
+POST https://sandbox.igrant.io/v2/issuer/credential-offer
+X-API-Key: {{apiKey}}
+Content-Type: application/json
+
+{
+  "learnerUlid": "ULID-01HZY3T8Q4R7WXKM",
+  "credentialType": "DiplomaCredential",
+  "claims": {
+    "ulid": "ULID-01HZY3T8Q4R7WXKM",
+    "name": "Amina Okafor",
+    "dateOfBirth": "2007-03-14",
+    "achievement": {
+      "name": "Upper Secondary School Diploma",
+      "awardingInstitution": "Lakeside Secondary School",
+      "qualificationCode": "NQF-4-GEN",
+      "grade": "Distinction",
+      "awardedOn": "2026-06-12"
+    }
+  }
+}
+
+### Expected 201 response
+{
+  "offerId": "offer_9f31c2",
+  "credentialOfferUri": "openid-credential-offer://?credential_offer_uri=https%3A%2F%2Fsandbox.igrant.io%2Fv2%2Foffers%2Foffer_9f31c2",
+  "qrCodePayload": "openid-credential-offer://?credential_offer_uri=...",
+  "expiresAt": "2026-06-12T12:00:00Z"
+}

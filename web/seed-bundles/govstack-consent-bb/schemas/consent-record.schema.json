@@ -1,0 +1,56 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.govstack.trust.example/consent-record.schema.json",
+  "title": "ConsentRecord",
+  "description": "ISO/IEC 27560 aligned consent record.",
+  "type": "object",
+  "required": [
+    "consentId",
+    "agreementId",
+    "individualId",
+    "status",
+    "grantedAt"
+  ],
+  "properties": {
+    "consentId": {
+      "type": "string"
+    },
+    "agreementId": {
+      "type": "string"
+    },
+    "individualId": {
+      "type": "string"
+    },
+    "guardianId": {
+      "type": "string"
+    },
+    "purpose": {
+      "type": "string"
+    },
+    "dataFields": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "revoked",
+        "expired"
+      ]
+    },
+    "grantedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "revokedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "receiptId": {
+      "type": "string"
+    }
+  }
+}

@@ -1,0 +1,96 @@
+openapi: 3.1.0
+info:
+  title: GovStack Consent BB API (ISO/IEC 27560 profile)
+  version: 1.2.0
+servers:
+  - url: https://sandbox.govstack.trust.example/v1
+security:
+  - ApiKeyAuth: []
+paths:
+  /consent/data-agreements:
+    post:
+      operationId: createDataAgreement
+      summary: Define a data agreement (purpose, fields, retention, lawful basis)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [purpose, dataFields, lawfulBasis]
+              properties:
+                purpose: { type: string }
+                dataFields: { type: array, items: { type: string } }
+                lawfulBasis: { type: string, enum: [consent, legal_obligation, public_task] }
+                retentionDays: { type: integer }
+      responses:
+        '201':
+          description: Agreement created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  agreementId: { type: string }
+  /consent/records:
+    post:
+      operationId: grantConsent
+      summary: Record an individual's consent to a data agreement
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [agreementId, individualId]
+              properties:
+                agreementId: { type: string }
+                individualId: { type: string, description: ULID or wallet-bound identifier }
+                guardianId: { type: string, description: Required when the individual is a minor }
+      responses:
+        '201':
+          description: Consent recorded
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  consentId: { type: string }
+                  receiptId: { type: string, description: ISO/IEC 27560 consent receipt reference }
+                  status: { type: string, enum: [active] }
+  /consent/records/{consentId}/status:
+    get:
+      operationId: getConsentStatus
+      summary: Check whether a consent record is active
+      parameters:
+        - name: consentId
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: { type: string, enum: [active, revoked, expired] }
+                  receiptId: { type: string }
+  /consent/records/{consentId}:
+    delete:
+      operationId: revokeConsent
+      summary: Revoke a consent record (takes effect immediately)
+      parameters:
+        - name: consentId
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200': { description: Consent revoked }
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key

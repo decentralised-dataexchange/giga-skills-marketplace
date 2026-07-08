@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.igrant.io/education/transcript.schema.json",
+  "title": "TranscriptCredential",
+  "description": "Academic transcript credential with per-course selective disclosure.",
+  "type": "object",
+  "required": [
+    "credentialSubject"
+  ],
+  "properties": {
+    "credentialSubject": {
+      "type": "object",
+      "required": [
+        "ulid",
+        "name",
+        "courses"
+      ],
+      "properties": {
+        "ulid": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "programme": {
+          "type": "string"
+        },
+        "courses": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "code",
+              "title",
+              "grade"
+            ],
+            "properties": {
+              "code": {
+                "type": "string"
+              },
+              "title": {
+                "type": "string"
+              },
+              "credits": {
+                "type": "number"
+              },
+              "grade": {
+                "type": "string",
+                "x-selectiveDisclosure": true
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

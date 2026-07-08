@@ -1,0 +1,68 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.igrant.io/education/presentation-request.schema.json",
+  "title": "EducationPresentationRequest",
+  "type": "object",
+  "required": [
+    "purpose",
+    "dcqlQuery"
+  ],
+  "properties": {
+    "purpose": {
+      "type": "string"
+    },
+    "dcqlQuery": {
+      "type": "object",
+      "required": [
+        "credentials"
+      ],
+      "properties": {
+        "credentials": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "id",
+              "format",
+              "meta"
+            ],
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "format": {
+                "type": "string",
+                "const": "dc+sd-jwt"
+              },
+              "meta": {
+                "type": "object",
+                "properties": {
+                  "vct_values": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                }
+              },
+              "claims": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "path": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
