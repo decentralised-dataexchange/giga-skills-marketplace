@@ -12,3 +12,9 @@
 .idea/
 .claude/
 CLAUDE.md
+
+# Deployment: the Helm chart IS tracked (deploy/helm/) so operators can deploy.
+# Only real secret values and local overrides are ignored.
+deploy/**/values-secret.yaml
+deploy/**/*.local.yaml
+deploy/**/*.secret.yaml

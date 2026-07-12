@@ -1,0 +1,65 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.web.name }}
+  labels:
+    app: {{ .Values.web.name }}
+spec:
+  replicas: {{ .Values.web.replicas }}
+  selector:
+    matchLabels:
+      app: {{ .Values.web.name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.web.name }}
+    spec:
+      containers:
+        - name: web
+          image: {{ .Values.image.registry }}/{{ .Values.web.name }}:{{ .Values.image.tag }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.web.port }}
+          env:
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: giga-secrets
+                  key: DATABASE_URL
+            - name: MARKETPLACE_INTERNAL_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: giga-secrets
+                  key: MARKETPLACE_INTERNAL_TOKEN
+            - name: MARKETPLACE_API_URL
+              value: "http://{{ .Values.marketplace.name }}:{{ .Values.marketplace.port }}"
+          readinessProbe:
+            httpGet:
+              path: /
+              port: {{ .Values.web.port }}
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            failureThreshold: 6
+          livenessProbe:
+            httpGet:
+              path: /
+              port: {{ .Values.web.port }}
+            initialDelaySeconds: 40
+            periodSeconds: 20
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              memory: 768Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.web.name }}
+spec:
+  selector:
+    app: {{ .Values.web.name }}
+  ports:
+    - port: 80
+      targetPort: {{ .Values.web.port }}

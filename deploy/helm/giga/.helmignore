@@ -1,0 +1,6 @@
+# Patterns to ignore when packaging the chart.
+values-secret.yaml
+*.local.yaml
+*.secret.yaml
+.DS_Store
+*.tmp

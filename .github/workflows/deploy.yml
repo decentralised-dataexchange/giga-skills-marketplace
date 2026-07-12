@@ -1,0 +1,91 @@
+name: Deploy to GKE
+
+# Builds both images and rolls out the Helm release on every merge to main.
+# Authenticates to GCP with Workload Identity Federation (no long-lived keys):
+# the github-pool provider `ai-integrator` lets this repo impersonate the
+# ddx-github service account. Secrets are injected from GitHub Actions secrets.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# Never run two deploys against the cluster at once.
+concurrency:
+  group: deploy-giga
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  id-token: write   # required for WIF
+
+env:
+  PROJECT_ID: jenkins-189019
+  REGISTRY: eu.gcr.io/jenkins-189019
+  CLUSTER: igrant-cluster
+  CLUSTER_LOCATION: europe-west4-c
+  NAMESPACE: giga
+  WIF_PROVIDER: projects/872246932852/locations/global/workloadIdentityPools/github-pool/providers/ai-integrator
+  DEPLOY_SA: ddx-github@jenkins-189019.iam.gserviceaccount.com
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Resolve image tag
+        id: vars
+        run: echo "tag=${GITHUB_SHA::12}" >> "$GITHUB_OUTPUT"
+
+      - name: Authenticate to Google Cloud (WIF)
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ env.WIF_PROVIDER }}
+          service_account: ${{ env.DEPLOY_SA }}
+
+      - name: Set up gcloud
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Configure Docker for Container Registry
+        run: gcloud auth configure-docker eu.gcr.io --quiet
+
+      - name: Build & push giga-web
+        run: |
+          docker build \
+            -t "$REGISTRY/giga-web:${{ steps.vars.outputs.tag }}" \
+            -t "$REGISTRY/giga-web:latest" \
+            -f web/Dockerfile web
+          docker push "$REGISTRY/giga-web:${{ steps.vars.outputs.tag }}"
+          docker push "$REGISTRY/giga-web:latest"
+
+      - name: Build & push giga-marketplace
+        run: |
+          docker build \
+            -t "$REGISTRY/giga-marketplace:${{ steps.vars.outputs.tag }}" \
+            -t "$REGISTRY/giga-marketplace:latest" \
+            -f services/marketplace/Dockerfile services/marketplace
+          docker push "$REGISTRY/giga-marketplace:${{ steps.vars.outputs.tag }}"
+          docker push "$REGISTRY/giga-marketplace:latest"
+
+      - name: Get GKE credentials
+        uses: google-github-actions/get-gke-credentials@v2
+        with:
+          cluster_name: ${{ env.CLUSTER }}
+          location: ${{ env.CLUSTER_LOCATION }}
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v4
+
+      - name: Deploy with Helm
+        run: |
+          helm upgrade --install giga ./deploy/helm/giga \
+            --namespace "$NAMESPACE" --create-namespace \
+            --set image.tag=${{ steps.vars.outputs.tag }} \
+            --set postgres.password="$POSTGRES_PASSWORD" \
+            --set marketplace.internalToken="$MARKETPLACE_INTERNAL_TOKEN" \
+            --wait --timeout 6m
+          kubectl -n "$NAMESPACE" rollout status deploy/giga-web --timeout=5m
+        env:
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          MARKETPLACE_INTERNAL_TOKEN: ${{ secrets.MARKETPLACE_INTERNAL_TOKEN }}

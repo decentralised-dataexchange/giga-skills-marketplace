@@ -1,0 +1,39 @@
+# Default values for the Giga Skills Marketplace chart.
+# Secrets (postgres.password, marketplace.internalToken) are intentionally blank
+# here so this file is safe to commit. Supply them at deploy time via either:
+#   helm upgrade ... -f values-secret.yaml            (gitignored local file)
+#   helm upgrade ... --set postgres.password=... --set marketplace.internalToken=...
+# External operators should also override `domain` and `image.registry`.
+
+domain: giga.igrant.io
+
+image:
+  # Registry hosting giga-web / giga-marketplace images. Override for your own registry.
+  registry: eu.gcr.io/jenkins-189019
+  tag: "latest"
+  pullPolicy: IfNotPresent
+
+web:
+  name: giga-web
+  port: 4820
+  replicas: 1
+
+marketplace:
+  name: giga-marketplace
+  port: 4830
+  replicas: 1
+  internalToken: ""   # REQUIRED — shared secret between web and marketplace services
+
+postgres:
+  name: giga-postgres
+  image: postgres:16-alpine
+  db: govbuild
+  user: govbuild
+  password: ""        # REQUIRED — database password
+  storage: 5Gi
+  # storageClassName: ""   # unset -> cluster default (GKE standard-rwo)
+
+ingress:
+  className: nginx
+  clusterIssuer: letsencrypt-prod
+  tlsSecret: giga-tls
