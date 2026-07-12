@@ -23,7 +23,9 @@ const entry = (row) => {
   return {
     id: row.id,
     slug: row.slug,
+    type: row.type ?? "skill",
     status: row.status,
+    official: row.official ?? false,
     installs: row.installs,
     org: { id: row.org_id, name: row.org_name, website: row.org_website },
     version: row.version,
@@ -31,23 +33,39 @@ const entry = (row) => {
     description: manifest.description ?? "",
     license: manifest.license ?? "",
     protocols: manifest.targets?.protocols ?? [],
+    journeyCount: Array.isArray(manifest.journeys) ? manifest.journeys.length : 0,
+    usesSkills: manifest.uses_skills ?? [],
   };
 };
 
 async function listSkills(url) {
   const q = url.searchParams.get("q")?.toLowerCase().trim() ?? "";
+  const type = url.searchParams.get("type");
+  const page = Math.max(1, Number(url.searchParams.get("page")) || 1);
+  const pageSize = Math.min(48, Math.max(1, Number(url.searchParams.get("pageSize")) || 12));
+  const offset = (page - 1) * pageSize;
+  const like = `%${q}%`;
+  const typeCond = type === "skill" || type === "usecase" ? sql`AND s.type = ${type}` : sql``;
+  const qCond = q
+    ? sql`AND (lower(s.slug) LIKE ${like} OR lower(o.name) LIKE ${like} OR lower(coalesce(v.manifest->>'description','')) LIKE ${like})`
+    : sql``;
   const rows = await sql`
-    SELECT s.id, s.slug, s.status, s.installs,
+    SELECT s.id, s.slug, s.type, s.status, s.official, s.installs,
            o.id AS org_id, o.name AS org_name, o.website AS org_website,
            v.version, v.manifest, v.decided_at
     FROM skills s
     JOIN orgs o ON o.id = s.org_id
     JOIN versions v ON v.id = s.published_version_id
-    WHERE s.status = 'published' ORDER BY s.slug`;
-  const skills = rows.map(entry).filter((skill) => !q ||
-    [skill.slug, skill.description, skill.org.name, skill.protocols.join(" ")]
-      .join(" ").toLowerCase().includes(q));
-  return { skills };
+    WHERE s.status = 'published' ${typeCond} ${qCond}
+    ORDER BY v.decided_at DESC NULLS LAST, s.id DESC
+    LIMIT ${pageSize} OFFSET ${offset}`;
+  const [{ n: total }] = await sql`
+    SELECT count(*)::int AS n
+    FROM skills s
+    JOIN orgs o ON o.id = s.org_id
+    JOIN versions v ON v.id = s.published_version_id
+    WHERE s.status = 'published' ${typeCond} ${qCond}`;
+  return { skills: rows.map(entry), total, page, pageSize };
 }
 
 async function getSkill(slug) {
@@ -62,7 +80,7 @@ async function getSkill(slug) {
     SELECT id, version, status, decided_at FROM versions
     WHERE skill_id = ${skill.id} AND status IN ('published','superseded') ORDER BY id DESC`;
   return {
-    skill: { id: skill.id, slug: skill.slug, installs: skill.installs },
+    skill: { id: skill.id, slug: skill.slug, type: skill.type ?? "skill", installs: skill.installs, official: skill.official ?? false },
     org: { name: skill.org_name, website: skill.org_website, description: skill.org_description,
       status: skill.org_status, contact: skill.org_contact },
     version: { id: version.id, version: version.version, manifest: version.manifest,

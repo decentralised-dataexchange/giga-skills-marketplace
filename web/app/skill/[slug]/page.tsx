@@ -3,22 +3,73 @@
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import { api, fmtDate } from "@/lib/client";
+import { api, fmtDate, timeAgo } from "@/lib/client";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { CheckList, type Check } from "@/components/check-list";
-import { StatusBadge } from "@/components/status-badge";
+import { CodeViewer } from "@/components/code-viewer";
+import { AgentLogo } from "@/components/agent-logo";
+import { OfficialBadge } from "@/components/official-badge";
+import { StandardPill } from "@/components/standard-pill";
+import { Tip } from "@/components/tip";
 import { cn } from "@/lib/utils";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 function installSnippets(slug: string): [string, string][] {
   return [
-    ["opencode", `# opencode.json\n{ "instructions": ["./skills/${slug}/SKILL.md"] }`],
+    ["Claude Code", `# .claude/skills/${slug}/\nDrop the bundle in and reference ./skills/${slug}/SKILL.md`],
     ["Codex CLI", `# AGENTS.md\nSee ./skills/${slug}/SKILL.md and the openapi/ specs it references.`],
-    ["App Builder (this site)", `Open the App Builder and type /${slug} in your message.`],
+    ["opencode", `# opencode.json\n{ "instructions": ["./skills/${slug}/SKILL.md"] }`],
+    ["Cursor", `# .cursor/rules\nReference ./skills/${slug}/SKILL.md and the openapi/ specs.`],
+    ["Pi", `# pi config\nAdd ./skills/${slug}/SKILL.md to the agent's skill paths.`],
   ];
+}
+
+/* Small GitHub-style glyphs (currentColor). */
+const Icon = {
+  Repo: (p: any) => (
+    <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true" {...p}>
+      <path d="M2 2.5A2.5 2.5 0 0 1 4.5 0h8.75a.75.75 0 0 1 .75.75v12.5a.75.75 0 0 1-.75.75h-2.5a.75.75 0 0 1 0-1.5h1.75v-2h-8a1 1 0 0 0-.714 1.7.75.75 0 1 1-1.072 1.05A2.495 2.495 0 0 1 2 11.5Zm10.5-1h-8a1 1 0 0 0-1 1v6.708A2.486 2.486 0 0 1 4.5 9h8ZM5 12.25a.25.25 0 0 1 .25-.25h3.5a.25.25 0 0 1 .25.25v3.25a.25.25 0 0 1-.4.2l-1.45-1.087a.249.249 0 0 0-.3 0L5.4 15.7a.25.25 0 0 1-.4-.2Z" />
+    </svg>
+  ),
+  File: (p: any) => (
+    <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true" {...p}>
+      <path d="M2 1.75C2 .784 2.784 0 3.75 0h6.586c.464 0 .909.184 1.237.513l2.914 2.914c.329.328.513.773.513 1.237v9.586A1.75 1.75 0 0 1 13.25 16h-9.5A1.75 1.75 0 0 1 2 14.25Zm1.75-.25a.25.25 0 0 0-.25.25v12.5c0 .138.112.25.25.25h9.5a.25.25 0 0 0 .25-.25V6h-2.75A1.75 1.75 0 0 1 9 4.25V1.5Zm6.75.062V4.25c0 .138.112.25.25.25h2.688l-.011-.013-2.914-2.914-.013-.011Z" />
+    </svg>
+  ),
+  Folder: (p: any) => (
+    <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true" {...p}>
+      <path d="M0 2.75C0 1.784.784 1 1.75 1H5c.55 0 1.07.26 1.4.7l.9 1.2a.25.25 0 0 0 .2.1h6.75c.966 0 1.75.784 1.75 1.75v8.5A1.75 1.75 0 0 1 14.25 15H1.75A1.75 1.75 0 0 1 0 13.25Z" />
+    </svg>
+  ),
+  Star: (p: any) => (
+    <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true" {...p}>
+      <path d="M8 .25a.75.75 0 0 1 .673.418l1.882 3.815 4.21.612a.75.75 0 0 1 .416 1.279l-3.046 2.97.719 4.192a.751.751 0 0 1-1.088.791L8 12.347l-3.766 1.98a.75.75 0 0 1-1.088-.79l.72-4.194L.818 6.374a.75.75 0 0 1 .416-1.28l4.21-.611L7.327.668A.75.75 0 0 1 8 .25Z" />
+    </svg>
+  ),
+  Law: (p: any) => (
+    <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true" {...p}>
+      <path d="M8.75.75V2h.985c.304 0 .603.08.867.231l1.29.736c.038.022.08.033.124.033h2.234a.75.75 0 0 1 0 1.5h-.427l2.111 4.692a.75.75 0 0 1-.154.838l-.53-.53.529.531-.001.002-.002.002-.006.006-.006.005-.01.01-.045.04c-.21.176-.441.327-.686.45C14.556 10.78 13.88 11 13 11a3.756 3.756 0 0 1-1.92-.474 3.775 3.775 0 0 1-.686-.45l-.045-.04-.016-.015-.006-.006-.004-.004v-.001a.75.75 0 0 1-.154-.838L12.279 4.5H12.11a1.755 1.755 0 0 1-.124.033l-1.29.736a1.75 1.75 0 0 1-.867.231H8.75V13h2.5a.75.75 0 0 1 0 1.5h-6.5a.75.75 0 0 1 0-1.5h2.5V5.5H5.264a1.75 1.75 0 0 1-.867-.231l-1.29-.736A.25.25 0 0 0 2.984 4.5h-.17l2.112 4.692a.75.75 0 0 1-.154.838l-.53-.53.529.531-.001.002-.002.002-.006.006-.016.015-.045.04c-.21.176-.441.327-.686.45C3.556 10.78 2.88 11 2 11a3.756 3.756 0 0 1-1.92-.474 3.775 3.775 0 0 1-.686-.45l-.045-.04-.016-.015-.006-.006-.004-.004v-.001a.75.75 0 0 1-.154-.838L1.28 4.5H.75a.75.75 0 0 1 0-1.5h2.234a.249.249 0 0 0 .125-.033l1.288-.737c.265-.15.564-.23.868-.23h.985V.75a.75.75 0 0 1 1.5 0Z" />
+    </svg>
+  ),
+  Tag: (p: any) => (
+    <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true" {...p}>
+      <path d="M1 7.775V2.75C1 1.784 1.784 1 2.75 1h5.025c.464 0 .91.184 1.238.513l6.25 6.25a1.75 1.75 0 0 1 0 2.474l-5.026 5.026a1.75 1.75 0 0 1-2.474 0l-6.25-6.25A1.752 1.752 0 0 1 1 7.775Zm3.5-1.775a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z" />
+    </svg>
+  ),
+  Clock: (p: any) => (
+    <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true" {...p}>
+      <path d="M8 0a8 8 0 1 1 0 16A8 8 0 0 1 8 0ZM1.5 8a6.5 6.5 0 1 0 13 0 6.5 6.5 0 0 0-13 0Zm7-3.25v2.992l2.028.812a.75.75 0 0 1-.557 1.392l-2.5-1A.751.751 0 0 1 7 8.25v-3.5a.75.75 0 0 1 1.5 0Z" />
+    </svg>
+  ),
+};
+
+function SidebarSection({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <section className="border-t border-border pt-4">
+      <h2 className="text-sm font-semibold text-ink">{title}</h2>
+      <div className="mt-2">{children}</div>
+    </section>
+  );
 }
 
 export default function SkillPage() {
@@ -36,110 +87,201 @@ export default function SkillPage() {
   if (error) return <main className="mx-auto max-w-3xl p-10 text-muted-foreground">{error}</main>;
   if (!detail) return <main className="mx-auto max-w-3xl p-10 text-muted-foreground">Loading...</main>;
 
-  const { skill, org, version, history } = detail;
+  const { skill, org, version } = detail;
   const manifest = version.manifest ?? {};
-  const file = version.files.find((f: any) => f.path === activeFile) ?? version.files[0];
+  const files: any[] = version.files ?? [];
+  const file = files.find((f: any) => f.path === activeFile) ?? files[0];
   const deps = [...(manifest.depends_on?.schemas ?? []), ...(manifest.depends_on?.rulebooks ?? [])];
+  const protocols: string[] = manifest.targets?.protocols ?? [];
+  const lineCount = (file?.content ?? "").replace(/\n$/, "").split("\n").length;
+  const license = manifest.license ?? "unlicensed";
+  const checks: any[] = version.checks ?? [];
+  const checksPassed = checks.filter((c: any) => c.status === "pass").length;
 
   return (
-    <main className="mx-auto w-full max-w-6xl px-5 pb-20 pt-8">
-      <Link href="/" className="text-sm text-blue-300 hover:underline">← Marketplace</Link>
+    <main className="mx-auto w-full max-w-[1536px] px-5 pb-20 pt-8">
+      <Link href="/" className="text-sm font-semibold text-brand hover:underline">
+        ← Marketplace
+      </Link>
 
-      <div className="mt-3 flex flex-wrap items-start justify-between gap-4">
-        <div className="max-w-2xl">
-          <h1 className="text-2xl font-semibold tracking-tight">{skill.slug}</h1>
-          <p className="mt-1 text-muted-foreground">{manifest.description}</p>
-          <div className="mt-3 flex flex-wrap gap-1.5">
-            <StatusBadge status="published" />
-            <Badge variant="secondary" className="tabular-nums">v{version.version}</Badge>
-            <Badge variant="secondary">{manifest.license ?? "unlicensed"}</Badge>
-            {(manifest.targets?.protocols ?? []).map((p: string) => (
-              <Badge key={p} className="border-0 bg-blue-500/15 text-blue-300">{p}</Badge>
+      {/* Repository header */}
+      <div className="mt-3 border-b border-border pb-5">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div className="flex min-w-0 items-center gap-2">
+            <Icon.Repo className="size-6 shrink-0 text-brand" />
+            <h1 className="flex flex-wrap items-center gap-x-1.5 text-xl font-normal sm:text-2xl">
+              <span className="font-semibold text-brand">{org.name}</span>
+              <span className="text-muted-foreground">/</span>
+              <span className="font-bold text-ink">{skill.slug}</span>
+              <OfficialBadge official={!!skill.official} className="ml-1" />
+            </h1>
+          </div>
+          <a
+            href="#install"
+            className="inline-flex items-center gap-2 rounded-[10px] bg-brand px-6 py-3 text-base font-semibold text-primary-foreground transition-colors hover:bg-brand-dark"
+          >
+            Install
+          </a>
+        </div>
+
+        <p className="mt-3 max-w-3xl text-muted-foreground">{manifest.description}</p>
+
+        {protocols.length > 0 && (
+          <div className="mt-3 flex flex-wrap gap-2">
+            {protocols.map((p) => (
+              <StandardPill key={p} code={p} />
             ))}
           </div>
-        </div>
-        <div className="text-right">
-          <Button nativeButton={false} render={<Link href={`/builder?install=${skill.slug}`} />}>Use in App Builder</Button>
-          <p className="mt-2 text-xs text-muted-foreground tabular-nums">
-            {skill.installs} installs · published {fmtDate(version.publishedAt)}
-          </p>
+        )}
+
+        <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-muted-foreground">
+          <Tip content="Skill licence">
+            <span className="flex items-center gap-1.5">
+              <Icon.Law className="size-4" />
+              {license}
+            </span>
+          </Tip>
+          <Tip content={`Published ${fmtDate(version.publishedAt)}`}>
+            <span className="flex items-center gap-1.5">
+              <Icon.Clock className="size-4" />
+              Published {timeAgo(version.publishedAt)}
+            </span>
+          </Tip>
         </div>
       </div>
 
-      <div className="mt-6 grid gap-4 lg:grid-cols-[2fr_1fr]">
-        <div className="space-y-4">
-          <Card className="gap-3 p-5">
-            <h2 className="font-medium">Bundle contents</h2>
-            <div className="flex flex-wrap gap-1.5">
-              {version.files.map((f: any) => (
-                <button
-                  key={f.path}
-                  onClick={() => setActiveFile(f.path)}
-                  className={cn(
-                    "rounded-md px-2.5 py-1.5 font-mono text-xs transition-colors",
-                    f.path === (file?.path ?? "") ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground hover:text-foreground",
-                  )}
-                >
-                  {f.path}
-                </button>
+      {/* Body: files + About sidebar */}
+      <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
+        <div className="min-w-0 space-y-4">
+          {/* File list */}
+          <div className="overflow-hidden rounded-xl border border-border">
+            <div className="flex items-center justify-between gap-3 border-b border-border bg-muted/60 px-4 py-2.5 text-sm">
+              <div className="flex min-w-0 items-center gap-2">
+                <span className="font-medium text-ink">{org.name}</span>
+                <span className="truncate text-muted-foreground">Published {timeAgo(version.publishedAt)}</span>
+              </div>
+              <span className="shrink-0 text-muted-foreground">{files.length} files</span>
+            </div>
+            <ul className="divide-y divide-border">
+              {files.map((f: any) => (
+                <li key={f.path}>
+                  <button
+                    type="button"
+                    onClick={() => setActiveFile(f.path)}
+                    aria-current={f.path === file?.path ? "true" : undefined}
+                    className={cn(
+                      "flex w-full items-center gap-2.5 px-4 py-2 text-left transition-colors hover:bg-accent/50",
+                      f.path === file?.path && "bg-accent/70",
+                    )}
+                  >
+                    {f.path.includes("/") ? (
+                      <Icon.Folder className="size-4 shrink-0 text-brand" />
+                    ) : (
+                      <Icon.File className="size-4 shrink-0 text-muted-foreground" />
+                    )}
+                    <span className="truncate font-mono text-sm text-ink">{f.path}</span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Selected file viewer */}
+          <div className="overflow-hidden rounded-xl border border-border">
+            <div className="flex items-center justify-between gap-3 border-b border-border bg-muted/60 px-4 py-2.5">
+              <span className="flex items-center gap-2 truncate font-mono text-sm text-ink">
+                <Icon.File className="size-4 shrink-0 text-muted-foreground" />
+                {file?.path}
+              </span>
+              <span className="shrink-0 tabular-nums text-xs text-muted-foreground">{lineCount} lines</span>
+            </div>
+            <CodeViewer content={file?.content ?? ""} bare />
+          </div>
+
+          {/* Install */}
+          <div id="install" className="scroll-mt-20 overflow-hidden rounded-xl border border-border">
+            <div className="border-b border-border bg-muted/60 px-4 py-2.5">
+              <h2 className="text-sm font-semibold text-ink">Install into your agent</h2>
+            </div>
+            <div className="space-y-3 p-4">
+              <p className="text-sm text-muted-foreground">
+                Agent-agnostic and model-agnostic: the same bundle installs on different agents via a thin,
+                per-agent step; its contents do not change.
+              </p>
+              {installSnippets(skill.slug).map(([agent, snippet]) => (
+                <div key={agent}>
+                  <h3 className="mb-1 flex items-center gap-2 text-sm font-medium">
+                    <AgentLogo name={agent} className="size-5" />
+                    {agent}
+                  </h3>
+                  <CodeViewer content={snippet} maxHeightClass="max-h-40" />
+                </div>
               ))}
             </div>
-            <pre className="max-h-[520px] overflow-auto rounded-lg border border-border bg-black/30 p-4 font-mono text-xs leading-relaxed">
-              {file?.content}
-            </pre>
-          </Card>
-          <Card className="gap-3 p-5">
-            <h2 className="font-medium">Install into your agent</h2>
-            <p className="text-sm text-muted-foreground">
-              The same bundle installs on different agents via a thin, per-agent step; its contents do not change.
-            </p>
-            {installSnippets(skill.slug).map(([agent, snippet]) => (
-              <div key={agent}>
-                <h3 className="mb-1 text-sm font-medium">{agent}</h3>
-                <pre className="overflow-auto rounded-lg border border-border bg-black/30 p-3 font-mono text-xs">{snippet}</pre>
-              </div>
-            ))}
-          </Card>
+          </div>
         </div>
 
-        <div className="space-y-4">
-          <Card className="gap-2 p-5">
-            <h2 className="font-medium">Provider</h2>
+        {/* About sidebar */}
+        <aside className="space-y-4">
+          <section>
+            <h2 className="text-sm font-semibold text-ink">About</h2>
+            <p className="mt-2 text-sm text-muted-foreground">{manifest.description}</p>
+            {protocols.length > 0 && (
+              <div className="mt-3 flex flex-wrap gap-1.5">
+                {protocols.map((p) => (
+                  <StandardPill key={p} code={p} className="px-2.5 py-0.5" />
+                ))}
+              </div>
+            )}
+            <ul className="mt-4 space-y-2 text-sm text-muted-foreground">
+              <li className="flex items-center gap-2">
+                <Icon.Law className="size-4" /> {license}
+              </li>
+              <li className="flex items-center gap-2">
+                <Icon.Clock className="size-4" /> Published {timeAgo(version.publishedAt)}
+              </li>
+            </ul>
+          </section>
+
+          <SidebarSection title="Provider">
             <p className="text-sm">
-              <b>{org.name}</b>{" "}
-              {org.status === "approved" && <Badge className="ml-1 border-0 bg-emerald-500/15 text-emerald-400">Verified</Badge>}
+              <b className="text-ink">{org.name}</b>{" "}
+              {org.status === "approved" && (
+                <Badge className="ml-1 border-0 bg-emerald-100 text-emerald-700">Verified</Badge>
+              )}
             </p>
-            <p className="text-sm text-muted-foreground">{org.description}</p>
+            <p className="mt-1 text-sm text-muted-foreground">{org.description}</p>
             {org.website && (
-              <a href={org.website} target="_blank" rel="noopener" className="text-sm text-blue-300 hover:underline">
+              <a
+                href={org.website}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-1 inline-block text-sm font-semibold text-brand hover:underline"
+              >
                 {org.website}
               </a>
             )}
-          </Card>
-          <Card className="gap-2 p-5">
-            <h2 className="font-medium">Review evidence</h2>
-            <p className="text-xs text-muted-foreground">
-              Automated checks run at submission; a human reviewer approved this version before publication.
+          </SidebarSection>
+
+          <SidebarSection title="Assurance">
+            <p className="text-sm text-muted-foreground">
+              Automated checks passed and a human reviewer approved this version before publication.
             </p>
-            <CheckList checks={version.checks as Check[]} />
-          </Card>
-          <Card className="gap-2 p-5">
-            <h2 className="font-medium">Version history</h2>
-            {history.map((h: any) => (
-              <div key={h.id} className="flex items-center justify-between text-sm">
-                <span className="tabular-nums">v{h.version}</span>
-                <StatusBadge status={h.status} />
-                <span className="text-xs text-muted-foreground">{fmtDate(h.publishedAt)}</span>
-              </div>
-            ))}
-          </Card>
-          <Card className="gap-2 p-5">
-            <h2 className="font-medium">Depends on</h2>
+            <p className="mt-2 text-sm text-ink">
+              <b className="tabular-nums">{checksPassed}</b> of <span className="tabular-nums">{checks.length}</span>{" "}
+              automated checks passed
+            </p>
+            <Link href={`/skill/${skill.slug}/review`} className="mt-2 inline-block text-sm font-semibold text-brand hover:underline">
+              View review trail →
+            </Link>
+          </SidebarSection>
+
+          <SidebarSection title="Depends on">
             <div className="font-mono text-xs text-muted-foreground">
               {deps.length ? deps.map((d: string) => <div key={d} className="py-0.5">{d}</div>) : "none declared"}
             </div>
-          </Card>
-        </div>
+          </SidebarSection>
+        </aside>
       </div>
     </main>
   );

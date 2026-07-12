@@ -12,7 +12,8 @@ export interface User {
   name: string;
   role: Role;
   status: string;
-  settings: { openrouterKey?: string; model?: string };
+  createdAt: string;
+  settings: { openrouterKey?: string; model?: string; avatar?: string | null };
 }
 
 export function hashPassword(password: string, salt = randomBytes(16).toString("hex")): string {
@@ -34,7 +35,7 @@ export async function userFromRequest(req: Request): Promise<User | null> {
   const token = req.headers.get("authorization")?.replace(/^Bearer /, "");
   if (!token) return null;
   const [row] = await sql`
-    SELECT u.id, u.email, u.name, u.role, u.status, u.settings
+    SELECT u.id, u.email, u.name, u.role, u.status, u.settings, u.created_at AS "createdAt"
     FROM tokens t JOIN users u ON u.id = t.user_id WHERE t.token = ${token}`;
   return row && row.status === "active" ? (row as unknown as User) : null;
 }

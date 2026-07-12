@@ -18,10 +18,11 @@ export const POST = route(async ({ user, body }) => {
   const { checks, passed, manifest } = runChecks(files);
   check(manifest?.name, 400, 'SKILL.md manifest with a "name" field is required');
   const slug = String(manifest.name);
+  const type = manifest.type === "usecase" ? "usecase" : "skill";
 
   let [skill] = await sql`SELECT * FROM skills WHERE slug = ${slug}`;
-  check(!skill || skill.org_id === org.id, 409, `Skill name "${slug}" is owned by another organisation`);
-  if (!skill) [skill] = await sql`INSERT INTO skills (slug, org_id) VALUES (${slug}, ${org.id}) RETURNING *`;
+  check(!skill || skill.org_id === org.id, 409, `Name "${slug}" is owned by another organisation`);
+  if (!skill) [skill] = await sql`INSERT INTO skills (slug, org_id, type) VALUES (${slug}, ${org.id}, ${type}) RETURNING *`;
 
   const status = passed ? "submitted" : "checks_failed";
   const [version] = await sql`

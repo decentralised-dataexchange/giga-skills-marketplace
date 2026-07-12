@@ -23,10 +23,25 @@ export const skillView = (r: any) => ({
   id: r.id,
   slug: r.slug,
   orgId: r.org_id,
+  type: r.type ?? "skill",
   status: r.status,
+  official: r.official ?? false,
   publishedVersionId: r.published_version_id,
   installs: r.installs,
   createdAt: r.created_at,
+});
+
+export const applicationView = (r: any) => ({
+  id: r.id,
+  title: r.title,
+  description: r.description ?? "",
+  videoUrl: r.video_url ?? null,
+  repoUrl: r.repo_url ?? null,
+  skills: r.skills ?? [],
+  usecases: r.usecases ?? [],
+  status: r.status,
+  createdAt: r.created_at,
+  developer: { name: r.developer_name ?? "Developer" },
 });
 
 export function versionView(r: any, withFiles = false) {
@@ -55,7 +70,8 @@ export const publicUser = (r: any) => ({
   name: r.name,
   role: r.role,
   status: r.status,
-  createdAt: r.created_at,
+  avatar: r.settings?.avatar ?? null,
+  createdAt: r.created_at ?? r.createdAt ?? null,
 });
 
 export function chatView(r: any, full = false) {
@@ -79,7 +95,9 @@ export function marketplaceEntry(r: any) {
   return {
     id: r.id,
     slug: r.slug,
+    type: r.type ?? "skill",
     status: r.status,
+    official: r.official ?? false,
     installs: r.installs,
     org: { id: r.org_id, name: r.org_name, website: r.org_website },
     version: r.version,
@@ -87,5 +105,7 @@ export function marketplaceEntry(r: any) {
     description: manifest.description ?? "",
     license: manifest.license ?? "",
     protocols: manifest.targets?.protocols ?? [],
+    journeyCount: Array.isArray(manifest.journeys) ? manifest.journeys.length : 0,
+    usesSkills: manifest.uses_skills ?? [],
   };
 }

@@ -8,7 +8,7 @@ export interface Check {
 }
 
 const ICON = { pass: "✓", warn: "!", fail: "✕" } as const;
-const COLOR = { pass: "text-emerald-400", warn: "text-amber-400", fail: "text-red-400" } as const;
+const COLOR = { pass: "text-emerald-600", warn: "text-amber-600", fail: "text-red-600" } as const;
 
 export function CheckList({ checks }: { checks: Check[] }) {
   return (

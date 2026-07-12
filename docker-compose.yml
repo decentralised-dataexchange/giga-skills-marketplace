@@ -27,7 +27,7 @@ services:
     ports:
       - "4830:4830"
 
-  integration-assistant:
+  web:
     build: ./web
     environment:
       DATABASE_URL: postgresql://govbuild:govbuild-dev@postgres:5432/govbuild

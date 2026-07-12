@@ -6,7 +6,7 @@ import { skillView, versionView } from "@/lib/views";
 const STATUS = { approve: "published", reject: "rejected", request_changes: "changes_requested" } as const;
 
 export const POST = route<{ id: string }>(async ({ user, params, body }) => {
-  const { decision, notes } = await body<{ decision: keyof typeof STATUS; notes?: string }>();
+  const { decision, notes, official } = await body<{ decision: keyof typeof STATUS; notes?: string; official?: boolean }>();
   check(decision in STATUS, 400, "decision must be approve, reject or request_changes");
   const [current] = await sql`SELECT * FROM versions WHERE id = ${params.id}`;
   check(current, 404, "Version not found");
@@ -27,12 +27,14 @@ export const POST = route<{ id: string }>(async ({ user, params, body }) => {
     if (skill.published_version_id) {
       await sql`UPDATE versions SET status = 'superseded' WHERE id = ${skill.published_version_id}`;
     }
-    await sql`UPDATE skills SET status = 'published', published_version_id = ${current.id} WHERE id = ${skill.id}`;
+    await sql`
+      UPDATE skills SET status = 'published', published_version_id = ${current.id}, official = ${!!official}
+      WHERE id = ${skill.id}`;
   } else if (!skill.published_version_id) {
     await sql`UPDATE skills SET status = ${STATUS[decision]} WHERE id = ${skill.id}`;
   }
   await logEvent(`review.${decision}`, user!.id, { skillId: skill.id, versionId: current.id },
-    { slug: skill.slug, notes: version.review_notes });
+    { slug: skill.slug, notes: version.review_notes, ...(decision === "approve" ? { official: !!official } : {}) });
   const [updated] = await sql`SELECT * FROM skills WHERE id = ${skill.id}`;
   return { version: versionView(version), skill: skillView(updated) };
 }, { roles: GOVERNANCE_ROLES });

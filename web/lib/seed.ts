@@ -41,11 +41,16 @@ async function addOrg(org: {
   return row.id;
 }
 
-async function addSkill(orgId: number, bundle: string, submitterId: number, publish: boolean, reviewerId?: number) {
+async function addSkill(
+  orgId: number, bundle: string, submitterId: number, publish: boolean, reviewerId?: number, official = false,
+) {
   const files = readBundle(bundle);
   const { checks, passed, manifest } = runChecks(files);
   if (!manifest?.name) throw new Error(`Seed bundle ${bundle} has no manifest name`);
-  const [skill] = await sql`INSERT INTO skills (slug, org_id) VALUES (${manifest.name}, ${orgId}) RETURNING id`;
+  const type = manifest.type === "usecase" ? "usecase" : "skill";
+  const [skill] = await sql`
+    INSERT INTO skills (slug, org_id, type, official)
+    VALUES (${manifest.name}, ${orgId}, ${type}, ${official && publish}) RETURNING id`;
   const status = publish && passed ? "published" : passed ? "submitted" : "checks_failed";
   const notes = publish
     ? "Automated checks pass; manifest, OpenAPI surface, schemas and rulebooks reviewed against marketplace guidelines."
@@ -58,7 +63,19 @@ async function addSkill(orgId: number, bundle: string, submitterId: number, publ
     RETURNING id`;
   if (status === "published") {
     await sql`UPDATE skills SET status = 'published', published_version_id = ${version.id} WHERE id = ${skill.id}`;
+    await logEvent("review.approve", reviewerId ?? submitterId, { skillId: skill.id, versionId: version.id },
+      { slug: manifest.name, notes, official: official && publish });
   }
+}
+
+async function addApplication(app: {
+  developerId: number; title: string; description: string;
+  videoUrl: string | null; repoUrl: string | null; skills: string[]; usecases: string[];
+}): Promise<void> {
+  await sql`
+    INSERT INTO applications (developer_id, title, description, video_url, repo_url, skills, usecases)
+    VALUES (${app.developerId}, ${app.title}, ${app.description}, ${app.videoUrl}, ${app.repoUrl},
+            ${json(app.skills)}, ${json(app.usecases)})`;
 }
 
 export async function seedIfEmpty(): Promise<boolean> {
@@ -70,7 +87,7 @@ export async function seedIfEmpty(): Promise<boolean> {
   const igrant = await addUser("provider@igrant.io", "provider123", "iGrant.io Developer Relations", "provider");
   const govstack = await addUser("trust@govstack.test", "provider123", "GovStack Trust Services", "provider");
   const educhain = await addUser("labs@educhain.test", "provider123", "EduChain Labs", "provider");
-  await addUser("student@example.com", "student123", "Amina Okafor", "builder");
+  const student = await addUser("student@example.com", "student123", "Amina Okafor", "builder");
 
   const orgIgrant = await addOrg({
     name: "iGrant.io (LCubed AB)", website: "https://igrant.io",
@@ -90,9 +107,31 @@ export async function seedIfEmpty(): Promise<boolean> {
     contact: "labs@educhain.test", ownerId: educhain, status: "pending",
   });
 
-  await addSkill(orgIgrant, "igrantio-education-issuer", igrant, true, reviewer);
-  await addSkill(orgGovstack, "govstack-consent-bb", govstack, true, reviewer);
+  await addSkill(orgIgrant, "igrantio-education-issuer", igrant, true, reviewer); // community (vendor-published)
+  await addSkill(orgGovstack, "govstack-consent-bb", govstack, true, reviewer, true); // official (GovStack first-party)
   await addSkill(orgIgrant, "igrantio-education-verifier", igrant, false); // sits in the review queue
+
+  // A use-case template (journey-tagged prompt chain) composing the skills above.
+  await addSkill(orgGovstack, "national-learner-registry", govstack, true, reviewer, true);
+
+  await addApplication({
+    developerId: student,
+    title: "Sunrise University credential verifier",
+    description: "A single-page verifier that scans a learner's QR code and checks the diploma over OpenID4VP before enrolment. Built with an agent from the NLR use case.",
+    videoUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+    repoUrl: "https://github.com/example/sunrise-verifier",
+    skills: ["igrantio-education-verifier"],
+    usecases: ["national-learner-registry"],
+  });
+  await addApplication({
+    developerId: student,
+    title: "Ministry enrolment portal (prototype)",
+    description: "Learner registration and diploma issuance flow scaffolded from the education issuer and consent skills.",
+    videoUrl: "https://www.youtube.com/watch?v=aqz-KE-bpKQ",
+    repoUrl: null,
+    skills: ["igrantio-education-issuer", "govstack-consent-bb"],
+    usecases: ["national-learner-registry"],
+  });
 
   await logEvent("seed.completed", superadmin, null, { note: "Demo data seeded" });
   return true;

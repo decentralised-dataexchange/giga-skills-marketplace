@@ -7,9 +7,16 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-dm-sans);
+  --font-sans: var(--font-open-sans);
   --font-mono: var(--font-jb-mono);
-  --font-heading: var(--font-sans);
+  --font-heading: var(--font-manrope);
+  /* Giga (giga.global) brand tokens: Giga blue on white, near-black ink. */
+  --color-brand: #006aff;
+  --color-brand-dark: #0050d6;
+  --color-cyan: #277aff;
+  --color-cyan-tint: #eaf2ff;
+  --color-ink: #0a0a0a;
+  --color-footer: #0a0a0a;
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -49,38 +56,40 @@
 }
 
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
+  /* Giga look: white page, near-black ink, Giga-blue primary CTAs (10px radius),
+     Manrope type, light-blue accents. */
+  --background: #ffffff;
+  --foreground: #0a0a0a;
+  --card: #ffffff;
+  --card-foreground: #0a0a0a;
+  --popover: #ffffff;
+  --popover-foreground: #0a0a0a;
+  --primary: #006aff;
+  --primary-foreground: #ffffff;
+  --secondary: #eef2f7;
+  --secondary-foreground: #0f2a53;
+  --muted: #f2f5f9;
+  --muted-foreground: #4a5568;
+  --accent: #eaf2ff;
+  --accent-foreground: #0047d6;
+  --destructive: #d21c1c;
+  --border: #e6e9ee;
+  --input: #cbd5e1;
+  --ring: #006aff;
+  --chart-1: #006aff;
+  --chart-2: #277aff;
+  --chart-3: #0050d6;
+  --chart-4: #4c8bff;
+  --chart-5: #0a1f52;
   --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  --sidebar: #ffffff;
+  --sidebar-foreground: #0a0a0a;
+  --sidebar-primary: #006aff;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #eef2f7;
+  --sidebar-accent-foreground: #0f2a53;
+  --sidebar-border: #e6e9ee;
+  --sidebar-ring: #006aff;
 }
 
 .dark {
@@ -127,4 +136,62 @@
   html {
     @apply font-sans;
   }
+  /* Giga type: Manrope for headings, Open Sans (font-sans) for body. */
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-manrope), var(--font-open-sans), sans-serif;
+  }
+  /* WCAG 2.4.7: a clearly visible keyboard focus indicator on interactive
+     elements that do not already draw their own focus ring. */
+  a:focus-visible,
+  button:focus-visible,
+  [role="button"]:focus-visible,
+  summary:focus-visible {
+    outline: 3px solid var(--ring);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+}
+
+/* Rendered-markdown preview (MarkdownEditor / message content). */
+.markdown {
+  color: var(--foreground);
+  line-height: 1.55;
+}
+.markdown > :first-child { margin-top: 0; }
+.markdown > :last-child { margin-bottom: 0; }
+.markdown h1, .markdown h2, .markdown h3, .markdown h4 { font-weight: 700; margin: 0.9em 0 0.4em; line-height: 1.25; }
+.markdown h1 { font-size: 1.35em; }
+.markdown h2 { font-size: 1.2em; }
+.markdown h3 { font-size: 1.05em; }
+.markdown p { margin: 0.5em 0; }
+.markdown a { color: var(--color-brand); text-decoration: underline; }
+.markdown ul, .markdown ol { margin: 0.5em 0; padding-left: 1.4em; }
+.markdown ul { list-style: disc; }
+.markdown ol { list-style: decimal; }
+.markdown li { margin: 0.2em 0; }
+.markdown code { font-family: var(--font-mono), monospace; font-size: 0.9em; background: var(--muted); padding: 0.1em 0.35em; border-radius: 4px; }
+.markdown pre { background: var(--muted); padding: 0.75em; border-radius: 8px; overflow-x: auto; margin: 0.6em 0; }
+.markdown pre code { background: transparent; padding: 0; }
+.markdown blockquote { border-left: 3px solid var(--border); padding-left: 0.8em; color: var(--muted-foreground); margin: 0.6em 0; }
+.markdown table { border-collapse: collapse; margin: 0.6em 0; display: block; overflow-x: auto; }
+.markdown th, .markdown td { border: 1px solid var(--border); padding: 0.35em 0.6em; text-align: left; }
+.markdown hr { border: none; border-top: 1px solid var(--border); margin: 1em 0; }
+.markdown strong { font-weight: 700; }
+
+/* WCAG 2.4.1: skip-to-content link, visually hidden until focused. */
+.skip-link {
+  position: fixed;
+  top: 0.5rem;
+  left: 0.5rem;
+  z-index: 100;
+  transform: translateY(-150%);
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  background: var(--primary);
+  color: var(--primary-foreground);
+  font-weight: 600;
+  transition: transform 0.15s ease;
+}
+.skip-link:focus {
+  transform: translateY(0);
 }

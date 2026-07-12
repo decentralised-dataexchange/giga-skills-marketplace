@@ -17,7 +17,7 @@ export const GET = route<{ slug: string }>(async ({ params }) => {
     SELECT id, version, status, decided_at FROM versions
     WHERE skill_id = ${skill.id} AND status IN ('published','superseded') ORDER BY id DESC`;
   return {
-    skill: { id: skill.id, slug: skill.slug, installs: skill.installs },
+    skill: { id: skill.id, slug: skill.slug, type: skill.type ?? "skill", installs: skill.installs, official: skill.official ?? false },
     org: { name: skill.org_name, website: skill.org_website, description: skill.org_description,
            status: skill.org_status, contact: skill.org_contact },
     version: { id: version.id, version: version.version, manifest: version.manifest,

@@ -46,7 +46,9 @@ CREATE TABLE IF NOT EXISTS skills (
   id                   SERIAL PRIMARY KEY,
   slug                 TEXT UNIQUE NOT NULL,
   org_id               INT NOT NULL REFERENCES orgs(id),
+  type                 TEXT NOT NULL DEFAULT 'skill' CHECK (type IN ('skill','usecase')),
   status               TEXT NOT NULL DEFAULT 'in_submission',
+  official             BOOLEAN NOT NULL DEFAULT false,
   published_version_id INT,
   installs             INT NOT NULL DEFAULT 0,
   created_at           TIMESTAMPTZ NOT NULL DEFAULT now()
@@ -85,7 +87,23 @@ CREATE TABLE IF NOT EXISTS events (
   detail   JSONB,
   at       TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+CREATE TABLE IF NOT EXISTS applications (
+  id           SERIAL PRIMARY KEY,
+  developer_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  title        TEXT NOT NULL,
+  description  TEXT,
+  video_url    TEXT,
+  repo_url     TEXT,
+  skills       JSONB NOT NULL DEFAULT '[]',
+  usecases     JSONB NOT NULL DEFAULT '[]',
+  status       TEXT NOT NULL DEFAULT 'published' CHECK (status IN ('published','delisted')),
+  created_at   TIMESTAMPTZ NOT NULL DEFAULT now()
+);
 ALTER TABLE chats ADD COLUMN IF NOT EXISTS share_id TEXT UNIQUE;
+ALTER TABLE skills ADD COLUMN IF NOT EXISTS official BOOLEAN NOT NULL DEFAULT false;
+ALTER TABLE skills ADD COLUMN IF NOT EXISTS type TEXT NOT NULL DEFAULT 'skill';
+CREATE INDEX IF NOT EXISTS idx_skills_type ON skills(type, status);
+CREATE INDEX IF NOT EXISTS idx_applications_status ON applications(status, id DESC);
 CREATE INDEX IF NOT EXISTS idx_chats_user      ON chats(user_id, updated_at DESC);
 CREATE INDEX IF NOT EXISTS idx_versions_skill  ON versions(skill_id);
 CREATE INDEX IF NOT EXISTS idx_versions_status ON versions(status);

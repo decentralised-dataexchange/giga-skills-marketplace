@@ -8,6 +8,7 @@ export interface SessionUser {
   email: string;
   name: string;
   role: "builder" | "provider" | "reviewer" | "superadmin";
+  avatar?: string | null;
 }
 
 export const auth = {
@@ -25,6 +26,12 @@ export const auth = {
   signIn(token: string, user: SessionUser) {
     localStorage.setItem("token", token);
     localStorage.setItem("user", JSON.stringify(user));
+    notifySession();
+  },
+  update(patch: Partial<SessionUser>) {
+    const current = auth.user;
+    if (!current) return;
+    localStorage.setItem("user", JSON.stringify({ ...current, ...patch }));
     notifySession();
   },
   signOut() {
@@ -82,4 +89,21 @@ export async function api<T = any>(path: string, init: RequestInit & { json?: un
 
 export function fmtDate(iso?: string | null): string {
   return iso ? new Date(iso).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" }) : "-";
+}
+
+/* Relative "X ago" time. */
+export function timeAgo(iso?: string | null): string {
+  if (!iso) return "";
+  const secs = Math.max(0, Math.floor((Date.now() - new Date(iso).getTime()) / 1000));
+  if (secs < 60) return "just now";
+  const mins = Math.floor(secs / 60);
+  if (mins < 60) return `${mins} minute${mins === 1 ? "" : "s"} ago`;
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return `${hours} hour${hours === 1 ? "" : "s"} ago`;
+  const days = Math.floor(hours / 24);
+  if (days < 30) return `${days} day${days === 1 ? "" : "s"} ago`;
+  const months = Math.floor(days / 30);
+  if (months < 12) return `${months} month${months === 1 ? "" : "s"} ago`;
+  const years = Math.floor(days / 365);
+  return `${years} year${years === 1 ? "" : "s"} ago`;
 }

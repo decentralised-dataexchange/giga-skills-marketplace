@@ -1,94 +1,241 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
-import { api } from "@/lib/client";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+import { useEffect, useState } from "react";
+import { api, timeAgo } from "@/lib/client";
 import { Input } from "@/components/ui/input";
+import { Markdown } from "@/components/markdown";
+import { AgentsStrip } from "@/components/agent-logo";
+import { OfficialBadge } from "@/components/official-badge";
+import { StandardPill } from "@/components/standard-pill";
+import { Pagination } from "@/components/pagination";
 
 interface Entry {
   slug: string;
+  type: "skill" | "usecase";
   description: string;
   version: string;
-  installs: number;
+  official: boolean;
   protocols: string[];
+  journeyCount: number;
+  usesSkills: string[];
+  publishedAt: string | null;
   org: { name: string };
 }
 
+const TABS = [
+  { id: "skill", label: "Skills" },
+  { id: "usecase", label: "Use cases" },
+] as const;
+
+const INFO = [
+  {
+    title: "What is a skill?",
+    body: "A portable, declarative capability package - the provider's OpenAPI specs, credential schemas, protocol flows, and integration rulebooks - that teaches any AI coding agent how to wire up a wallet.",
+    href: "https://w3c-ccg.github.io/vc-ed/",
+    cta: "Standards",
+  },
+  {
+    title: "What is a use case?",
+    body: "A journey-tagged prompt chain (J1, J2, …) that composes published skills into a working solution. It lists prerequisites and, per journey, the agent prompts and done-criteria. Install it into your own agent.",
+    href: "/showcase",
+    cta: "See what people built",
+  },
+  {
+    title: "How submissions are reviewed",
+    body: "Every skill and use case passes automated checks then a human reviewer before publication; skills can be endorsed Official. AI output stays a hypothesis until validated.",
+    href: "/login",
+    cta: "Governance",
+  },
+];
+
+function monogram(slug: string) {
+  return slug.replace(/[^a-z0-9]/gi, "").slice(0, 2).toUpperCase();
+}
+
+const PAGE_SIZE = 8;
+
 export default function MarketplacePage() {
-  const [skills, setSkills] = useState<Entry[]>([]);
+  const [tab, setTab] = useState<"skill" | "usecase">("skill");
   const [q, setQ] = useState("");
+  const [page, setPage] = useState(1);
+  const [data, setData] = useState<{ skills: Entry[]; total: number }>({ skills: [], total: 0 });
 
   useEffect(() => {
-    api("/api/marketplace").then((d) => setSkills(d.skills)).catch(console.error);
-  }, []);
+    const params = new URLSearchParams({ type: tab, page: String(page), pageSize: String(PAGE_SIZE) });
+    if (q.trim()) params.set("q", q.trim());
+    api(`/api/marketplace?${params.toString()}`)
+      .then((d) => setData({ skills: d.skills, total: d.total ?? d.skills.length }))
+      .catch(console.error);
+  }, [tab, q, page]);
 
-  const filtered = useMemo(() => {
-    const needle = q.toLowerCase();
-    return skills.filter((s) =>
-      [s.slug, s.description, s.org.name, s.protocols.join(" ")].join(" ").toLowerCase().includes(needle),
-    );
-  }, [skills, q]);
+  function switchTab(next: "skill" | "usecase") {
+    setTab(next);
+    setPage(1);
+  }
+
+  const noun = tab === "usecase" ? "use case" : "skill";
 
   return (
-    <main className="mx-auto w-full max-w-6xl px-5 pb-20 pt-8">
-      <section className="mb-8 rounded-2xl border border-border bg-[linear-gradient(rgba(255,255,255,0.035)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.035)_1px,transparent_1px),radial-gradient(ellipse_80%_70%_at_50%_-10%,rgba(96,165,250,0.10),transparent)] bg-[size:44px_44px,44px_44px,100%_100%] p-10 text-center">
-        <h1 className="mx-auto max-w-2xl text-balance text-4xl font-medium tracking-tight">
-          Provider-published skill files. Any agent. Any model.
-        </h1>
-        <p className="mx-auto mt-3 max-w-xl text-pretty text-muted-foreground">
-          Wallet solution providers publish reviewed skill files and anyone can compose them into working
-          applications with the AI Integration Assistant. Built on W3C Verifiable Credentials, OpenID4VCI/VP, and
-          the GovStack Wallet Building Block.
-        </p>
-        <div className="mt-6 flex justify-center gap-3">
-          <Button nativeButton={false} render={<Link href="/builder" />}>Open the App Builder</Button>
-          <Button variant="outline" nativeButton={false} render={<Link href="/login" />}>Publish a skill</Button>
+    <main className="w-full">
+      {/* Hero */}
+      <section className="border-b border-border/60">
+        <div className="mx-auto w-full max-w-[1536px] px-5 py-16">
+          <h1 className="max-w-3xl text-balance text-4xl font-bold tracking-tight text-ink sm:text-5xl">
+            Skills &amp; use cases for AI-built DPI
+          </h1>
+          <p className="mt-5 max-w-3xl text-pretty text-lg text-ink/80">
+            Providers publish reviewed, agent-agnostic <b>skills</b> and <b>use cases</b> for the education wallet
+            building block. Anyone installs them into their own AI coding agent to build a working National Learner
+            Registry and digital-credential solution.
+          </p>
+          <p className="mt-3 max-w-3xl text-pretty text-ink/70">
+            Built on W3C Verifiable Credentials, SD-JWT VC, OpenID4VCI / OpenID4VP, and the GovStack Wallet BB. Part of
+            the ITU / UNICEF Giga initiative. No vendor, model, or tool lock-in.
+          </p>
+          <div className="mt-8 flex flex-wrap gap-3">
+            <a
+              href="#catalog"
+              className="rounded-[10px] bg-brand px-6 py-3 text-base font-semibold text-primary-foreground transition-colors hover:bg-brand-dark"
+            >
+              Browse catalog
+            </a>
+            <Link
+              href="/login"
+              className="rounded-[10px] border-2 border-brand bg-white px-6 py-3 text-base font-semibold text-brand transition-colors hover:bg-accent"
+            >
+              Publish
+            </Link>
+          </div>
+          <AgentsStrip label="Works with" className="mt-8" />
         </div>
       </section>
 
-      <div className="mb-4 flex items-center justify-between gap-4">
-        <div>
-          <h2 className="text-lg font-medium">Published skills</h2>
-          <p className="text-sm text-muted-foreground">
-            {filtered.length} skill{filtered.length === 1 ? "" : "s"} available
-          </p>
+      {/* Info cards */}
+      <section className="mx-auto w-full max-w-[1536px] px-5 py-12">
+        <div className="grid gap-5 md:grid-cols-3">
+          {INFO.map((c) => (
+            <div key={c.title} className="flex flex-col rounded-xl border border-brand/25 bg-white p-6">
+              <h3 className="text-lg font-bold text-brand">{c.title}</h3>
+              <p className="mt-3 flex-1 text-sm leading-relaxed text-ink/70">{c.body}</p>
+              <a
+                href={c.href}
+                target={c.href.startsWith("http") ? "_blank" : undefined}
+                rel={c.href.startsWith("http") ? "noopener noreferrer" : undefined}
+                className="mt-4 text-sm font-bold text-brand hover:underline"
+              >
+                {c.cta} ↗
+              </a>
+            </div>
+          ))}
         </div>
-        <Input
-          className="max-w-xs"
-          placeholder="Search skills, providers, protocols..."
-          value={q}
-          onChange={(e) => setQ(e.target.value)}
-        />
-      </div>
+      </section>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {filtered.map((s) => (
-          <Link key={s.slug} href={`/skill/${s.slug}`}>
-            <Card className="h-full gap-3 p-5 transition-colors hover:border-muted-foreground/30 hover:bg-secondary/40">
-              <div className="flex items-center justify-between">
-                <span className="font-semibold">{s.slug}</span>
-                <Badge variant="secondary" className="tabular-nums">v{s.version}</Badge>
+      {/* Catalog */}
+      <section id="catalog" className="mx-auto w-full max-w-[1536px] px-5 pb-24">
+        <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
+          <div>
+            <h2 className="text-2xl font-bold tracking-tight text-ink">Catalog</h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              {data.total} {noun}
+              {data.total === 1 ? "" : "s"} published · newest first
+            </p>
+          </div>
+          <Input
+            type="search"
+            aria-label={`Search ${noun}s, providers, protocols`}
+            className="max-w-xs border-input bg-white"
+            placeholder={`Search ${noun}s…`}
+            value={q}
+            onChange={(e) => {
+              setQ(e.target.value);
+              setPage(1);
+            }}
+          />
+        </div>
+
+        {/* Tabs */}
+        <div role="tablist" aria-label="Catalog type" className="mb-5 flex gap-1 border-b border-border">
+          {TABS.map((t) => (
+            <button
+              key={t.id}
+              role="tab"
+              aria-selected={tab === t.id}
+              onClick={() => switchTab(t.id)}
+              className={
+                "-mb-px border-b-2 px-4 py-2 text-sm font-semibold transition-colors " +
+                (tab === t.id
+                  ? "border-brand text-ink"
+                  : "border-transparent text-muted-foreground hover:text-ink")
+              }
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
+
+        <div className="space-y-4">
+          {data.skills.map((s) => (
+            <Link
+              key={s.slug}
+              href={s.type === "usecase" ? `/usecase/${s.slug}` : `/skill/${s.slug}`}
+              className="group flex flex-col gap-4 rounded-xl border border-border bg-white p-5 shadow-sm transition-shadow hover:shadow-md sm:flex-row sm:items-center"
+            >
+              <div className="grid size-14 shrink-0 place-items-center rounded-xl bg-cyan-tint font-bold tracking-tight text-brand ring-1 ring-brand/15">
+                {monogram(s.slug)}
               </div>
-              <p className="line-clamp-3 text-sm text-muted-foreground">{s.description}</p>
-              <div className="flex flex-wrap gap-1.5">
-                {s.protocols.map((p) => (
-                  <Badge key={p} className="border-0 bg-blue-500/15 text-blue-300">{p}</Badge>
-                ))}
+
+              <div className="min-w-0 flex-1">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="font-bold text-ink group-hover:text-brand">{s.slug}</span>
+                  {s.type === "usecase" && (
+                    <span className="rounded-full bg-brand/10 px-2 py-0.5 text-xs font-semibold text-brand">
+                      Use case
+                    </span>
+                  )}
+                  <OfficialBadge official={s.official} />
+                </div>
+                <Markdown className="mt-1 text-sm text-ink/70 [&_p]:m-0 [&_p]:line-clamp-2">{s.description}</Markdown>
+                <div className="mt-2 flex flex-wrap items-center gap-1.5">
+                  {s.type === "usecase" ? (
+                    <>
+                      <span className="rounded bg-secondary px-2 py-0.5 text-xs font-semibold text-ink/70">
+                        {s.journeyCount} journeys
+                      </span>
+                      {s.usesSkills.slice(0, 3).map((u) => (
+                        <span key={u} className="rounded bg-secondary px-2 py-0.5 text-xs font-semibold text-ink/70">
+                          {u}
+                        </span>
+                      ))}
+                    </>
+                  ) : (
+                    s.protocols.slice(0, 4).map((p) => (
+                      <StandardPill key={p} code={p} className="rounded bg-secondary px-2 py-0.5 text-ink/70" />
+                    ))
+                  )}
+                </div>
               </div>
-              <div className="mt-auto flex justify-between text-xs text-muted-foreground">
-                <span>{s.org.name}</span>
-                <span className="tabular-nums">{s.installs} install{s.installs === 1 ? "" : "s"}</span>
+
+              <div className="flex shrink-0 items-center justify-between gap-4 border-t border-border pt-3 sm:w-52 sm:flex-col sm:items-end sm:border-t-0 sm:pt-0">
+                <div className="min-w-0 text-xs text-muted-foreground sm:text-right">
+                  <div className="truncate font-medium text-ink/70">{s.org.name}</div>
+                  <div>{timeAgo(s.publishedAt)}</div>
+                </div>
+                <span className="shrink-0 rounded-lg bg-brand px-4 py-2 text-xs font-semibold text-primary-foreground transition-colors group-hover:bg-brand-dark">
+                  View {noun} →
+                </span>
               </div>
-            </Card>
-          </Link>
-        ))}
-        {!filtered.length && (
-          <p className="col-span-full py-16 text-center text-sm text-muted-foreground">No skills match your search.</p>
-        )}
-      </div>
+            </Link>
+          ))}
+          {!data.skills.length && (
+            <p className="rounded-xl border border-dashed border-border bg-white py-16 text-center text-sm text-muted-foreground">
+              No {noun}s match your search.
+            </p>
+          )}
+        </div>
+
+        <Pagination page={page} pageSize={PAGE_SIZE} total={data.total} onPage={setPage} className="mt-6" />
+      </section>
     </main>
   );
 }

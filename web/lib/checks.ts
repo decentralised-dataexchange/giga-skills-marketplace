@@ -4,7 +4,6 @@ import { parse as parseYaml } from "yaml";
 import type { BundleFile } from "./views";
 
 const SLUG_RE = /^[a-z0-9][a-z0-9-]{2,63}$/;
-const SEMVER_RE = /^\d+\.\d+\.\d+([-+].*)?$/;
 const FRONTMATTER_RE = /^---\r?\n([\s\S]*?)\r?\n---/;
 
 export interface Check {
@@ -17,6 +16,18 @@ export interface Check {
 export type Manifest = Record<string, unknown> & {
   name?: string;
   version?: string;
+  type?: string;
+  title?: string;
+  uses_skills?: string[];
+  prerequisites?: string[];
+  journeys?: {
+    tag?: string;
+    title?: string;
+    description?: string;
+    skills?: string[];
+    prompts?: (string | { prompt?: string; skills?: string[] })[];
+    done?: string;
+  }[];
   depends_on?: { schemas?: string[]; rulebooks?: string[] };
   targets?: { openapi?: string; protocols?: string[] };
 };
@@ -49,12 +60,35 @@ export function runChecks(files: BundleFile[]): { checks: Check[]; passed: boole
   }
   add("manifest", "SKILL.md manifest present and parseable", true, `name: ${manifest.name ?? "?"}`);
 
-  for (const field of ["name", "description", "version", "provider", "license"]) {
+  // Use-case templates are validated on their journeys rather than OpenAPI/schemas.
+  if (manifest.type === "usecase") {
+    for (const field of ["name", "description", "provider", "license"]) {
+      const value = manifest[field];
+      add(`field-${field}`, `Manifest declares "${field}"`, !!value, value ? String(value).slice(0, 120) : "missing");
+    }
+    if (manifest.name) add("slug", "Use-case name is a valid slug (lowercase, hyphenated)", SLUG_RE.test(String(manifest.name)), String(manifest.name));
+
+    const journeys = Array.isArray(manifest.journeys) ? manifest.journeys : [];
+    add("journeys-present", "Declares at least one journey", journeys.length > 0, `${journeys.length} journey(s)`);
+    journeys.forEach((j, i) => {
+      const label = j?.tag ?? `#${i + 1}`;
+      add(`journey-${i}-tag`, `Journey ${i + 1} has a tag`, !!j?.tag, j?.tag ?? "missing");
+      add(`journey-${i}-title`, `Journey ${label} has a title`, !!j?.title, j?.title ?? "missing");
+      add(`journey-${i}-prompts`, `Journey ${label} has agent prompt(s)`,
+        Array.isArray(j?.prompts) && j.prompts.length > 0, `${j?.prompts?.length ?? 0} prompt(s)`);
+    });
+    add("uses-skills", "References at least one published skill",
+      (manifest.uses_skills?.length ?? 0) > 0, (manifest.uses_skills ?? []).join(", ") || "none declared", "warn");
+    add("prerequisites", "Declares prerequisites for the app builder",
+      (manifest.prerequisites?.length ?? 0) > 0, `${manifest.prerequisites?.length ?? 0} prerequisite(s)`, "warn");
+    return { checks, passed: checks.every((c) => c.status !== "fail"), manifest };
+  }
+
+  for (const field of ["name", "description", "provider", "license"]) {
     const value = manifest[field];
     add(`field-${field}`, `Manifest declares "${field}"`, !!value, value ? String(value).slice(0, 120) : "missing");
   }
   if (manifest.name) add("slug", "Skill name is a valid slug (lowercase, hyphenated)", SLUG_RE.test(String(manifest.name)), String(manifest.name));
-  if (manifest.version) add("semver", "Version is semantic (MAJOR.MINOR.PATCH)", SEMVER_RE.test(String(manifest.version)), String(manifest.version));
   add("body", "SKILL.md contains instructions beyond the manifest", body.length >= 80, `${body.length} characters of instructions`);
 
   // OpenAPI specs: at least one, each must parse and declare openapi 3.x

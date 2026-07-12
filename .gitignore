@@ -1,5 +1,14 @@
 **/node_modules/
 **/.next/
+**/out/
+**/build/
+**/coverage/
 .DS_Store
 *.log
 .env*
+*.tsbuildinfo
+.vercel
+.vscode/
+.idea/
+.claude/
+CLAUDE.md

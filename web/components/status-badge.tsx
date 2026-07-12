@@ -1,20 +1,25 @@
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
+const OK = "bg-emerald-100 text-emerald-700";
+const WARN = "bg-amber-100 text-amber-700";
+const BAD = "bg-red-100 text-red-700";
+const NEUTRAL = "bg-secondary text-ink/60";
+
 const STYLES: Record<string, { label: string; className: string }> = {
-  published: { label: "Published", className: "bg-emerald-500/15 text-emerald-400" },
-  approved: { label: "Approved", className: "bg-emerald-500/15 text-emerald-400" },
-  active: { label: "Active", className: "bg-emerald-500/15 text-emerald-400" },
-  submitted: { label: "Submitted", className: "bg-muted text-muted-foreground" },
-  in_review: { label: "In review", className: "bg-amber-500/15 text-amber-400" },
-  pending: { label: "Pending review", className: "bg-amber-500/15 text-amber-400" },
-  changes_requested: { label: "Changes requested", className: "bg-amber-500/15 text-amber-400" },
-  checks_failed: { label: "Checks failed", className: "bg-red-500/15 text-red-400" },
-  rejected: { label: "Rejected", className: "bg-red-500/15 text-red-400" },
-  suspended: { label: "Suspended", className: "bg-red-500/15 text-red-400" },
-  superseded: { label: "Superseded", className: "bg-muted text-muted-foreground" },
-  delisted: { label: "Delisted", className: "bg-muted text-muted-foreground" },
-  in_submission: { label: "In submission", className: "bg-muted text-muted-foreground" },
+  published: { label: "Published", className: OK },
+  approved: { label: "Approved", className: OK },
+  active: { label: "Active", className: OK },
+  submitted: { label: "Submitted", className: NEUTRAL },
+  in_review: { label: "In review", className: WARN },
+  pending: { label: "Pending review", className: WARN },
+  changes_requested: { label: "Changes requested", className: WARN },
+  checks_failed: { label: "Checks failed", className: BAD },
+  rejected: { label: "Rejected", className: BAD },
+  suspended: { label: "Suspended", className: BAD },
+  superseded: { label: "Superseded", className: NEUTRAL },
+  delisted: { label: "Delisted", className: NEUTRAL },
+  in_submission: { label: "In submission", className: NEUTRAL },
 };
 
 export function StatusBadge({ status }: { status: string }) {
