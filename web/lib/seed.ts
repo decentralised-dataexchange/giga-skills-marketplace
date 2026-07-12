@@ -116,18 +116,18 @@ export async function seedIfEmpty(): Promise<boolean> {
 
   await addApplication({
     developerId: student,
-    title: "Sunrise University credential verifier",
-    description: "A single-page verifier that scans a learner's QR code and checks the diploma over OpenID4VP before enrolment. Built with an agent from the NLR use case.",
-    videoUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-    repoUrl: "https://github.com/example/sunrise-verifier",
+    title: "Basic credential query with DCQL and OpenID4VP",
+    description: "A verifier that requests a learner credential from an EUDI Wallet using a DCQL query over OpenID4VP, then checks the presented diploma before enrolment. Built with an agent from the NLR use case.",
+    videoUrl: "https://www.youtube.com/watch?v=d2MOt01HKx4",
+    repoUrl: "https://github.com/decentralised-dataexchange/ai-integrator",
     skills: ["igrantio-education-verifier"],
     usecases: ["national-learner-registry"],
   });
   await addApplication({
     developerId: student,
-    title: "Ministry enrolment portal (prototype)",
-    description: "Learner registration and diploma issuance flow scaffolded from the education issuer and consent skills.",
-    videoUrl: "https://www.youtube.com/watch?v=aqz-KE-bpKQ",
+    title: "Request and share alternative IDs with DCQL and OpenID4VP",
+    description: "An enrolment flow that requests and shares alternative learner identifiers from an EUDI Wallet using DCQL over OpenID4VP. Scaffolded from the education issuer and consent skills.",
+    videoUrl: "https://www.youtube.com/watch?v=K0WuGRXAubE",
     repoUrl: null,
     skills: ["igrantio-education-issuer", "govstack-consent-bb"],
     usecases: ["national-learner-registry"],
