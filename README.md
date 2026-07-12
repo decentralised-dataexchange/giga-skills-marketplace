@@ -27,16 +27,22 @@ OPENROUTER_API_KEY=... docker compose up --build
 
 Open the Integration Assistant at http://localhost:4820. The independently reachable marketplace API is at http://localhost:4830 (`/health`, `/v1/skills`). PostgreSQL 16 data is persisted in the `postgres-data` volume.
 
-For local development without Docker, run the marketplace with a PostgreSQL URL and point the web app at it:
+For hot-reload development, run only PostgreSQL in Docker (port `5433` avoids a local PostgreSQL conflict), then run both applications on the host:
 
 ```bash
+docker compose up -d postgres
+
 cd services/marketplace && npm install
-DATABASE_URL=postgresql://localhost/govbuild npm run dev
+DATABASE_URL=postgresql://govbuild:govbuild-dev@localhost:5433/govbuild \
+MARKETPLACE_INTERNAL_TOKEN=local-marketplace-token npm run dev
 
 cd ../../web && npm install
-DATABASE_URL=postgresql://localhost/govbuild \
-MARKETPLACE_API_URL=http://localhost:4830 npm run dev -- -p 4820
+DATABASE_URL=postgresql://govbuild:govbuild-dev@localhost:5433/govbuild \
+MARKETPLACE_API_URL=http://localhost:4830 \
+MARKETPLACE_INTERNAL_TOKEN=local-marketplace-token npm run dev -- -p 4820
 ```
+
+Set `POSTGRES_PORT` to override the host database port.
 
 If `MARKETPLACE_API_URL` is omitted, the web app retains an in-process catalog adapter for backwards-compatible development. Production should always configure the service URL. The schema bootstraps and demo data seed on the first web API request.
 To reset Docker data: `docker compose down -v`.
