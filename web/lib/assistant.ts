@@ -1,5 +1,6 @@
 // Skill-context composition for the Integration Assistant.
 import { sql } from "./db";
+import { fetchSkillContext, hasMarketplaceService, type SkillContextRecord } from "./marketplace-client";
 
 export { DEFAULT_MODEL, MODELS } from "./models";
 import type { BundleFile } from "./views";
@@ -10,15 +11,18 @@ const MAX_SKILL_CHARS = 40_000;
 
 export async function renderSkillContext(slugs: string[]): Promise<string> {
   if (!slugs.length) return "";
-  const rows = await sql`
-    SELECT s.slug, v.version, v.files, o.name AS org_name
-    FROM skills s
-    JOIN versions v ON v.id = s.published_version_id
-    JOIN orgs o ON o.id = s.org_id
-    WHERE s.status = 'published' AND s.slug = ANY(${slugs})`;
+  const rows: SkillContextRecord[] = hasMarketplaceService
+    ? (await fetchSkillContext(slugs)).skills
+    : (await sql`
+        SELECT s.slug, v.version, v.files, o.name AS org_name
+        FROM skills s
+        JOIN versions v ON v.id = s.published_version_id
+        JOIN orgs o ON o.id = s.org_id
+        WHERE s.status = 'published' AND s.slug = ANY(${slugs})`)
+      .map((row) => ({ slug: row.slug, version: row.version, files: row.files as BundleFile[], orgName: row.org_name }));
   return rows
     .map((row) => {
-      let block = `\n\n=== INVOKED SKILL: ${row.slug} v${row.version} (provider: ${row.org_name}) ===\n`;
+      let block = `\n\n=== INVOKED SKILL: ${row.slug} v${row.version} (provider: ${row.orgName}) ===\n`;
       // SKILL.md first, it is the entry point, then supporting artefacts.
       const ordered = [...(row.files as BundleFile[])].sort((a, b) =>
         Number(a.path.toLowerCase() !== "skill.md") - Number(b.path.toLowerCase() !== "skill.md"));

@@ -3,8 +3,12 @@
 import postgres from "postgres";
 
 const DATABASE = process.env.PGDATABASE ?? "govbuild";
+const DATABASE_URL = process.env.DATABASE_URL;
 
-export const sql = postgres({ database: DATABASE, onnotice: () => {} });
+// postgres.js speaks PostgreSQL's wire protocol; no SQLite/in-memory fallback is supported.
+export const sql = DATABASE_URL
+  ? postgres(DATABASE_URL, { onnotice: () => {} })
+  : postgres({ database: DATABASE, onnotice: () => {} });
 
 /** JSONB parameter helper; postgres.js json() has an overly narrow input type. */
 export const json = (value: unknown) => sql.json(value as never);
@@ -102,6 +106,11 @@ export function ensureReady(): Promise<void> {
 }
 
 async function createDatabaseIfMissing(): Promise<void> {
+  // Managed DATABASE_URL databases must be provisioned by the platform.
+  if (DATABASE_URL) {
+    await sql`SELECT 1`;
+    return;
+  }
   try {
     await sql`SELECT 1`;
   } catch (err) {

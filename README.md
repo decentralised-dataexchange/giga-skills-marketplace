@@ -7,28 +7,39 @@ each submission passes an app-store-style review pipeline governed by a dedicate
 governance portal, and anyone - a ministry, an integrator, a student - composes published
 skills into working single-file HTML apps through an AI assistant running on OpenRouter.
 
-## Stack
+## Architecture and stack
 
-One Next.js app (`web/`) owns the frontend and the backend:
+The marketplace catalog is separated from the Integration Assistant by an HTTP API, so it can be deployed and scaled independently:
 
-- **Next.js 16** (App Router, TypeScript, Turbopack), route handlers as the API
-- **PostgreSQL** via postgres.js; schema bootstraps and demo data seeds on first request
+- **`services/marketplace/`** — standalone Node service owning public catalog reads, skill details, install counts, and the internal skill-context API
+- **`web/`** — Next.js 16 Integration Assistant, provider/governance UI, account and chat APIs; its marketplace routes are a browser-facing gateway to the marketplace service
+- **PostgreSQL only** via postgres.js. Both deployables accept `DATABASE_URL`; there is no SQLite or in-memory database fallback
 - **Vercel AI SDK** (`streamText` + OpenRouter provider) on the server, `useChat` in the browser
 - **AI Elements + shadcn/ui + Tailwind** for the UI (conversation, message markdown, web preview)
 
 ## Run
 
+The complete split deployment is available through Docker Compose:
+
 ```bash
-brew services start postgresql@14   # or however you run Postgres
-cd web
-npm install
-npm run dev -- -p 4820              # or: npm run build && npm start -- -p 4820
+OPENROUTER_API_KEY=... docker compose up --build
 ```
 
-Open http://localhost:4820. The server connects using the standard `PG*` environment
-variables (defaults to the local socket and your OS user), creates the `govbuild`
-database if missing, bootstraps the tables, and seeds demo data on first API call.
-To reset: `dropdb govbuild` and restart.
+Open the Integration Assistant at http://localhost:4820. The independently reachable marketplace API is at http://localhost:4830 (`/health`, `/v1/skills`). PostgreSQL 16 data is persisted in the `postgres-data` volume.
+
+For local development without Docker, run the marketplace with a PostgreSQL URL and point the web app at it:
+
+```bash
+cd services/marketplace && npm install
+DATABASE_URL=postgresql://localhost/govbuild npm run dev
+
+cd ../../web && npm install
+DATABASE_URL=postgresql://localhost/govbuild \
+MARKETPLACE_API_URL=http://localhost:4830 npm run dev -- -p 4820
+```
+
+If `MARKETPLACE_API_URL` is omitted, the web app retains an in-process catalog adapter for backwards-compatible development. Production should always configure the service URL. The schema bootstraps and demo data seed on the first web API request.
+To reset Docker data: `docker compose down -v`.
 
 Checks: `npx tsc --noEmit` and `npx eslint app components lib` both pass clean.
 

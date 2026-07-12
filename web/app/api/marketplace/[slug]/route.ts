@@ -1,7 +1,11 @@
 import { sql } from "@/lib/db";
 import { check, route } from "@/lib/handler";
+import { hasMarketplaceService, marketplaceRequest } from "@/lib/marketplace-client";
 
 export const GET = route<{ slug: string }>(async ({ params }) => {
+  if (hasMarketplaceService) {
+    return marketplaceRequest(`/v1/skills/${encodeURIComponent(params.slug)}`);
+  }
   const [skill] = await sql`
     SELECT s.*, o.name AS org_name, o.website AS org_website, o.description AS org_description,
            o.status AS org_status, o.contact AS org_contact

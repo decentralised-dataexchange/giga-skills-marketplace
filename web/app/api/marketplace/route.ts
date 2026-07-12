@@ -1,9 +1,13 @@
 import { sql } from "@/lib/db";
 import { route } from "@/lib/handler";
 import { marketplaceEntry } from "@/lib/views";
+import { hasMarketplaceService, marketplaceRequest } from "@/lib/marketplace-client";
 
 export const GET = route(async ({ req }) => {
   const q = new URL(req.url).searchParams.get("q")?.toLowerCase().trim() ?? "";
+  if (hasMarketplaceService) {
+    return marketplaceRequest(`/v1/skills${q ? `?q=${encodeURIComponent(q)}` : ""}`);
+  }
   const rows = await sql`
     SELECT s.id, s.slug, s.status, s.installs,
            o.id AS org_id, o.name AS org_name, o.website AS org_website,
