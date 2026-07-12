@@ -1,117 +1,117 @@
-# Giga Skills Marketplace
+<h1 align="center">
+    Giga Skills Marketplace
+</h1>
 
-A prototype marketplace of provider-published, agent-agnostic **skills** and journey-tagged
-**use cases** for the education wallet building block, aligned to the ITU / UNICEF Giga
-Knowledge Product (Chapters 1-2). Wallet solution providers publish skill bundles
-(`SKILL.md` + OpenAPI specs + credential schemas + rulebooks) and compose them into use
-cases; every submission passes an app-store-style automated-checks + human-review pipeline;
-and anyone can install a skill or use case into their **own** AI coding agent (Claude Code,
-Codex, opencode, Cursor, Pi, ...) to build a working National Learner Registry and
-digital-credential solution. No vendor, model, or tool lock-in.
+<p align="center">
+    <a href="/../../commits/" title="Last Commit"><img src="https://img.shields.io/github/last-commit/decentralised-dataexchange/ai-integrator?style=flat"></a>
+    <a href="/../../issues" title="Open Issues"><img src="https://img.shields.io/github/issues/decentralised-dataexchange/ai-integrator?style=flat"></a>
+    <a href="./LICENSE" title="License"><img src="https://img.shields.io/badge/License-Apache%202.0-yellowgreen?style=flat"></a>
+</p>
 
-## Architecture and stack
+<p align="center">
+  <a href="#about">About</a> •
+  <a href="#architecture">Architecture</a> •
+  <a href="#quick-start">Quick start</a> •
+  <a href="#deployment">Deployment</a> •
+  <a href="#roles">Roles</a> •
+  <a href="#contributing">Contributing</a> •
+  <a href="#licensing">Licensing</a>
+</p>
 
-The public catalog is separated from the web app by an HTTP API, so it can be deployed and
-scaled independently:
+## About
 
-- **`services/marketplace/`** - standalone Node service owning public catalog reads, item
-  details, and the internal skill-context API
-- **`web/`** - Next.js 16 app: the public marketplace + showcase, and a role-based admin
-  dashboard (provider, governance, developer consoles); its marketplace routes are a
-  browser-facing gateway to the marketplace service
-- **PostgreSQL only** via postgres.js. Both deployables accept `DATABASE_URL`; there is no
-  SQLite or in-memory fallback. Postgres runs in Docker (there is no local/host Postgres
-  install to manage)
-- **shadcn/ui + Tailwind** with Manrope / Open Sans (Giga branding), `streamdown` for
-  markdown rendering
+A marketplace of provider-published, agent-agnostic **skills** and journey-tagged **use cases** for the education wallet building block. Wallet solution providers publish skill bundles (`SKILL.md` plus OpenAPI specs, credential schemas and rulebooks) and compose them into use cases. Every submission passes an app-store style pipeline of automated checks and human review. Anyone can install a skill or use case into their own AI coding agent (Claude Code, Codex, opencode, Cursor, Pi, and more) to build a working National Learner Registry and digital-credential solution. No vendor, model or tool lock-in.
 
-## Run
+## Architecture
 
-PostgreSQL always runs in Docker. A `Makefile` wraps the common routines - run `make` (or
-`make help`) to list them.
+The public catalog is separated from the web app by an HTTP API so the two can be deployed and scaled independently.
 
-### Full stack in Docker
+* **`services/marketplace/`** is a standalone Node service that owns public catalog reads, item details and the internal skill-context API.
+* **`web/`** is a Next.js 16 app: the public marketplace and showcase, plus a role-based admin dashboard (provider, governance and developer consoles).
+* **PostgreSQL** is the only datastore, via postgres.js. Both deployables accept `DATABASE_URL`. Postgres runs in Docker; there is no host install to manage.
+* **UI** uses shadcn/ui and Tailwind with Manrope and Open Sans (Giga branding) and `streamdown` for markdown.
+
+## Quick start
+
+PostgreSQL always runs in Docker. A `Makefile` wraps the common routines; run `make help` to list them.
+
+Full stack in Docker:
 
 ```bash
 make up          # docker compose up --build (postgres + marketplace + web)
 ```
 
-Open the web app at http://localhost:4820. The marketplace API is at http://localhost:4830
-(`/health`, `/v1/skills`). PostgreSQL 16 data persists in the `postgres-data` volume.
+The web app is at http://localhost:4820 and the marketplace API at http://localhost:4830 (`/health`, `/v1/skills`).
 
-### Hot-reload development
-
-Run Postgres in Docker, then the two apps on the host:
+Hot-reload development runs Postgres in Docker and the two apps on the host:
 
 ```bash
-make db          # start PostgreSQL in Docker (host port 5433)
+make db          # PostgreSQL in Docker (host port 5433)
 make install     # install deps for services/marketplace and web
-
-make marketplace # terminal 1 - marketplace service on :4830
-make web         # terminal 2 - web app on :4820
+make marketplace # terminal 1: marketplace service on :4830
+make web         # terminal 2: web app on :4820
 ```
 
-The equivalent raw commands:
-
-```bash
-docker compose up -d postgres
-
-cd services/marketplace && npm install
-DATABASE_URL=postgresql://govbuild:govbuild-dev@localhost:5433/govbuild \
-MARKETPLACE_INTERNAL_TOKEN=local-marketplace-token npm run dev
-
-cd ../../web && npm install
-DATABASE_URL=postgresql://govbuild:govbuild-dev@localhost:5433/govbuild \
-MARKETPLACE_API_URL=http://localhost:4830 \
-MARKETPLACE_INTERNAL_TOKEN=local-marketplace-token npm run dev -- -p 4820
-```
-
-Set `POSTGRES_PORT` to change the host database port. The schema bootstraps and demo data
-seed on the first web API request. If `MARKETPLACE_API_URL` is omitted, the web app falls
-back to an in-process catalog adapter (development only).
-
-### Make targets
+The schema bootstraps and demo data seeds on the first web API request.
 
 | Target | Does |
 | --- | --- |
-| `make db` | Start PostgreSQL in Docker (port 5433) |
-| `make db-stop` | Stop PostgreSQL |
-| `make db-reset` | Wipe and restart PostgreSQL (drops all data) |
+| `make db` / `make db-stop` / `make db-reset` | Start, stop or wipe PostgreSQL in Docker |
 | `make install` | Install deps for the marketplace service and the web app |
-| `make marketplace` | Run the marketplace service on :4830 |
-| `make web` | Run the web app on :4820 |
-| `make check` | `tsc --noEmit` + `eslint` on the web app |
-| `make up` / `make down` | Build/run or stop the full Docker stack |
-| `make reset` | Stop the full stack and wipe the database volume |
+| `make marketplace` / `make web` | Run the marketplace service (:4830) or web app (:4820) |
+| `make check` | `tsc --noEmit` plus `eslint` on the web app |
+| `make up` / `make down` / `make reset` | Build/run, stop, or stop and wipe the Docker stack |
 
-## Catalog: skills, use cases, applications
+## Deployment
 
-- **Skill** - a provider capability, submitted as a `SKILL.md` bundle (plus `openapi/`,
-  `schemas/`, `rulebooks/`, `examples/`), file by file or as a `.zip`.
-- **Use case** - a journey-tagged prompt chain authored from a form in the Provider Console.
-  Each use case lists prerequisites the app builder must have in place, and one or more
-  journeys (J1, J2, ...); each journey has one or more agent prompts, and each prompt
-  references its own skills.
-- **Application** - a developer showcase (title, description, demo video, and the skills /
-  use cases used), submitted from the Developer Console.
+Kubernetes deployment uses the Helm chart in [`deploy/helm/giga`](deploy/helm/giga). It provisions the web app, the marketplace service, PostgreSQL with a persistent volume, and an nginx plus cert-manager ingress with TLS.
 
-Skills and use cases can be endorsed **Official** by the marketplace operator; others show as
-**Community**. Each published item exposes an assurance **review trail** (automated checks +
-the approval audit).
+Prerequisites: a cluster with [ingress-nginx](https://kubernetes.github.io/ingress-nginx/) and [cert-manager](https://cert-manager.io/) (a `ClusterIssuer` such as `letsencrypt-prod`), the `giga-web` and `giga-marketplace` images pushed to a registry you control, and DNS pointed at the ingress load balancer.
+
+Secrets are blank in `values.yaml` on purpose. Create a local, gitignored `deploy/helm/giga/values-secret.yaml`:
+
+```yaml
+marketplace:
+  internalToken: <random shared token>
+postgres:
+  password: <database password>
+```
+
+Install or upgrade:
+
+```bash
+helm upgrade --install giga ./deploy/helm/giga \
+  -n giga --create-namespace \
+  -f ./deploy/helm/giga/values-secret.yaml \
+  --set domain=marketplace.example.org \
+  --set image.registry=<your-registry> \
+  --set image.tag=<tag>
+```
+
+Override `domain`, `image.registry`, `ingress.className` and `ingress.clusterIssuer` for your environment; everything else has sensible defaults in `values.yaml`. See [`deploy/README.md`](deploy/README.md) for details.
+
+On every push to `main`, [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml) builds both images and runs the same upgrade, authenticating to Google Cloud with Workload Identity Federation. No long-lived keys.
+
+## Catalog
+
+* **Skill**: a provider capability, submitted as a `SKILL.md` bundle (plus `openapi/`, `schemas/`, `rulebooks/`, `examples/`), file by file or as a `.zip`.
+* **Use case**: a journey-tagged prompt chain authored from a form in the Provider Console. It lists the prerequisites an app builder needs and one or more journeys, where each journey has agent prompts that each reference their own skills.
+* **Application**: a developer showcase (title, description, demo video and the skills or use cases used), submitted from the Developer Console.
+
+Skills and use cases can be endorsed **Official** by the marketplace operator; others show as **Community**. Each published item exposes an assurance review trail of automated checks and the approval audit.
 
 ## Roles
 
 | Role | Can do |
 | --- | --- |
-| `builder` (Developer) | Browse the marketplace, install skills/use cases into their own agent, submit application showcases |
-| `provider` | Everything a developer can + register an organisation and publish skills and use cases for review |
-| `reviewer` | Governance: claim the review queue, inspect bundles and check reports, approve / reject / request changes, moderate applications |
-| `superadmin` | Everything a reviewer can + verify organisations, manage users and roles, suspend accounts, endorse Official, delist |
+| `builder` (Developer) | Browse the marketplace, install skills and use cases into their own agent, submit application showcases |
+| `provider` | Everything a developer can, plus register an organisation and publish skills and use cases for review |
+| `reviewer` | Governance: claim the review queue, inspect bundles and check reports, approve, reject or request changes, moderate applications |
+| `superadmin` | Everything a reviewer can, plus verify organisations, manage users and roles, suspend accounts, endorse Official, delist |
 
-Governance roles are granted by a super admin - they can never be self-assigned at
-registration. Reviewers can only decide reviews they claimed; a super admin can decide any.
+Governance roles are granted by a super admin and can never be self-assigned at registration.
 
-## Demo accounts
+Demo accounts (seeded on first run):
 
 | Email | Password | Role |
 | --- | --- | --- |
@@ -119,49 +119,17 @@ registration. Reviewers can only decide reviews they claimed; a super admin can 
 | reviewer@govbuild.test | review123 | Skill reviewer |
 | provider@igrant.io | provider123 | Approved provider (iGrant.io) |
 | trust@govstack.test | provider123 | Approved provider (GovStack Trust Services) |
-| labs@educhain.test | provider123 | Provider with a **pending** organisation |
+| labs@educhain.test | provider123 | Provider with a pending organisation |
 | student@example.com | student123 | Developer (student) |
 
-## Workflows
+## Contributing
 
-1. **Provider onboarding** - a provider registers an organisation (Provider Console -
-   Organisation); a super admin verifies it (Governance - Organisations) before anything can
-   be published.
-2. **Publication (app-store style)** - the provider submits a skill bundle or authors a use
-   case (Provider Console - Publish). Automated checks validate the manifest, slug, OpenAPI
-   3.x parseability, JSON schemas, dependency resolution (skills) or the journey/prompt
-   structure (use cases). Passing submissions enter the review queue where a reviewer
-   approves (published), rejects, or requests changes. Every step lands in the audit trail.
-3. **Build with skills** - anyone browses the marketplace and installs the relevant skill or
-   use case into their own AI coding agent; developers can then submit what they built to the
-   Showcase.
+Feel free to improve the project and send us a pull request. If you find any problems, please create an issue in this repo.
 
-## Layout
+## Licensing
 
-```
-Makefile               dev routines (db / install / marketplace / web / up / down)
-docker-compose.yml     postgres + marketplace + web services
-services/marketplace/  standalone catalog service (server.js)
-web/
-  lib/
-    db.ts          postgres.js client, schema bootstrap, seed-on-empty, audit log
-    auth.ts        scrypt passwords, bearer tokens, roles
-    handler.ts     route() wrapper: auth/roles/body/error shape in one place
-    views.ts       snake_case rows -> camelCase API shapes
-    checks.ts      automated skill / use-case validation
-    seed.ts        demo users, orgs, skills, use case, applications
-    client.ts      browser API helper + session store (useSession)
-  app/
-    page.tsx           marketplace catalog (skills / use cases)
-    skill/[slug]/      skill detail + /review assurance trail
-    usecase/[slug]/    use case detail (journeys, prerequisites)
-    showcase/          developer application showcase
-    login/             standalone dashboard sign-in
-    provider/          Organisation / Publish / My submissions
-    governance/        Overview / Review queue / Applications / Organisations / Users / Published / Audit
-    developer/         Developer Console (submit + manage applications)
-    settings/          account profile, avatar, password
-    api/...            route handlers
-  components/          app shell, sidebar, editors, marketplace UI, shadcn/ui primitives
-  seed-bundles/        demo skill bundles + the NLR use case as real files
-```
+Copyright (c) 2026 LCubed AB (iGrant.io), Sweden
+
+Licensed under the Apache 2.0 License, Version 2.0 (the "License"); you may not use this file except in compliance with the License.
+
+Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the LICENSE for the governing limitations under the License.
