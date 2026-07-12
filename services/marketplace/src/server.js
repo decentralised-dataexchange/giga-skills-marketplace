@@ -80,13 +80,34 @@ async function getSkill(slug) {
     SELECT id, version, status, decided_at FROM versions
     WHERE skill_id = ${skill.id} AND status IN ('published','superseded') ORDER BY id DESC`;
   return {
-    skill: { id: skill.id, slug: skill.slug, type: skill.type ?? "skill", installs: skill.installs, official: skill.official ?? false },
-    org: { name: skill.org_name, website: skill.org_website, description: skill.org_description,
-      status: skill.org_status, contact: skill.org_contact },
-    version: { id: version.id, version: version.version, manifest: version.manifest,
-      files: version.files, checks: version.checks, publishedAt: version.decided_at },
-    history: history.map((item) => ({ id: item.id, version: item.version,
-      status: item.status, publishedAt: item.decided_at })),
+    skill: {
+      id: skill.id,
+      slug: skill.slug,
+      type: skill.type ?? "skill",
+      installs: skill.installs,
+      official: skill.official ?? false,
+    },
+    org: {
+      name: skill.org_name,
+      website: skill.org_website,
+      description: skill.org_description,
+      status: skill.org_status,
+      contact: skill.org_contact,
+    },
+    version: {
+      id: version.id,
+      version: version.version,
+      manifest: version.manifest,
+      files: version.files,
+      checks: version.checks,
+      publishedAt: version.decided_at,
+    },
+    history: history.map((item) => ({
+      id: item.id,
+      version: item.version,
+      status: item.status,
+      publishedAt: item.decided_at,
+    })),
   };
 }
 
@@ -98,8 +119,14 @@ async function skillContext(slugs) {
     JOIN versions v ON v.id = s.published_version_id
     JOIN orgs o ON o.id = s.org_id
     WHERE s.status = 'published' AND s.slug = ANY(${slugs})`;
-  return { skills: rows.map((row) => ({ slug: row.slug, version: row.version,
-    files: row.files, orgName: row.org_name })) };
+  return {
+    skills: rows.map((row) => ({
+      slug: row.slug,
+      version: row.version,
+      files: row.files,
+      orgName: row.org_name,
+    })),
+  };
 }
 
 const server = http.createServer(async (req, res) => {
@@ -125,12 +152,16 @@ const server = http.createServer(async (req, res) => {
       const slug = decodeURIComponent(match[1]);
       if (req.method === "GET" && !match[2]) {
         const result = await getSkill(slug);
-        return result ? json(res, 200, result) : json(res, 404, { error: "Skill not found or not published" });
+        return result
+          ? json(res, 200, result)
+          : json(res, 404, { error: "Skill not found or not published" });
       }
       if (req.method === "POST" && match[2]) {
         const [row] = await sql`UPDATE skills SET installs = installs + 1
           WHERE slug = ${slug} AND status = 'published' RETURNING installs`;
-        return row ? json(res, 200, { installs: row.installs }) : json(res, 404, { error: "Skill not found" });
+        return row
+          ? json(res, 200, { installs: row.installs })
+          : json(res, 404, { error: "Skill not found" });
       }
     }
     return json(res, 404, { error: "Not found" });

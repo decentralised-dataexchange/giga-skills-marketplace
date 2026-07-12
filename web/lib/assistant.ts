@@ -1,6 +1,10 @@
 // Skill-context composition for the Integration Assistant.
 import { sql } from "./db";
-import { fetchSkillContext, hasMarketplaceService, type SkillContextRecord } from "./marketplace-client";
+import {
+  fetchSkillContext,
+  hasMarketplaceService,
+  type SkillContextRecord,
+} from "./marketplace-client";
 
 export { DEFAULT_MODEL, MODELS } from "./models";
 import type { BundleFile } from "./views";
@@ -8,32 +12,41 @@ import type { BundleFile } from "./views";
 const MAX_FILE_CHARS = 12_000;
 const MAX_SKILL_CHARS = 40_000;
 
-
 export async function renderSkillContext(slugs: string[]): Promise<string> {
   if (!slugs.length) return "";
   const rows: SkillContextRecord[] = hasMarketplaceService
     ? (await fetchSkillContext(slugs)).skills
-    : (await sql`
+    : (
+        await sql`
         SELECT s.slug, v.version, v.files, o.name AS org_name
         FROM skills s
         JOIN versions v ON v.id = s.published_version_id
         JOIN orgs o ON o.id = s.org_id
-        WHERE s.status = 'published' AND s.slug = ANY(${slugs})`)
-      .map((row) => ({ slug: row.slug, version: row.version, files: row.files as BundleFile[], orgName: row.org_name }));
+        WHERE s.status = 'published' AND s.slug = ANY(${slugs})`
+      ).map((row) => ({
+        slug: row.slug,
+        version: row.version,
+        files: row.files as BundleFile[],
+        orgName: row.org_name,
+      }));
   return rows
     .map((row) => {
       let block = `\n\n=== INVOKED SKILL: ${row.slug} v${row.version} (provider: ${row.orgName}) ===\n`;
       // SKILL.md first, it is the entry point, then supporting artefacts.
-      const ordered = [...(row.files as BundleFile[])].sort((a, b) =>
-        Number(a.path.toLowerCase() !== "skill.md") - Number(b.path.toLowerCase() !== "skill.md"));
+      const ordered = [...(row.files as BundleFile[])].sort(
+        (a, b) =>
+          Number(a.path.toLowerCase() !== "skill.md") - Number(b.path.toLowerCase() !== "skill.md"),
+      );
       for (const f of ordered) {
-        const content = f.content.length > MAX_FILE_CHARS
-          ? `${f.content.slice(0, MAX_FILE_CHARS)}\n... [truncated]`
-          : f.content;
+        const content =
+          f.content.length > MAX_FILE_CHARS
+            ? `${f.content.slice(0, MAX_FILE_CHARS)}\n... [truncated]`
+            : f.content;
         const addition = `\n--- ${f.path} ---\n${content}\n`;
-        block += block.length + addition.length > MAX_SKILL_CHARS
-          ? `\n--- ${f.path} --- [omitted for length]\n`
-          : addition;
+        block +=
+          block.length + addition.length > MAX_SKILL_CHARS
+            ? `\n--- ${f.path} --- [omitted for length]\n`
+            : addition;
       }
       return block;
     })
@@ -41,7 +54,8 @@ export async function renderSkillContext(slugs: string[]): Promise<string> {
 }
 
 export function buildInstructions(skillContext: string, slugs: string[]): string {
-  const invoked = slugs.join(", ") || "(none - advise the user to invoke at least one skill with /skill-name)";
+  const invoked =
+    slugs.join(", ") || "(none - advise the user to invoke at least one skill with /skill-name)";
   return `You are the GovBuild Integration Assistant. You help students, implementers and anyone else build small, self-contained HTML applications on top of Digital Public Infrastructure (DPI) wallet building blocks, using provider-published skill files invoked from the skills marketplace.
 
 RULES:

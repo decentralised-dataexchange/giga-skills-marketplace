@@ -42,20 +42,37 @@ export default function ProviderOrganisationPage() {
   const approvedOrg = orgs.find((o) => o.status === "approved");
 
   return (
-    <DashboardMain title="Organisation" subtitle="Register your organisation and track its verification status." denied={denied}>
+    <DashboardMain
+      title="Organisation"
+      subtitle="Register your organisation and track its verification status."
+      denied={denied}
+    >
       {message && <p className="text-sm font-semibold text-brand">{message}</p>}
 
       {!orgs.length ? (
         <Card className="max-w-xl gap-4 p-6">
           <h2 className="font-medium">Register your organisation</h2>
-          <p className="text-sm text-muted-foreground">A super admin verifies it before you can publish.</p>
+          <p className="text-sm text-muted-foreground">
+            A super admin verifies it before you can publish.
+          </p>
           <form className="space-y-3" onSubmit={submitOrg}>
-            <Input placeholder="Organisation name" required value={orgForm.name}
-              onChange={(e) => setOrgForm({ ...orgForm, name: e.target.value })} />
-            <Input placeholder="Website (https://...)" value={orgForm.website}
-              onChange={(e) => setOrgForm({ ...orgForm, website: e.target.value })} />
-            <Textarea placeholder="What do you provide?" required value={orgForm.description}
-              onChange={(e) => setOrgForm({ ...orgForm, description: e.target.value })} />
+            <Input
+              placeholder="Organisation name"
+              required
+              value={orgForm.name}
+              onChange={(e) => setOrgForm({ ...orgForm, name: e.target.value })}
+            />
+            <Input
+              placeholder="Website (https://...)"
+              value={orgForm.website}
+              onChange={(e) => setOrgForm({ ...orgForm, website: e.target.value })}
+            />
+            <Textarea
+              placeholder="What do you provide?"
+              required
+              value={orgForm.description}
+              onChange={(e) => setOrgForm({ ...orgForm, description: e.target.value })}
+            />
             <Button type="submit">Submit for verification</Button>
           </form>
         </Card>
@@ -68,7 +85,9 @@ export default function ProviderOrganisationPage() {
             </div>
             <p className="text-sm text-muted-foreground">{o.description}</p>
             {o.decisionNotes && (
-              <p className="text-sm text-muted-foreground"><b>Reviewer notes:</b> {o.decisionNotes}</p>
+              <p className="text-sm text-muted-foreground">
+                <b>Reviewer notes:</b> {o.decisionNotes}
+              </p>
             )}
           </Card>
         ))
@@ -77,7 +96,9 @@ export default function ProviderOrganisationPage() {
       {approvedOrg && (
         <p className="text-sm text-muted-foreground">
           Your organisation is verified.{" "}
-          <Link href="/provider/submit" className="font-semibold text-brand hover:underline">Publish a skill or use case →</Link>
+          <Link href="/provider/submit" className="font-semibold text-brand hover:underline">
+            Publish a skill or use case →
+          </Link>
         </p>
       )}
     </DashboardMain>

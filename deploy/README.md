@@ -2,10 +2,10 @@
 
 Kubernetes deployment via the Helm chart in [`helm/giga`](helm/giga). It provisions:
 
-- **giga-web** — the Next.js marketplace/dashboard (Service on port 80 → 4820)
-- **giga-marketplace** — the internal Node API (Service on port 4830)
-- **giga-postgres** — PostgreSQL 16 with a PersistentVolumeClaim
-- **Ingress** — nginx + cert-manager TLS for your domain
+- **giga-web**: the Next.js marketplace/dashboard (Service on port 80 → 4820)
+- **giga-marketplace**: the internal Node API (Service on port 4830)
+- **giga-postgres**: PostgreSQL 16 with a PersistentVolumeClaim
+- **Ingress**: nginx + cert-manager TLS for your domain
 
 ## Prerequisites
 

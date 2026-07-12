@@ -14,7 +14,9 @@ export default function GovernanceOverviewPage() {
 
   useEffect(() => {
     if (auth.user && ["reviewer", "superadmin"].includes(auth.user.role)) {
-      api("/api/admin/stats").then((d) => setStats(d.stats)).catch((e) => setMessage(e.message));
+      api("/api/admin/stats")
+        .then((d) => setStats(d.stats))
+        .catch((e) => setMessage(e.message));
     }
   }, []);
 
@@ -26,12 +28,19 @@ export default function GovernanceOverviewPage() {
         [stats.reviewQueue, "In review queue"],
         [stats.orgsByStatus.approved ?? 0, "Verified providers"],
         [stats.orgsByStatus.pending ?? 0, "Orgs pending"],
-        [(stats.usersByRole.builder ?? 0) + (stats.usersByRole.provider ?? 0), "Developers & providers"],
+        [
+          (stats.usersByRole.builder ?? 0) + (stats.usersByRole.provider ?? 0),
+          "Developers & providers",
+        ],
       ]
     : [];
 
   return (
-    <DashboardMain title="Overview" subtitle="Marketplace and governance metrics at a glance." denied={denied}>
+    <DashboardMain
+      title="Overview"
+      subtitle="Marketplace and governance metrics at a glance."
+      denied={denied}
+    >
       {message && <p className="text-sm font-semibold text-amber-600">{message}</p>}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
         {cards.map(([n, label]) => (

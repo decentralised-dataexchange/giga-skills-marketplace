@@ -51,7 +51,12 @@ export default function DeveloperPage() {
 
   function startEdit(a: any) {
     setEditingId(a.id);
-    setForm({ title: a.title, description: a.description ?? "", videoUrl: a.videoUrl ?? "", repoUrl: a.repoUrl ?? "" });
+    setForm({
+      title: a.title,
+      description: a.description ?? "",
+      videoUrl: a.videoUrl ?? "",
+      repoUrl: a.repoUrl ?? "",
+    });
     setSkills(a.skills ?? []);
     setUsecases(a.usecases ?? []);
     setMsg("");
@@ -95,38 +100,84 @@ export default function DeveloperPage() {
       <div>
         <h1 className="text-3xl font-bold tracking-tight text-ink">Developer Console</h1>
         <p className="mt-2 text-sm text-muted-foreground">
-          Showcase an application you built with published skills and use cases: add a title, description, a demo video,
-          and tag which skills and use cases you used.
+          Showcase an application you built with published skills and use cases: add a title,
+          description, a demo video, and tag which skills and use cases you used.
         </p>
       </div>
 
       <Card className="max-w-2xl gap-4 p-6">
-        <h2 className="text-lg font-bold text-ink">{editingId ? "Edit application" : "Submit an application"}</h2>
+        <h2 className="text-lg font-bold text-ink">
+          {editingId ? "Edit application" : "Submit an application"}
+        </h2>
         <form className="space-y-4" onSubmit={submit}>
           <div className="space-y-1.5">
-            <label htmlFor="app-title" className="text-sm font-medium text-ink">Title</label>
-            <Input id="app-title" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} required />
+            <label htmlFor="app-title" className="text-sm font-medium text-ink">
+              Title
+            </label>
+            <Input
+              id="app-title"
+              value={form.title}
+              onChange={(e) => setForm({ ...form, title: e.target.value })}
+              required
+            />
           </div>
           <div className="space-y-1.5">
-            <label htmlFor="app-desc" className="text-sm font-medium text-ink">Description</label>
-            <MarkdownEditor id="app-desc" value={form.description} onChange={(v) => setForm({ ...form, description: v })} placeholder="What you built and how it uses the skills / use cases." />
+            <label htmlFor="app-desc" className="text-sm font-medium text-ink">
+              Description
+            </label>
+            <MarkdownEditor
+              id="app-desc"
+              value={form.description}
+              onChange={(v) => setForm({ ...form, description: v })}
+              placeholder="What you built and how it uses the skills / use cases."
+            />
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-1.5">
-              <label htmlFor="app-video" className="text-sm font-medium text-ink">Demo video URL</label>
-              <Input id="app-video" type="url" placeholder="https://youtube.com/watch?v=…" value={form.videoUrl}
-                onChange={(e) => setForm({ ...form, videoUrl: e.target.value })} />
+              <label htmlFor="app-video" className="text-sm font-medium text-ink">
+                Demo video URL
+              </label>
+              <Input
+                id="app-video"
+                type="url"
+                placeholder="https://youtube.com/watch?v=…"
+                value={form.videoUrl}
+                onChange={(e) => setForm({ ...form, videoUrl: e.target.value })}
+              />
             </div>
             <div className="space-y-1.5">
-              <label htmlFor="app-repo" className="text-sm font-medium text-ink">Source repo URL (optional)</label>
-              <Input id="app-repo" type="url" placeholder="https://github.com/…" value={form.repoUrl}
-                onChange={(e) => setForm({ ...form, repoUrl: e.target.value })} />
+              <label htmlFor="app-repo" className="text-sm font-medium text-ink">
+                Source repo URL (optional)
+              </label>
+              <Input
+                id="app-repo"
+                type="url"
+                placeholder="https://github.com/…"
+                value={form.repoUrl}
+                onChange={(e) => setForm({ ...form, repoUrl: e.target.value })}
+              />
             </div>
           </div>
-          <MultiSelect label="Skills used" options={skillOpts} selected={skills} onChange={setSkills} placeholder="Search skills…" />
-          <MultiSelect label="Use cases used" options={usecaseOpts} selected={usecases} onChange={setUsecases} placeholder="Search use cases…" />
+          <MultiSelect
+            label="Skills used"
+            options={skillOpts}
+            selected={skills}
+            onChange={setSkills}
+            placeholder="Search skills…"
+          />
+          <MultiSelect
+            label="Use cases used"
+            options={usecaseOpts}
+            selected={usecases}
+            onChange={setUsecases}
+            placeholder="Search use cases…"
+          />
           {err && <p className="text-sm font-medium text-destructive">{err}</p>}
-          {msg && <p className="text-sm font-medium text-emerald-700" role="status">{msg}</p>}
+          {msg && (
+            <p className="text-sm font-medium text-emerald-700" role="status">
+              {msg}
+            </p>
+          )}
           <div className="flex gap-2">
             <Button type="submit">{editingId ? "Save changes" : "Submit to showcase"}</Button>
             {editingId && (
@@ -141,29 +192,43 @@ export default function DeveloperPage() {
       {mine.length > 0 && (
         <Card className="gap-3 p-6">
           <h2 className="text-lg font-bold text-ink">Your applications</h2>
-          <div className="overflow-x-auto"><table className="w-full min-w-[720px] text-sm">
-            <thead>
-              <tr className="text-left text-xs uppercase tracking-wide text-muted-foreground">
-                <th className="py-2">Title</th><th>Status</th><th>Skills / use cases</th><th>Submitted</th><th />
-              </tr>
-            </thead>
-            <tbody>
-              {mine.map((a) => (
-                <tr key={a.id} className="border-t border-border">
-                  <td className="py-2.5 font-semibold text-ink">{a.title}</td>
-                  <td><StatusBadge status={a.status} /></td>
-                  <td className="text-muted-foreground">{[...a.usecases, ...a.skills].join(", ") || "-"}</td>
-                  <td className="tabular-nums text-muted-foreground">{fmtDate(a.createdAt)}</td>
-                  <td className="text-right">
-                    <div className="flex justify-end gap-2">
-                      <Button size="sm" variant="secondary" onClick={() => startEdit(a)}>Edit</Button>
-                      <Button size="sm" variant="destructive" onClick={() => removeApp(a)}>Delete</Button>
-                    </div>
-                  </td>
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[720px] text-sm">
+              <thead>
+                <tr className="text-left text-xs uppercase tracking-wide text-muted-foreground">
+                  <th className="py-2">Title</th>
+                  <th>Status</th>
+                  <th>Skills / use cases</th>
+                  <th>Submitted</th>
+                  <th />
                 </tr>
-              ))}
-            </tbody>
-          </table></div>
+              </thead>
+              <tbody>
+                {mine.map((a) => (
+                  <tr key={a.id} className="border-t border-border">
+                    <td className="py-2.5 font-semibold text-ink">{a.title}</td>
+                    <td>
+                      <StatusBadge status={a.status} />
+                    </td>
+                    <td className="text-muted-foreground">
+                      {[...a.usecases, ...a.skills].join(", ") || "-"}
+                    </td>
+                    <td className="tabular-nums text-muted-foreground">{fmtDate(a.createdAt)}</td>
+                    <td className="text-right">
+                      <div className="flex justify-end gap-2">
+                        <Button size="sm" variant="secondary" onClick={() => startEdit(a)}>
+                          Edit
+                        </Button>
+                        <Button size="sm" variant="destructive" onClick={() => removeApp(a)}>
+                          Delete
+                        </Button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </Card>
       )}
     </main>

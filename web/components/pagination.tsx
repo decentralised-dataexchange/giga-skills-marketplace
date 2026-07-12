@@ -33,14 +33,18 @@ export function Pagination({
   const pages = Math.max(1, Math.ceil(total / pageSize));
   if (pages <= 1) return null;
 
-  const btn = "grid h-8 min-w-8 place-items-center rounded-md border border-border px-2 text-sm font-medium transition-colors";
+  const btn =
+    "grid h-8 min-w-8 place-items-center rounded-md border border-border px-2 text-sm font-medium transition-colors";
   const from = total === 0 ? 0 : (page - 1) * pageSize + 1;
   const to = Math.min(page * pageSize, total);
 
   return (
-    <nav aria-label="Pagination" className={cn("flex flex-wrap items-center justify-between gap-3 pt-2", className)}>
+    <nav
+      aria-label="Pagination"
+      className={cn("flex flex-wrap items-center justify-between gap-3 pt-2", className)}
+    >
       <p className="text-xs text-muted-foreground tabular-nums">
-        {from}–{to} of {total}
+        {from}-{to} of {total}
       </p>
       <div className="flex items-center gap-1">
         <button
@@ -48,13 +52,20 @@ export function Pagination({
           onClick={() => onPage(page - 1)}
           disabled={page <= 1}
           aria-label="Previous page"
-          className={cn(btn, "text-ink hover:bg-secondary disabled:pointer-events-none disabled:opacity-40")}
+          className={cn(
+            btn,
+            "text-ink hover:bg-secondary disabled:pointer-events-none disabled:opacity-40",
+          )}
         >
           <ChevronLeft className="size-4" />
         </button>
         {pageWindow(page, pages).map((n, i) =>
           n === "…" ? (
-            <span key={`gap-${i}`} className="px-1 text-sm text-muted-foreground" aria-hidden="true">
+            <span
+              key={`gap-${i}`}
+              className="px-1 text-sm text-muted-foreground"
+              aria-hidden="true"
+            >
               …
             </span>
           ) : (
@@ -65,7 +76,9 @@ export function Pagination({
               aria-current={n === page ? "page" : undefined}
               className={cn(
                 btn,
-                n === page ? "border-brand bg-brand text-primary-foreground" : "text-ink hover:bg-secondary",
+                n === page
+                  ? "border-brand bg-brand text-primary-foreground"
+                  : "text-ink hover:bg-secondary",
               )}
             >
               {n}
@@ -77,7 +90,10 @@ export function Pagination({
           onClick={() => onPage(page + 1)}
           disabled={page >= pages}
           aria-label="Next page"
-          className={cn(btn, "text-ink hover:bg-secondary disabled:pointer-events-none disabled:opacity-40")}
+          className={cn(
+            btn,
+            "text-ink hover:bg-secondary disabled:pointer-events-none disabled:opacity-40",
+          )}
         >
           <ChevronRight className="size-4" />
         </button>

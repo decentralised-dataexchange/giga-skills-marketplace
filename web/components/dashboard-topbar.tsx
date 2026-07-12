@@ -26,7 +26,12 @@ export function DashboardTopbar({ className }: { className?: string }) {
   }
 
   return (
-    <header className={cn("sticky top-0 z-20 border-b border-border bg-white/90 backdrop-blur-md", className)}>
+    <header
+      className={cn(
+        "sticky top-0 z-20 border-b border-border bg-white/90 backdrop-blur-md",
+        className,
+      )}
+    >
       <div className="flex h-14 items-center justify-between px-5">
         <Link href="/" className="flex items-center" aria-label="Giga home">
           <Logo />
@@ -43,8 +48,15 @@ export function DashboardTopbar({ className }: { className?: string }) {
       </div>
 
       {open && (
-        <nav aria-label="Dashboard" className="max-h-[70vh] space-y-4 overflow-y-auto border-t border-border px-4 py-3">
-          <Link href="/" onClick={() => setOpen(false)} className="block rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-secondary hover:text-ink">
+        <nav
+          aria-label="Dashboard"
+          className="max-h-[70vh] space-y-4 overflow-y-auto border-t border-border px-4 py-3"
+        >
+          <Link
+            href="/"
+            onClick={() => setOpen(false)}
+            className="block rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-secondary hover:text-ink"
+          >
             ← Marketplace
           </Link>
           {DASHBOARD_NAV.map((group) => {
@@ -52,7 +64,9 @@ export function DashboardTopbar({ className }: { className?: string }) {
             if (!items.length) return null;
             return (
               <div key={group.label}>
-                <p className="px-2 pb-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">{group.label}</p>
+                <p className="px-2 pb-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  {group.label}
+                </p>
                 <div className="space-y-0.5">
                   {items.map((l) => (
                     <Link
@@ -62,7 +76,9 @@ export function DashboardTopbar({ className }: { className?: string }) {
                       aria-current={pathname === l.href ? "page" : undefined}
                       className={cn(
                         "block rounded-lg px-3 py-1.5 text-sm font-semibold",
-                        pathname === l.href ? "bg-secondary text-ink" : "text-ink/70 hover:bg-secondary hover:text-ink",
+                        pathname === l.href
+                          ? "bg-secondary text-ink"
+                          : "text-ink/70 hover:bg-secondary hover:text-ink",
                       )}
                     >
                       {l.label}
@@ -78,7 +94,9 @@ export function DashboardTopbar({ className }: { className?: string }) {
                 <UserAvatar name={user.name} avatar={user.avatar} size="sm" decorative />
                 {user.name}
               </span>
-              <Button variant="secondary" size="sm" onClick={signOut}>Sign out</Button>
+              <Button variant="secondary" size="sm" onClick={signOut}>
+                Sign out
+              </Button>
             </div>
           )}
         </nav>

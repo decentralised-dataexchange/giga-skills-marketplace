@@ -21,13 +21,18 @@ const NODE: Record<string, { label: string; dot: string }> = {
 
 function nodeInfo(t: any) {
   if (t.type === "skill.official_set") {
-    return { label: t.detail?.official ? "Endorsed as Official" : "Moved to Community", dot: "bg-brand" };
+    return {
+      label: t.detail?.official ? "Endorsed as Official" : "Moved to Community",
+      dot: "bg-brand",
+    };
   }
   return NODE[t.type] ?? { label: t.type, dot: "bg-muted-foreground" };
 }
 
 function when(iso?: string | null) {
-  return iso ? new Date(iso).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" }) : "-";
+  return iso
+    ? new Date(iso).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" })
+    : "-";
 }
 
 export default function ReviewTrailPage() {
@@ -41,8 +46,12 @@ export default function ReviewTrailPage() {
       .catch((e) => setError(e.message));
   }, [slug]);
 
-  if (error) return <main className="mx-auto max-w-[1536px] px-5 py-10 text-muted-foreground">{error}</main>;
-  if (!data) return <main className="mx-auto max-w-[1536px] px-5 py-10 text-muted-foreground">Loading...</main>;
+  if (error)
+    return <main className="mx-auto max-w-[1536px] px-5 py-10 text-muted-foreground">{error}</main>;
+  if (!data)
+    return (
+      <main className="mx-auto max-w-[1536px] px-5 py-10 text-muted-foreground">Loading...</main>
+    );
 
   const { version, trail } = data;
   const checks: Check[] = version.checks ?? [];
@@ -61,13 +70,21 @@ export default function ReviewTrailPage() {
         </div>
         <p className="mt-2 max-w-3xl text-muted-foreground">
           The assurance record for <span className="font-semibold text-ink">{slug}</span>: automated
-          checks run at submission plus the human approval trail, retained as audit evidence. AI-generated artefacts are
-          treated as a hypothesis until validated and approved by a qualified reviewer.
+          checks run at submission plus the human approval trail, retained as audit evidence.
+          AI-generated artefacts are treated as a hypothesis until validated and approved by a
+          qualified reviewer.
         </p>
         <div className="mt-4 flex flex-wrap items-center gap-x-6 gap-y-1 text-sm text-muted-foreground">
-          <span>Submitted {fmtDate(version.submittedAt)}{version.submitterName ? ` by ${version.submitterName}` : ""}</span>
+          <span>
+            Submitted {fmtDate(version.submittedAt)}
+            {version.submitterName ? ` by ${version.submitterName}` : ""}
+          </span>
           <span>Published {fmtDate(version.decidedAt)}</span>
-          {version.reviewerName && <span>Reviewer: <span className="text-ink">{version.reviewerName}</span></span>}
+          {version.reviewerName && (
+            <span>
+              Reviewer: <span className="text-ink">{version.reviewerName}</span>
+            </span>
+          )}
         </div>
       </div>
 
@@ -76,8 +93,9 @@ export default function ReviewTrailPage() {
         <Card className="flex max-h-[34rem] flex-col gap-3 p-6 lg:h-[34rem]">
           <h2 className="shrink-0 text-lg font-bold text-ink">Automated review</h2>
           <p className="shrink-0 text-sm text-muted-foreground">
-            <b className="text-ink tabular-nums">{passed}</b> of <span className="tabular-nums">{checks.length}</span>{" "}
-            checks passed at submission: manifest fields, semver, OpenAPI 3.1 parseability, JSON schemas, and dependency
+            <b className="text-ink tabular-nums">{passed}</b> of{" "}
+            <span className="tabular-nums">{checks.length}</span> checks passed at submission:
+            manifest fields, semver, OpenAPI 3.1 parseability, JSON schemas, and dependency
             resolution.
           </p>
           <div className="min-h-0 flex-1 overflow-y-auto pr-1">
@@ -102,14 +120,20 @@ export default function ReviewTrailPage() {
                     <div className={last ? "flex-1" : "flex-1 pb-5"}>
                       <div className="flex flex-wrap items-baseline justify-between gap-x-3">
                         <span className="font-semibold text-ink">{info.label}</span>
-                        <time className="text-xs tabular-nums text-muted-foreground">{when(t.at)}</time>
+                        <time className="text-xs tabular-nums text-muted-foreground">
+                          {when(t.at)}
+                        </time>
                       </div>
                       <p className="text-sm text-muted-foreground">
                         {t.actor.name}
-                        {t.actor.role ? <span className="capitalize"> · {t.actor.role}</span> : null}
+                        {t.actor.role ? (
+                          <span className="capitalize"> · {t.actor.role}</span>
+                        ) : null}
                       </p>
                       {t.detail?.notes && (
-                        <Markdown className="mt-1 border-l-2 border-border pl-3 text-sm text-ink/80 [&_p]:m-0">{t.detail.notes}</Markdown>
+                        <Markdown className="mt-1 border-l-2 border-border pl-3 text-sm text-ink/80 [&_p]:m-0">
+                          {t.detail.notes}
+                        </Markdown>
                       )}
                     </div>
                   </li>

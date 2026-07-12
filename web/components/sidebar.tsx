@@ -22,7 +22,12 @@ export function Sidebar({ className }: { className?: string }) {
   }
 
   return (
-    <aside className={cn("sticky top-0 h-screen w-60 shrink-0 flex-col border-r border-border bg-white", className)}>
+    <aside
+      className={cn(
+        "sticky top-0 h-screen w-60 shrink-0 flex-col border-r border-border bg-white",
+        className,
+      )}
+    >
       <Link href="/" className="flex h-16 items-center px-5" aria-label="Giga home">
         <Logo />
       </Link>
@@ -40,7 +45,9 @@ export function Sidebar({ className }: { className?: string }) {
           if (!items.length) return null;
           return (
             <div key={group.label}>
-              <p className="px-2 pb-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">{group.label}</p>
+              <p className="px-2 pb-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                {group.label}
+              </p>
               <div className="space-y-0.5">
                 {items.map((l) => {
                   const active = pathname === l.href;
@@ -51,7 +58,9 @@ export function Sidebar({ className }: { className?: string }) {
                       aria-current={active ? "page" : undefined}
                       className={cn(
                         "block rounded-lg px-3 py-1.5 text-sm font-semibold transition-colors",
-                        active ? "bg-secondary text-ink" : "text-ink/70 hover:bg-secondary hover:text-ink",
+                        active
+                          ? "bg-secondary text-ink"
+                          : "text-ink/70 hover:bg-secondary hover:text-ink",
                       )}
                     >
                       {l.label}
@@ -75,14 +84,22 @@ export function Sidebar({ className }: { className?: string }) {
               )}
             >
               <UserAvatar name={user.name} avatar={user.avatar} size="sm" decorative />
-              <span className="min-w-0 flex-1 truncate text-sm font-medium text-ink">{user.name}</span>
+              <span className="min-w-0 flex-1 truncate text-sm font-medium text-ink">
+                {user.name}
+              </span>
             </Link>
             <Button variant="secondary" size="sm" className="mt-1.5 w-full" onClick={signOut}>
               Sign out
             </Button>
           </>
         ) : (
-          <Button variant="secondary" size="sm" className="w-full" nativeButton={false} render={<Link href="/login" />}>
+          <Button
+            variant="secondary"
+            size="sm"
+            className="w-full"
+            nativeButton={false}
+            render={<Link href="/login" />}
+          >
             Sign in
           </Button>
         )}

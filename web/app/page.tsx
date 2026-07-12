@@ -50,7 +50,10 @@ const INFO = [
 ];
 
 function monogram(slug: string) {
-  return slug.replace(/[^a-z0-9]/gi, "").slice(0, 2).toUpperCase();
+  return slug
+    .replace(/[^a-z0-9]/gi, "")
+    .slice(0, 2)
+    .toUpperCase();
 }
 
 const PAGE_SIZE = 8;
@@ -62,7 +65,11 @@ export default function MarketplacePage() {
   const [data, setData] = useState<{ skills: Entry[]; total: number }>({ skills: [], total: 0 });
 
   useEffect(() => {
-    const params = new URLSearchParams({ type: tab, page: String(page), pageSize: String(PAGE_SIZE) });
+    const params = new URLSearchParams({
+      type: tab,
+      page: String(page),
+      pageSize: String(PAGE_SIZE),
+    });
     if (q.trim()) params.set("q", q.trim());
     api(`/api/marketplace?${params.toString()}`)
       .then((d) => setData({ skills: d.skills, total: d.total ?? d.skills.length }))
@@ -85,13 +92,13 @@ export default function MarketplacePage() {
             Skills &amp; use cases for AI-built DPI
           </h1>
           <p className="mt-5 max-w-3xl text-pretty text-lg text-ink/80">
-            Providers publish reviewed, agent-agnostic <b>skills</b> and <b>use cases</b> for the education wallet
-            building block. Anyone installs them into their own AI coding agent to build a working National Learner
-            Registry and digital-credential solution.
+            Providers publish reviewed, agent-agnostic <b>skills</b> and <b>use cases</b> for the
+            education wallet building block. Anyone installs them into their own AI coding agent to
+            build a working National Learner Registry and digital-credential solution.
           </p>
           <p className="mt-3 max-w-3xl text-pretty text-ink/70">
-            Built on W3C Verifiable Credentials, SD-JWT VC, OpenID4VCI / OpenID4VP, and the GovStack Wallet BB. Part of
-            the ITU / UNICEF Giga initiative. No vendor, model, or tool lock-in.
+            Built on W3C Verifiable Credentials, SD-JWT VC, OpenID4VCI / OpenID4VP, and the GovStack
+            Wallet BB. Part of the ITU / UNICEF Giga initiative. No vendor, model, or tool lock-in.
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
             <a
@@ -115,7 +122,10 @@ export default function MarketplacePage() {
       <section className="mx-auto w-full max-w-[1536px] px-5 py-12">
         <div className="grid gap-5 md:grid-cols-3">
           {INFO.map((c) => (
-            <div key={c.title} className="flex flex-col rounded-xl border border-brand/25 bg-white p-6">
+            <div
+              key={c.title}
+              className="flex flex-col rounded-xl border border-brand/25 bg-white p-6"
+            >
               <h3 className="text-lg font-bold text-brand">{c.title}</h3>
               <p className="mt-3 flex-1 text-sm leading-relaxed text-ink/70">{c.body}</p>
               <a
@@ -155,7 +165,11 @@ export default function MarketplacePage() {
         </div>
 
         {/* Tabs */}
-        <div role="tablist" aria-label="Catalog type" className="mb-5 flex gap-1 border-b border-border">
+        <div
+          role="tablist"
+          aria-label="Catalog type"
+          className="mb-5 flex gap-1 border-b border-border"
+        >
           {TABS.map((t) => (
             <button
               key={t.id}
@@ -195,7 +209,9 @@ export default function MarketplacePage() {
                   )}
                   <OfficialBadge official={s.official} />
                 </div>
-                <Markdown className="mt-1 text-sm text-ink/70 [&_p]:m-0 [&_p]:line-clamp-2">{s.description}</Markdown>
+                <Markdown className="mt-1 text-sm text-ink/70 [&_p]:m-0 [&_p]:line-clamp-2">
+                  {s.description}
+                </Markdown>
                 <div className="mt-2 flex flex-wrap items-center gap-1.5">
                   {s.type === "usecase" ? (
                     <>
@@ -203,15 +219,24 @@ export default function MarketplacePage() {
                         {s.journeyCount} journeys
                       </span>
                       {s.usesSkills.slice(0, 3).map((u) => (
-                        <span key={u} className="rounded bg-secondary px-2 py-0.5 text-xs font-semibold text-ink/70">
+                        <span
+                          key={u}
+                          className="rounded bg-secondary px-2 py-0.5 text-xs font-semibold text-ink/70"
+                        >
                           {u}
                         </span>
                       ))}
                     </>
                   ) : (
-                    s.protocols.slice(0, 4).map((p) => (
-                      <StandardPill key={p} code={p} className="rounded bg-secondary px-2 py-0.5 text-ink/70" />
-                    ))
+                    s.protocols
+                      .slice(0, 4)
+                      .map((p) => (
+                        <StandardPill
+                          key={p}
+                          code={p}
+                          className="rounded bg-secondary px-2 py-0.5 text-ink/70"
+                        />
+                      ))
                   )}
                 </div>
               </div>
@@ -234,7 +259,13 @@ export default function MarketplacePage() {
           )}
         </div>
 
-        <Pagination page={page} pageSize={PAGE_SIZE} total={data.total} onPage={setPage} className="mt-6" />
+        <Pagination
+          page={page}
+          pageSize={PAGE_SIZE}
+          total={data.total}
+          onPage={setPage}
+          className="mt-6"
+        />
       </section>
     </main>
   );

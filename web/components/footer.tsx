@@ -37,14 +37,21 @@ export function Footer() {
                   {l.label}
                 </a>
               ) : (
-                <Link key={l.href} href={l.href} className="text-white/70 transition-colors hover:text-white">
+                <Link
+                  key={l.href}
+                  href={l.href}
+                  className="text-white/70 transition-colors hover:text-white"
+                >
                   {l.label}
                 </Link>
               ),
             )}
           </nav>
         </div>
-        <p className="mt-6 text-xs text-white/70">© 2026 · Prototype Knowledge Product. GovStack Wallet Building Block · W3C Verifiable Credentials · OpenID4VCI / OpenID4VP.</p>
+        <p className="mt-6 text-xs text-white/70">
+          © 2026 · Prototype Knowledge Product. GovStack Wallet Building Block · W3C Verifiable
+          Credentials · OpenID4VCI / OpenID4VP.
+        </p>
       </div>
     </footer>
   );

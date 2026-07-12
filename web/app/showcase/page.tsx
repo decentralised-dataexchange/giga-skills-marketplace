@@ -41,23 +41,40 @@ function AppCard({ app }: { app: any }) {
       ) : null}
       <div className="flex flex-1 flex-col gap-2 p-5">
         <h3 className="font-bold text-ink">{app.title}</h3>
-        <Markdown className="flex-1 text-sm text-muted-foreground [&_p]:m-0 [&_p]:line-clamp-3">{app.description}</Markdown>
+        <Markdown className="flex-1 text-sm text-muted-foreground [&_p]:m-0 [&_p]:line-clamp-3">
+          {app.description}
+        </Markdown>
         <div className="flex flex-wrap gap-1.5">
           {app.usecases.map((u: string) => (
-            <Link key={u} href={`/usecase/${u}`} className="rounded-full bg-brand/10 px-2 py-0.5 text-xs font-semibold text-brand hover:underline">
+            <Link
+              key={u}
+              href={`/usecase/${u}`}
+              className="rounded-full bg-brand/10 px-2 py-0.5 text-xs font-semibold text-brand hover:underline"
+            >
               {u}
             </Link>
           ))}
           {app.skills.map((s: string) => (
-            <Link key={s} href={`/skill/${s}`} className="rounded bg-secondary px-2 py-0.5 text-xs font-semibold text-ink/70 hover:underline">
+            <Link
+              key={s}
+              href={`/skill/${s}`}
+              className="rounded bg-secondary px-2 py-0.5 text-xs font-semibold text-ink/70 hover:underline"
+            >
               {s}
             </Link>
           ))}
         </div>
         <div className="mt-1 flex items-center justify-between text-xs text-muted-foreground">
-          <span>by {app.developer.name} · {timeAgo(app.createdAt)}</span>
+          <span>
+            by {app.developer.name} · {timeAgo(app.createdAt)}
+          </span>
           {app.repoUrl && (
-            <a href={app.repoUrl} target="_blank" rel="noopener noreferrer" className="font-semibold text-brand hover:underline">
+            <a
+              href={app.repoUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-semibold text-brand hover:underline"
+            >
               Source ↗
             </a>
           )}
@@ -70,13 +87,18 @@ function AppCard({ app }: { app: any }) {
 export default function ShowcasePage() {
   const [q, setQ] = useState("");
   const [page, setPage] = useState(1);
-  const [data, setData] = useState<{ applications: any[]; total: number }>({ applications: [], total: 0 });
+  const [data, setData] = useState<{ applications: any[]; total: number }>({
+    applications: [],
+    total: 0,
+  });
 
   useEffect(() => {
     const params = new URLSearchParams({ page: String(page), pageSize: String(PAGE_SIZE) });
     if (q.trim()) params.set("q", q.trim());
     api(`/api/applications?${params.toString()}`)
-      .then((d) => setData({ applications: d.applications, total: d.total ?? d.applications.length }))
+      .then((d) =>
+        setData({ applications: d.applications, total: d.total ?? d.applications.length }),
+      )
       .catch(console.error);
   }, [q, page]);
 
@@ -86,7 +108,8 @@ export default function ShowcasePage() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-ink">Showcase</h1>
           <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
-            Applications developers built with published skills and use cases. {data.total} showcased.
+            Applications developers built with published skills and use cases. {data.total}{" "}
+            showcased.
           </p>
         </div>
         <Input
@@ -113,7 +136,13 @@ export default function ShowcasePage() {
         </p>
       )}
 
-      <Pagination page={page} pageSize={PAGE_SIZE} total={data.total} onPage={setPage} className="mt-8" />
+      <Pagination
+        page={page}
+        pageSize={PAGE_SIZE}
+        total={data.total}
+        onPage={setPage}
+        className="mt-8"
+      />
     </main>
   );
 }

@@ -27,7 +27,11 @@ export default function ProviderSubmissionsPage() {
   }, [load]);
 
   return (
-    <DashboardMain title="My submissions" subtitle="Your skills and use cases, and their status through review." denied={denied}>
+    <DashboardMain
+      title="My submissions"
+      subtitle="Your skills and use cases, and their status through review."
+      denied={denied}
+    >
       {message && <p className="text-sm font-semibold text-brand">{message}</p>}
       {skills.length ? (
         skills.map((s) => (
@@ -36,41 +40,54 @@ export default function ProviderSubmissionsPage() {
               <span className="font-semibold">
                 {s.slug}
                 {s.type === "usecase" && (
-                  <span className="ml-2 rounded-full bg-brand/10 px-2 py-0.5 text-xs font-semibold text-brand">Use case</span>
+                  <span className="ml-2 rounded-full bg-brand/10 px-2 py-0.5 text-xs font-semibold text-brand">
+                    Use case
+                  </span>
                 )}
               </span>
               <StatusBadge status={s.status} />
             </div>
-            <div className="overflow-x-auto"><table className="w-full min-w-[720px] text-sm">
-              <thead>
-                <tr className="text-left text-xs uppercase tracking-wide text-muted-foreground">
-                  <th className="py-2">Status</th><th>Submitted</th><th>Reviewer notes</th><th />
-                </tr>
-              </thead>
-              <tbody>
-                {s.versions.map((v: any) => (
-                  <Fragment key={v.id}>
-                    <tr className="border-t border-border">
-                      <td className="py-2.5"><StatusBadge status={v.status} /></td>
-                      <td className="tabular-nums">{fmtDate(v.submittedAt)}</td>
-                      <td className="max-w-xs text-muted-foreground">{v.reviewNotes ?? "-"}</td>
-                      <td className="text-right">
-                        <Button variant="secondary" size="sm" onClick={() => setOpenChecks(openChecks === v.id ? null : v.id)}>
-                          Checks
-                        </Button>
-                      </td>
-                    </tr>
-                    {openChecks === v.id && (
-                      <tr>
-                        <td colSpan={5} className="pb-3">
-                          <CheckList checks={v.checks as Check[]} />
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[720px] text-sm">
+                <thead>
+                  <tr className="text-left text-xs uppercase tracking-wide text-muted-foreground">
+                    <th className="py-2">Status</th>
+                    <th>Submitted</th>
+                    <th>Reviewer notes</th>
+                    <th />
+                  </tr>
+                </thead>
+                <tbody>
+                  {s.versions.map((v: any) => (
+                    <Fragment key={v.id}>
+                      <tr className="border-t border-border">
+                        <td className="py-2.5">
+                          <StatusBadge status={v.status} />
+                        </td>
+                        <td className="tabular-nums">{fmtDate(v.submittedAt)}</td>
+                        <td className="max-w-xs text-muted-foreground">{v.reviewNotes ?? "-"}</td>
+                        <td className="text-right">
+                          <Button
+                            variant="secondary"
+                            size="sm"
+                            onClick={() => setOpenChecks(openChecks === v.id ? null : v.id)}
+                          >
+                            Checks
+                          </Button>
                         </td>
                       </tr>
-                    )}
-                  </Fragment>
-                ))}
-              </tbody>
-            </table></div>
+                      {openChecks === v.id && (
+                        <tr>
+                          <td colSpan={5} className="pb-3">
+                            <CheckList checks={v.checks as Check[]} />
+                          </td>
+                        </tr>
+                      )}
+                    </Fragment>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </Card>
         ))
       ) : (

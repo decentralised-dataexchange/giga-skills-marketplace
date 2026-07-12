@@ -4,7 +4,13 @@ import { check, route } from "@/lib/handler";
 // Public review trail for a published skill: the automated check report plus the
 // human approval / provenance events. Served from the web app (not the catalog
 // service) because it reads the governance audit log. Emails are never exposed.
-const TRAIL_TYPES = ["review.approve", "review.reject", "review.request_changes", "skill.official_set", "skill.delisted"];
+const TRAIL_TYPES = [
+  "review.approve",
+  "review.reject",
+  "review.request_changes",
+  "skill.official_set",
+  "skill.delisted",
+];
 
 export const GET = route<{ slug: string }>(async ({ params }) => {
   const [skill] = await sql`

@@ -22,14 +22,14 @@ marketplace:
   name: giga-marketplace
   port: 4830
   replicas: 1
-  internalToken: ""   # REQUIRED — shared secret between web and marketplace services
+  internalToken: ""   # REQUIRED: shared secret between web and marketplace services
 
 postgres:
   name: giga-postgres
   image: postgres:16-alpine
   db: govbuild
   user: govbuild
-  password: ""        # REQUIRED — database password
+  password: ""        # REQUIRED: database password
   storage: 5Gi
   # storageClassName: ""   # unset -> cluster default (GKE standard-rwo)
 

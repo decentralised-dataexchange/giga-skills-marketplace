@@ -26,10 +26,10 @@ A marketplace of provider-published, agent-agnostic **skills** and journey-tagge
 
 The public catalog is separated from the web app by an HTTP API so the two can be deployed and scaled independently.
 
-* **`services/marketplace/`** is a standalone Node service that owns public catalog reads, item details and the internal skill-context API.
-* **`web/`** is a Next.js 16 app: the public marketplace and showcase, plus a role-based admin dashboard (provider, governance and developer consoles).
-* **PostgreSQL** is the only datastore, via postgres.js. Both deployables accept `DATABASE_URL`. Postgres runs in Docker; there is no host install to manage.
-* **UI** uses shadcn/ui and Tailwind with Manrope and Open Sans (Giga branding) and `streamdown` for markdown.
+- **`services/marketplace/`** is a standalone Node service that owns public catalog reads, item details and the internal skill-context API.
+- **`web/`** is a Next.js 16 app: the public marketplace and showcase, plus a role-based admin dashboard (provider, governance and developer consoles).
+- **PostgreSQL** is the only datastore, via postgres.js. Both deployables accept `DATABASE_URL`. Postgres runs in Docker; there is no host install to manage.
+- **UI** uses shadcn/ui and Tailwind with Manrope and Open Sans (Giga branding) and `streamdown` for markdown.
 
 ## Quick start
 
@@ -54,13 +54,13 @@ make web         # terminal 2: web app on :4820
 
 The schema bootstraps and demo data seeds on the first web API request.
 
-| Target | Does |
-| --- | --- |
-| `make db` / `make db-stop` / `make db-reset` | Start, stop or wipe PostgreSQL in Docker |
-| `make install` | Install deps for the marketplace service and the web app |
-| `make marketplace` / `make web` | Run the marketplace service (:4830) or web app (:4820) |
-| `make check` | `tsc --noEmit` plus `eslint` on the web app |
-| `make up` / `make down` / `make reset` | Build/run, stop, or stop and wipe the Docker stack |
+| Target                                       | Does                                                     |
+| -------------------------------------------- | -------------------------------------------------------- |
+| `make db` / `make db-stop` / `make db-reset` | Start, stop or wipe PostgreSQL in Docker                 |
+| `make install`                               | Install deps for the marketplace service and the web app |
+| `make marketplace` / `make web`              | Run the marketplace service (:4830) or web app (:4820)   |
+| `make check`                                 | `tsc --noEmit` plus `eslint` on the web app              |
+| `make up` / `make down` / `make reset`       | Build/run, stop, or stop and wipe the Docker stack       |
 
 ## Deployment
 
@@ -94,33 +94,33 @@ On every push to `main`, [`.github/workflows/deploy.yml`](.github/workflows/depl
 
 ## Catalog
 
-* **Skill**: a provider capability, submitted as a `SKILL.md` bundle (plus `openapi/`, `schemas/`, `rulebooks/`, `examples/`), file by file or as a `.zip`.
-* **Use case**: a journey-tagged prompt chain authored from a form in the Provider Console. It lists the prerequisites an app builder needs and one or more journeys, where each journey has agent prompts that each reference their own skills.
-* **Application**: a developer showcase (title, description, demo video and the skills or use cases used), submitted from the Developer Console.
+- **Skill**: a provider capability, submitted as a `SKILL.md` bundle (plus `openapi/`, `schemas/`, `rulebooks/`, `examples/`), file by file or as a `.zip`.
+- **Use case**: a journey-tagged prompt chain authored from a form in the Provider Console. It lists the prerequisites an app builder needs and one or more journeys, where each journey has agent prompts that each reference their own skills.
+- **Application**: a developer showcase (title, description, demo video and the skills or use cases used), submitted from the Developer Console.
 
 Skills and use cases can be endorsed **Official** by the marketplace operator; others show as **Community**. Each published item exposes an assurance review trail of automated checks and the approval audit.
 
 ## Roles
 
-| Role | Can do |
-| --- | --- |
-| `builder` (Developer) | Browse the marketplace, install skills and use cases into their own agent, submit application showcases |
-| `provider` | Everything a developer can, plus register an organisation and publish skills and use cases for review |
-| `reviewer` | Governance: claim the review queue, inspect bundles and check reports, approve, reject or request changes, moderate applications |
-| `superadmin` | Everything a reviewer can, plus verify organisations, manage users and roles, suspend accounts, endorse Official, delist |
+| Role                  | Can do                                                                                                                           |
+| --------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| `builder` (Developer) | Browse the marketplace, install skills and use cases into their own agent, submit application showcases                          |
+| `provider`            | Everything a developer can, plus register an organisation and publish skills and use cases for review                            |
+| `reviewer`            | Governance: claim the review queue, inspect bundles and check reports, approve, reject or request changes, moderate applications |
+| `superadmin`          | Everything a reviewer can, plus verify organisations, manage users and roles, suspend accounts, endorse Official, delist         |
 
 Governance roles are granted by a super admin and can never be self-assigned at registration.
 
 Demo accounts (seeded on first run):
 
-| Email | Password | Role |
-| --- | --- | --- |
-| superadmin@govbuild.test | super123 | Super admin |
-| reviewer@govbuild.test | review123 | Skill reviewer |
-| provider@igrant.io | provider123 | Approved provider (iGrant.io) |
-| trust@govstack.test | provider123 | Approved provider (GovStack Trust Services) |
-| labs@educhain.test | provider123 | Provider with a pending organisation |
-| student@example.com | student123 | Developer (student) |
+| Email                    | Password    | Role                                        |
+| ------------------------ | ----------- | ------------------------------------------- |
+| superadmin@govbuild.test | super123    | Super admin                                 |
+| reviewer@govbuild.test   | review123   | Skill reviewer                              |
+| provider@igrant.io       | provider123 | Approved provider (iGrant.io)               |
+| trust@govstack.test      | provider123 | Approved provider (GovStack Trust Services) |
+| labs@educhain.test       | provider123 | Provider with a pending organisation        |
+| student@example.com      | student123  | Developer (student)                         |
 
 ## Contributing
 

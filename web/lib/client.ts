@@ -13,7 +13,7 @@ export interface SessionUser {
 
 export const auth = {
   get token(): string {
-    return typeof window === "undefined" ? "" : localStorage.getItem("token") ?? "";
+    return typeof window === "undefined" ? "" : (localStorage.getItem("token") ?? "");
   },
   get user(): SessionUser | null {
     if (typeof window === "undefined") return null;
@@ -68,7 +68,10 @@ export function useSession(): SessionUser | null {
 }
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
-export async function api<T = any>(path: string, init: RequestInit & { json?: unknown } = {}): Promise<T> {
+export async function api<T = any>(
+  path: string,
+  init: RequestInit & { json?: unknown } = {},
+): Promise<T> {
   const headers: Record<string, string> = { "Content-Type": "application/json" };
   if (auth.token) headers.Authorization = `Bearer ${auth.token}`;
   const res = await fetch(path, {
@@ -88,7 +91,13 @@ export async function api<T = any>(path: string, init: RequestInit & { json?: un
 }
 
 export function fmtDate(iso?: string | null): string {
-  return iso ? new Date(iso).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" }) : "-";
+  return iso
+    ? new Date(iso).toLocaleDateString(undefined, {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+      })
+    : "-";
 }
 
 /* Relative "X ago" time. */

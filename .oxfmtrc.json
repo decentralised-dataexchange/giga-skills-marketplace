@@ -1,0 +1,10 @@
+{
+  "ignorePatterns": [
+    "web/seed-bundles/**",
+    "web/public/**",
+    "deploy/**",
+    "**/.next/**",
+    "**/build/**",
+    "**/dist/**"
+  ]
+}

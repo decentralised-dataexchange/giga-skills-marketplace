@@ -15,7 +15,9 @@ export function CheckList({ checks }: { checks: Check[] }) {
     <div className="divide-y divide-border">
       {checks.map((c) => (
         <div key={c.id} className="flex gap-3 py-2 text-sm">
-          <span className={cn("w-4 shrink-0 text-center font-bold", COLOR[c.status])}>{ICON[c.status]}</span>
+          <span className={cn("w-4 shrink-0 text-center font-bold", COLOR[c.status])}>
+            {ICON[c.status]}
+          </span>
           <span>
             {c.label}
             {c.detail && <span className="block text-xs text-muted-foreground">{c.detail}</span>}

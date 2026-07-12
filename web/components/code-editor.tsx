@@ -22,7 +22,12 @@ export function CodeEditor({
   const gutter = Array.from({ length: lines }, (_, i) => i + 1).join("\n");
 
   return (
-    <div className={cn("flex overflow-hidden rounded-lg border border-input bg-muted font-mono text-xs leading-relaxed", className)}>
+    <div
+      className={cn(
+        "flex overflow-hidden rounded-lg border border-input bg-muted font-mono text-xs leading-relaxed",
+        className,
+      )}
+    >
       <pre
         ref={gutterRef}
         aria-hidden="true"

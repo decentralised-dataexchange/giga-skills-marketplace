@@ -1,0 +1,15 @@
+{
+  "name": "giga-marketplace-tooling",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Repo-wide lint and format tooling (OXC) for the Giga Skills Marketplace.",
+  "scripts": {
+    "lint": "oxlint",
+    "format": "oxfmt --write .",
+    "format:check": "oxfmt --check ."
+  },
+  "devDependencies": {
+    "oxfmt": "0.58.0",
+    "oxlint": "1.73.0"
+  }
+}

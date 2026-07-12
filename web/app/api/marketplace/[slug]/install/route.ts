@@ -4,7 +4,9 @@ import { hasMarketplaceService, marketplaceRequest } from "@/lib/marketplace-cli
 
 export const POST = route<{ slug: string }>(async ({ params }) => {
   if (hasMarketplaceService) {
-    return marketplaceRequest(`/v1/skills/${encodeURIComponent(params.slug)}/install`, { method: "POST" });
+    return marketplaceRequest(`/v1/skills/${encodeURIComponent(params.slug)}/install`, {
+      method: "POST",
+    });
   }
   const [row] = await sql`
     UPDATE skills SET installs = installs + 1

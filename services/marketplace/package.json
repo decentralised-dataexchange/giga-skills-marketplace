@@ -8,8 +8,10 @@
     "dev": "node --watch src/server.js",
     "test": "node --test"
   },
-  "engines": { "node": ">=22" },
   "dependencies": {
     "postgres": "^3.4.9"
+  },
+  "engines": {
+    "node": ">=22"
   }
 }

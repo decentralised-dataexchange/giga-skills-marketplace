@@ -22,7 +22,12 @@ function readBundle(name: string): BundleFile[] {
   }));
 }
 
-async function addUser(email: string, password: string, name: string, role: string): Promise<number> {
+async function addUser(
+  email: string,
+  password: string,
+  name: string,
+  role: string,
+): Promise<number> {
   const [row] = await sql`
     INSERT INTO users (email, name, role, password_hash)
     VALUES (${email}, ${name}, ${role}, ${hashPassword(password)}) RETURNING id`;
@@ -30,8 +35,14 @@ async function addUser(email: string, password: string, name: string, role: stri
 }
 
 async function addOrg(org: {
-  name: string; website: string; description: string; contact: string;
-  ownerId: number; status: string; decidedBy?: number; notes?: string;
+  name: string;
+  website: string;
+  description: string;
+  contact: string;
+  ownerId: number;
+  status: string;
+  decidedBy?: number;
+  notes?: string;
 }): Promise<number> {
   const [row] = await sql`
     INSERT INTO orgs (name, website, description, contact, owner_id, status, decided_at, decided_by, decision_notes)
@@ -42,7 +53,12 @@ async function addOrg(org: {
 }
 
 async function addSkill(
-  orgId: number, bundle: string, submitterId: number, publish: boolean, reviewerId?: number, official = false,
+  orgId: number,
+  bundle: string,
+  submitterId: number,
+  publish: boolean,
+  reviewerId?: number,
+  official = false,
 ) {
   const files = readBundle(bundle);
   const { checks, passed, manifest } = runChecks(files);
@@ -58,19 +74,28 @@ async function addSkill(
   const [version] = await sql`
     INSERT INTO versions (skill_id, version, manifest, files, checks, status, submitted_by, reviewer_id, review_notes, decided_at)
     VALUES (${skill.id}, ${String(manifest.version)}, ${json(manifest)}, ${json(files)}, ${json(checks)},
-            ${status}, ${submitterId}, ${publish ? reviewerId ?? null : null}, ${notes},
+            ${status}, ${submitterId}, ${publish ? (reviewerId ?? null) : null}, ${notes},
             ${status === "published" ? sql`now()` : null})
     RETURNING id`;
   if (status === "published") {
     await sql`UPDATE skills SET status = 'published', published_version_id = ${version.id} WHERE id = ${skill.id}`;
-    await logEvent("review.approve", reviewerId ?? submitterId, { skillId: skill.id, versionId: version.id },
-      { slug: manifest.name, notes, official: official && publish });
+    await logEvent(
+      "review.approve",
+      reviewerId ?? submitterId,
+      { skillId: skill.id, versionId: version.id },
+      { slug: manifest.name, notes, official: official && publish },
+    );
   }
 }
 
 async function addApplication(app: {
-  developerId: number; title: string; description: string;
-  videoUrl: string | null; repoUrl: string | null; skills: string[]; usecases: string[];
+  developerId: number;
+  title: string;
+  description: string;
+  videoUrl: string | null;
+  repoUrl: string | null;
+  skills: string[];
+  usecases: string[];
 }): Promise<void> {
   await sql`
     INSERT INTO applications (developer_id, title, description, video_url, repo_url, skills, usecases)
@@ -82,29 +107,63 @@ export async function seedIfEmpty(): Promise<boolean> {
   const [{ n }] = await sql`SELECT count(*)::int AS n FROM users`;
   if (n > 0) return false;
 
-  const superadmin = await addUser("superadmin@govbuild.test", "super123", "Marketplace Operator", "superadmin");
-  const reviewer = await addUser("reviewer@govbuild.test", "review123", "Skill Reviewer", "reviewer");
-  const igrant = await addUser("provider@igrant.io", "provider123", "iGrant.io Developer Relations", "provider");
-  const govstack = await addUser("trust@govstack.test", "provider123", "GovStack Trust Services", "provider");
+  const superadmin = await addUser(
+    "superadmin@govbuild.test",
+    "super123",
+    "Marketplace Operator",
+    "superadmin",
+  );
+  const reviewer = await addUser(
+    "reviewer@govbuild.test",
+    "review123",
+    "Skill Reviewer",
+    "reviewer",
+  );
+  const igrant = await addUser(
+    "provider@igrant.io",
+    "provider123",
+    "iGrant.io Developer Relations",
+    "provider",
+  );
+  const govstack = await addUser(
+    "trust@govstack.test",
+    "provider123",
+    "GovStack Trust Services",
+    "provider",
+  );
   const educhain = await addUser("labs@educhain.test", "provider123", "EduChain Labs", "provider");
   const student = await addUser("student@example.com", "student123", "Amina Okafor", "builder");
 
   const orgIgrant = await addOrg({
-    name: "iGrant.io (LCubed AB)", website: "https://igrant.io",
-    description: "Data exchange and wallet provider. Publishes skill files for its Data Wallet (holder) and Organisation Wallet Suite (issuer and verifier).",
-    contact: "provider@igrant.io", ownerId: igrant, status: "approved", decidedBy: superadmin,
+    name: "iGrant.io (LCubed AB)",
+    website: "https://igrant.io",
+    description:
+      "Data exchange and wallet provider. Publishes skill files for its Data Wallet (holder) and Organisation Wallet Suite (issuer and verifier).",
+    contact: "provider@igrant.io",
+    ownerId: igrant,
+    status: "approved",
+    decidedBy: superadmin,
     notes: "Verified provider: developer APIs and sandbox documented at docs.igrant.io.",
   });
   const orgGovstack = await addOrg({
-    name: "GovStack Trust Services", website: "https://govstack.global",
-    description: "Publishes GovStack building-block skill files: consent management (ISO/IEC 27560), e-signature, and information mediator patterns.",
-    contact: "trust@govstack.test", ownerId: govstack, status: "approved", decidedBy: superadmin,
+    name: "GovStack Trust Services",
+    website: "https://govstack.global",
+    description:
+      "Publishes GovStack building-block skill files: consent management (ISO/IEC 27560), e-signature, and information mediator patterns.",
+    contact: "trust@govstack.test",
+    ownerId: govstack,
+    status: "approved",
+    decidedBy: superadmin,
     notes: "Verified provider.",
   });
   await addOrg({
-    name: "EduChain Labs", website: "https://educhain.example",
-    description: "Startup building credential analytics tooling; applying to publish a transcript-analytics skill.",
-    contact: "labs@educhain.test", ownerId: educhain, status: "pending",
+    name: "EduChain Labs",
+    website: "https://educhain.example",
+    description:
+      "Startup building credential analytics tooling; applying to publish a transcript-analytics skill.",
+    contact: "labs@educhain.test",
+    ownerId: educhain,
+    status: "pending",
   });
 
   await addSkill(orgIgrant, "igrantio-education-issuer", igrant, true, reviewer); // community (vendor-published)
@@ -117,7 +176,8 @@ export async function seedIfEmpty(): Promise<boolean> {
   await addApplication({
     developerId: student,
     title: "Basic credential query with DCQL and OpenID4VP",
-    description: "A verifier that requests a learner credential from an EUDI Wallet using a DCQL query over OpenID4VP, then checks the presented diploma before enrolment. Built with an agent from the NLR use case.",
+    description:
+      "A verifier that requests a learner credential from an EUDI Wallet using a DCQL query over OpenID4VP, then checks the presented diploma before enrolment. Built with an agent from the NLR use case.",
     videoUrl: "https://www.youtube.com/watch?v=d2MOt01HKx4",
     repoUrl: "https://github.com/decentralised-dataexchange/ai-integrator",
     skills: ["igrantio-education-verifier"],
@@ -126,7 +186,8 @@ export async function seedIfEmpty(): Promise<boolean> {
   await addApplication({
     developerId: student,
     title: "Request and share alternative IDs with DCQL and OpenID4VP",
-    description: "An enrolment flow that requests and shares alternative learner identifiers from an EUDI Wallet using DCQL over OpenID4VP. Scaffolded from the education issuer and consent skills.",
+    description:
+      "An enrolment flow that requests and shares alternative learner identifiers from an EUDI Wallet using DCQL over OpenID4VP. Scaffolded from the education issuer and consent skills.",
     videoUrl: "https://www.youtube.com/watch?v=K0WuGRXAubE",
     repoUrl: null,
     skills: ["igrantio-education-issuer", "govstack-consent-bb"],

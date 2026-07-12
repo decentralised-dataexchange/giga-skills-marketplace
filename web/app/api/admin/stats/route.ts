@@ -4,25 +4,28 @@ import { route } from "@/lib/handler";
 
 const toMap = (rows: { k: string; n: number }[]) => Object.fromEntries(rows.map((r) => [r.k, r.n]));
 
-export const GET = route(async () => {
-  const [skills, usecases, orgs, users, [queue], [installs], [apps]] = await Promise.all([
-    sql`SELECT status AS k, count(*)::int AS n FROM skills WHERE type = 'skill' GROUP BY status`,
-    sql`SELECT status AS k, count(*)::int AS n FROM skills WHERE type = 'usecase' GROUP BY status`,
-    sql`SELECT status AS k, count(*)::int AS n FROM orgs GROUP BY status`,
-    sql`SELECT role AS k, count(*)::int AS n FROM users GROUP BY role`,
-    sql`SELECT count(*)::int AS n FROM versions WHERE status IN ('submitted','in_review')`,
-    sql`SELECT coalesce(sum(installs), 0)::int AS n FROM skills`,
-    sql`SELECT count(*)::int AS n FROM applications WHERE status = 'published'`,
-  ]);
-  return {
-    stats: {
-      skillsByStatus: toMap(skills as never),
-      usecasesByStatus: toMap(usecases as never),
-      reviewQueue: queue.n,
-      orgsByStatus: toMap(orgs as never),
-      usersByRole: toMap(users as never),
-      totalInstalls: installs.n,
-      applications: apps.n,
-    },
-  };
-}, { roles: GOVERNANCE_ROLES });
+export const GET = route(
+  async () => {
+    const [skills, usecases, orgs, users, [queue], [installs], [apps]] = await Promise.all([
+      sql`SELECT status AS k, count(*)::int AS n FROM skills WHERE type = 'skill' GROUP BY status`,
+      sql`SELECT status AS k, count(*)::int AS n FROM skills WHERE type = 'usecase' GROUP BY status`,
+      sql`SELECT status AS k, count(*)::int AS n FROM orgs GROUP BY status`,
+      sql`SELECT role AS k, count(*)::int AS n FROM users GROUP BY role`,
+      sql`SELECT count(*)::int AS n FROM versions WHERE status IN ('submitted','in_review')`,
+      sql`SELECT coalesce(sum(installs), 0)::int AS n FROM skills`,
+      sql`SELECT count(*)::int AS n FROM applications WHERE status = 'published'`,
+    ]);
+    return {
+      stats: {
+        skillsByStatus: toMap(skills as never),
+        usecasesByStatus: toMap(usecases as never),
+        reviewQueue: queue.n,
+        orgsByStatus: toMap(orgs as never),
+        usersByRole: toMap(users as never),
+        totalInstalls: installs.n,
+        applications: apps.n,
+      },
+    };
+  },
+  { roles: GOVERNANCE_ROLES },
+);

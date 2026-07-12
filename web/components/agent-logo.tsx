@@ -14,10 +14,34 @@ interface LogoDef {
 }
 
 const LOGOS: Record<AgentKey, LogoDef> = {
-  claude: { src: "/agents/claude.svg", label: "Claude Code", chip: "bg-white ring-1 ring-black/10", pad: "p-1", fit: "object-contain" },
-  codex: { src: "/agents/openai.svg", label: "Codex CLI", chip: "bg-white ring-1 ring-black/10", pad: "p-1", fit: "object-contain" },
-  opencode: { src: "/agents/opencode.svg", label: "opencode", chip: "", pad: "", fit: "object-cover" },
-  cursor: { src: "/agents/cursor.svg", label: "Cursor", chip: "bg-white ring-1 ring-black/10", pad: "p-1.5", fit: "object-contain" },
+  claude: {
+    src: "/agents/claude.svg",
+    label: "Claude Code",
+    chip: "bg-white ring-1 ring-black/10",
+    pad: "p-1",
+    fit: "object-contain",
+  },
+  codex: {
+    src: "/agents/openai.svg",
+    label: "Codex CLI",
+    chip: "bg-white ring-1 ring-black/10",
+    pad: "p-1",
+    fit: "object-contain",
+  },
+  opencode: {
+    src: "/agents/opencode.svg",
+    label: "opencode",
+    chip: "",
+    pad: "",
+    fit: "object-cover",
+  },
+  cursor: {
+    src: "/agents/cursor.svg",
+    label: "Cursor",
+    chip: "bg-white ring-1 ring-black/10",
+    pad: "p-1.5",
+    fit: "object-contain",
+  },
   pi: { src: "/agents/pi.svg", label: "Pi", chip: "", pad: "", fit: "object-cover" },
 };
 
@@ -33,7 +57,14 @@ function keyFor(name: string): AgentKey {
 export function AgentLogo({ name, className }: { name: string; className?: string }) {
   const logo = LOGOS[keyFor(name)];
   return (
-    <span className={cn("grid size-7 shrink-0 place-items-center overflow-hidden rounded-md", logo.chip, logo.pad, className)}>
+    <span
+      className={cn(
+        "grid size-7 shrink-0 place-items-center overflow-hidden rounded-md",
+        logo.chip,
+        logo.pad,
+        className,
+      )}
+    >
       {/* eslint-disable-next-line @next/next/no-img-element -- small static brand SVG */}
       <img src={logo.src} alt={`${name} logo`} className={cn("size-full", logo.fit)} />
     </span>

@@ -1,0 +1,49 @@
+name: CI
+
+# Quality gates on every push and pull request:
+# oxlint + oxfmt (OXC) for lint/format, plus tsc + eslint on the web app.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  oxc:
+    name: Lint and format (OXC)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install tooling
+        run: npm ci
+      - name: oxlint
+        run: npm run lint
+      - name: oxfmt (check)
+        run: npm run format:check
+
+  web:
+    name: Typecheck and eslint (web)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - name: Install web dependencies
+        run: npm ci
+        working-directory: web
+      - name: Typecheck
+        run: npx tsc --noEmit
+        working-directory: web
+      - name: ESLint
+        run: npx eslint app components lib
+        working-directory: web

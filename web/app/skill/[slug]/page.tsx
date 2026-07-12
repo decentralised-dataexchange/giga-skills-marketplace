@@ -16,8 +16,14 @@ import { cn } from "@/lib/utils";
 
 function installSnippets(slug: string): [string, string][] {
   return [
-    ["Claude Code", `# .claude/skills/${slug}/\nDrop the bundle in and reference ./skills/${slug}/SKILL.md`],
-    ["Codex CLI", `# AGENTS.md\nSee ./skills/${slug}/SKILL.md and the openapi/ specs it references.`],
+    [
+      "Claude Code",
+      `# .claude/skills/${slug}/\nDrop the bundle in and reference ./skills/${slug}/SKILL.md`,
+    ],
+    [
+      "Codex CLI",
+      `# AGENTS.md\nSee ./skills/${slug}/SKILL.md and the openapi/ specs it references.`,
+    ],
     ["opencode", `# opencode.json\n{ "instructions": ["./skills/${slug}/SKILL.md"] }`],
     ["Cursor", `# .cursor/rules\nReference ./skills/${slug}/SKILL.md and the openapi/ specs.`],
     ["Pi", `# pi config\nAdd ./skills/${slug}/SKILL.md to the agent's skill paths.`],
@@ -85,7 +91,8 @@ export default function SkillPage() {
   }, [slug]);
 
   if (error) return <main className="mx-auto max-w-3xl p-10 text-muted-foreground">{error}</main>;
-  if (!detail) return <main className="mx-auto max-w-3xl p-10 text-muted-foreground">Loading...</main>;
+  if (!detail)
+    return <main className="mx-auto max-w-3xl p-10 text-muted-foreground">Loading...</main>;
 
   const { skill, org, version } = detail;
   const manifest = version.manifest ?? {};
@@ -158,7 +165,9 @@ export default function SkillPage() {
             <div className="flex items-center justify-between gap-3 border-b border-border bg-muted/60 px-4 py-2.5 text-sm">
               <div className="flex min-w-0 items-center gap-2">
                 <span className="font-medium text-ink">{org.name}</span>
-                <span className="truncate text-muted-foreground">Published {timeAgo(version.publishedAt)}</span>
+                <span className="truncate text-muted-foreground">
+                  Published {timeAgo(version.publishedAt)}
+                </span>
               </div>
               <span className="shrink-0 text-muted-foreground">{files.length} files</span>
             </div>
@@ -193,20 +202,25 @@ export default function SkillPage() {
                 <Icon.File className="size-4 shrink-0 text-muted-foreground" />
                 {file?.path}
               </span>
-              <span className="shrink-0 tabular-nums text-xs text-muted-foreground">{lineCount} lines</span>
+              <span className="shrink-0 tabular-nums text-xs text-muted-foreground">
+                {lineCount} lines
+              </span>
             </div>
             <CodeViewer content={file?.content ?? ""} bare />
           </div>
 
           {/* Install */}
-          <div id="install" className="scroll-mt-20 overflow-hidden rounded-xl border border-border">
+          <div
+            id="install"
+            className="scroll-mt-20 overflow-hidden rounded-xl border border-border"
+          >
             <div className="border-b border-border bg-muted/60 px-4 py-2.5">
               <h2 className="text-sm font-semibold text-ink">Install into your agent</h2>
             </div>
             <div className="space-y-3 p-4">
               <p className="text-sm text-muted-foreground">
-                Agent-agnostic and model-agnostic: the same bundle installs on different agents via a thin,
-                per-agent step; its contents do not change.
+                Agent-agnostic and model-agnostic: the same bundle installs on different agents via
+                a thin, per-agent step; its contents do not change.
               </p>
               {installSnippets(skill.slug).map(([agent, snippet]) => (
                 <div key={agent}>
@@ -268,17 +282,26 @@ export default function SkillPage() {
               Automated checks passed and a human reviewer approved this version before publication.
             </p>
             <p className="mt-2 text-sm text-ink">
-              <b className="tabular-nums">{checksPassed}</b> of <span className="tabular-nums">{checks.length}</span>{" "}
-              automated checks passed
+              <b className="tabular-nums">{checksPassed}</b> of{" "}
+              <span className="tabular-nums">{checks.length}</span> automated checks passed
             </p>
-            <Link href={`/skill/${skill.slug}/review`} className="mt-2 inline-block text-sm font-semibold text-brand hover:underline">
+            <Link
+              href={`/skill/${skill.slug}/review`}
+              className="mt-2 inline-block text-sm font-semibold text-brand hover:underline"
+            >
               View review trail →
             </Link>
           </SidebarSection>
 
           <SidebarSection title="Depends on">
             <div className="font-mono text-xs text-muted-foreground">
-              {deps.length ? deps.map((d: string) => <div key={d} className="py-0.5">{d}</div>) : "none declared"}
+              {deps.length
+                ? deps.map((d: string) => (
+                    <div key={d} className="py-0.5">
+                      {d}
+                    </div>
+                  ))
+                : "none declared"}
             </div>
           </SidebarSection>
         </aside>

@@ -35,7 +35,11 @@ function Notice({ text, tone }: { text: string; tone: "ok" | "error" }) {
   return (
     <p
       role="status"
-      className={tone === "error" ? "text-sm font-medium text-destructive" : "text-sm font-medium text-emerald-700"}
+      className={
+        tone === "error"
+          ? "text-sm font-medium text-destructive"
+          : "text-sm font-medium text-emerald-700"
+      }
     >
       {text}
     </p>
@@ -58,13 +62,23 @@ export default function SettingsPage() {
       .catch((e) => setLoadError(e.message));
   }, []);
 
-  if (loadError) return <main className="mx-auto max-w-none px-6 lg:px-8 py-10 text-muted-foreground">{loadError}</main>;
-  if (!profile) return <main className="mx-auto max-w-none px-6 lg:px-8 py-10 text-muted-foreground">Loading…</main>;
+  if (loadError)
+    return (
+      <main className="mx-auto max-w-none px-6 lg:px-8 py-10 text-muted-foreground">
+        {loadError}
+      </main>
+    );
+  if (!profile)
+    return (
+      <main className="mx-auto max-w-none px-6 lg:px-8 py-10 text-muted-foreground">Loading…</main>
+    );
 
   return (
     <main className="mx-auto w-full max-w-none px-6 lg:px-8 py-10">
       <h1 className="text-3xl font-bold tracking-tight text-ink">Settings</h1>
-      <p className="mt-2 text-sm text-muted-foreground">Manage your account, security, and agent preferences.</p>
+      <p className="mt-2 text-sm text-muted-foreground">
+        Manage your account, security, and agent preferences.
+      </p>
 
       <div className="mt-8 grid gap-8 md:grid-cols-[190px_1fr]">
         <nav aria-label="Settings sections" className="flex gap-1 md:flex-col">
@@ -88,7 +102,11 @@ export default function SettingsPage() {
 
         <div>
           {section === "profile" && (
-            <ProfileSection profile={profile} onChange={setProfile} sessionName={session?.name ?? profile.name} />
+            <ProfileSection
+              profile={profile}
+              onChange={setProfile}
+              sessionName={session?.name ?? profile.name}
+            />
           )}
           {section === "security" && <SecuritySection />}
         </div>
@@ -171,7 +189,13 @@ function ProfileSection({
             </div>
             <p className="text-xs text-muted-foreground">PNG, JPEG, GIF, or WebP, up to 256 KB.</p>
           </div>
-          <input ref={fileRef} type="file" accept="image/png,image/jpeg,image/gif,image/webp" hidden onChange={onFile} />
+          <input
+            ref={fileRef}
+            type="file"
+            accept="image/png,image/jpeg,image/gif,image/webp"
+            hidden
+            onChange={onFile}
+          />
         </div>
       </Card>
 
@@ -182,13 +206,25 @@ function ProfileSection({
             <label htmlFor="acct-name" className="text-sm font-medium text-ink">
               Full name
             </label>
-            <Input id="acct-name" value={name} onChange={(e) => setName(e.target.value)} required minLength={2} />
+            <Input
+              id="acct-name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              required
+              minLength={2}
+            />
           </div>
           <div className="space-y-1.5">
             <label htmlFor="acct-email" className="text-sm font-medium text-ink">
               Email address
             </label>
-            <Input id="acct-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+            <Input
+              id="acct-email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
           </div>
           <Notice text={err} tone="error" />
           <Notice text={msg} tone="ok" />
@@ -243,7 +279,10 @@ function SecuritySection() {
       return;
     }
     try {
-      await api("/api/auth/password", { method: "POST", json: { currentPassword: current, newPassword: next } });
+      await api("/api/auth/password", {
+        method: "POST",
+        json: { currentPassword: current, newPassword: next },
+      });
       setMsg("Password updated. Other sessions were signed out.");
       setCurrent("");
       setNext("");
@@ -266,23 +305,43 @@ function SecuritySection() {
           <label htmlFor="pw-current" className="text-sm font-medium text-ink">
             Current password
           </label>
-          <Input id="pw-current" type="password" autoComplete="current-password" value={current}
-            onChange={(e) => setCurrent(e.target.value)} required />
+          <Input
+            id="pw-current"
+            type="password"
+            autoComplete="current-password"
+            value={current}
+            onChange={(e) => setCurrent(e.target.value)}
+            required
+          />
         </div>
         <div className="space-y-1.5">
           <label htmlFor="pw-new" className="text-sm font-medium text-ink">
             New password
           </label>
-          <Input id="pw-new" type="password" autoComplete="new-password" value={next}
-            onChange={(e) => setNext(e.target.value)} required minLength={6} />
+          <Input
+            id="pw-new"
+            type="password"
+            autoComplete="new-password"
+            value={next}
+            onChange={(e) => setNext(e.target.value)}
+            required
+            minLength={6}
+          />
           <p className="text-xs text-muted-foreground">At least 6 characters.</p>
         </div>
         <div className="space-y-1.5">
           <label htmlFor="pw-confirm" className="text-sm font-medium text-ink">
             Confirm new password
           </label>
-          <Input id="pw-confirm" type="password" autoComplete="new-password" value={confirm}
-            onChange={(e) => setConfirm(e.target.value)} required minLength={6} />
+          <Input
+            id="pw-confirm"
+            type="password"
+            autoComplete="new-password"
+            value={confirm}
+            onChange={(e) => setConfirm(e.target.value)}
+            required
+            minLength={6}
+          />
         </div>
         <Notice text={err} tone="error" />
         <Notice text={msg} tone="ok" />

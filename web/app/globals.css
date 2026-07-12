@@ -137,7 +137,12 @@
     @apply font-sans;
   }
   /* Giga type: Manrope for headings, Open Sans (font-sans) for body. */
-  h1, h2, h3, h4, h5, h6 {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     font-family: var(--font-manrope), var(--font-open-sans), sans-serif;
   }
   /* WCAG 2.4.7: a clearly visible keyboard focus indicator on interactive
@@ -157,26 +162,94 @@
   color: var(--foreground);
   line-height: 1.55;
 }
-.markdown > :first-child { margin-top: 0; }
-.markdown > :last-child { margin-bottom: 0; }
-.markdown h1, .markdown h2, .markdown h3, .markdown h4 { font-weight: 700; margin: 0.9em 0 0.4em; line-height: 1.25; }
-.markdown h1 { font-size: 1.35em; }
-.markdown h2 { font-size: 1.2em; }
-.markdown h3 { font-size: 1.05em; }
-.markdown p { margin: 0.5em 0; }
-.markdown a { color: var(--color-brand); text-decoration: underline; }
-.markdown ul, .markdown ol { margin: 0.5em 0; padding-left: 1.4em; }
-.markdown ul { list-style: disc; }
-.markdown ol { list-style: decimal; }
-.markdown li { margin: 0.2em 0; }
-.markdown code { font-family: var(--font-mono), monospace; font-size: 0.9em; background: var(--muted); padding: 0.1em 0.35em; border-radius: 4px; }
-.markdown pre { background: var(--muted); padding: 0.75em; border-radius: 8px; overflow-x: auto; margin: 0.6em 0; }
-.markdown pre code { background: transparent; padding: 0; }
-.markdown blockquote { border-left: 3px solid var(--border); padding-left: 0.8em; color: var(--muted-foreground); margin: 0.6em 0; }
-.markdown table { border-collapse: collapse; margin: 0.6em 0; display: block; overflow-x: auto; }
-.markdown th, .markdown td { border: 1px solid var(--border); padding: 0.35em 0.6em; text-align: left; }
-.markdown hr { border: none; border-top: 1px solid var(--border); margin: 1em 0; }
-.markdown strong { font-weight: 700; }
+.markdown > :first-child {
+  margin-top: 0;
+}
+.markdown > :last-child {
+  margin-bottom: 0;
+}
+.markdown h1,
+.markdown h2,
+.markdown h3,
+.markdown h4 {
+  font-weight: 700;
+  margin: 0.9em 0 0.4em;
+  line-height: 1.25;
+}
+.markdown h1 {
+  font-size: 1.35em;
+}
+.markdown h2 {
+  font-size: 1.2em;
+}
+.markdown h3 {
+  font-size: 1.05em;
+}
+.markdown p {
+  margin: 0.5em 0;
+}
+.markdown a {
+  color: var(--color-brand);
+  text-decoration: underline;
+}
+.markdown ul,
+.markdown ol {
+  margin: 0.5em 0;
+  padding-left: 1.4em;
+}
+.markdown ul {
+  list-style: disc;
+}
+.markdown ol {
+  list-style: decimal;
+}
+.markdown li {
+  margin: 0.2em 0;
+}
+.markdown code {
+  font-family: var(--font-mono), monospace;
+  font-size: 0.9em;
+  background: var(--muted);
+  padding: 0.1em 0.35em;
+  border-radius: 4px;
+}
+.markdown pre {
+  background: var(--muted);
+  padding: 0.75em;
+  border-radius: 8px;
+  overflow-x: auto;
+  margin: 0.6em 0;
+}
+.markdown pre code {
+  background: transparent;
+  padding: 0;
+}
+.markdown blockquote {
+  border-left: 3px solid var(--border);
+  padding-left: 0.8em;
+  color: var(--muted-foreground);
+  margin: 0.6em 0;
+}
+.markdown table {
+  border-collapse: collapse;
+  margin: 0.6em 0;
+  display: block;
+  overflow-x: auto;
+}
+.markdown th,
+.markdown td {
+  border: 1px solid var(--border);
+  padding: 0.35em 0.6em;
+  text-align: left;
+}
+.markdown hr {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 1em 0;
+}
+.markdown strong {
+  font-weight: 700;
+}
 
 /* WCAG 2.4.1: skip-to-content link, visually hidden until focused. */
 .skip-link {

@@ -5,7 +5,15 @@ import { Streamdown } from "streamdown";
 import { Bold, Code, Heading, Italic, Link2, List, type LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-function ToolBtn({ icon: Icon, label, onClick }: { icon: LucideIcon; label: string; onClick: () => void }) {
+function ToolBtn({
+  icon: Icon,
+  label,
+  onClick,
+}: {
+  icon: LucideIcon;
+  label: string;
+  onClick: () => void;
+}) {
   return (
     <button
       type="button"
@@ -105,11 +113,18 @@ export function MarkdownEditor({
           value={value}
           placeholder={placeholder}
           onChange={(e) => onChange(e.target.value)}
-          className={cn("w-full resize-y bg-transparent px-3 py-2 font-mono text-base outline-none placeholder:text-muted-foreground md:text-sm", minHeightClass)}
+          className={cn(
+            "w-full resize-y bg-transparent px-3 py-2 font-mono text-base outline-none placeholder:text-muted-foreground md:text-sm",
+            minHeightClass,
+          )}
         />
       ) : (
         <div className={cn("markdown overflow-auto px-3 py-2 text-sm", minHeightClass)}>
-          {value.trim() ? <Streamdown>{value}</Streamdown> : <p className="text-muted-foreground">Nothing to preview.</p>}
+          {value.trim() ? (
+            <Streamdown>{value}</Streamdown>
+          ) : (
+            <p className="text-muted-foreground">Nothing to preview.</p>
+          )}
         </div>
       )}
     </div>

@@ -50,7 +50,11 @@ export const DASHBOARD_NAV: NavGroup[] = [
   {
     label: "Developer",
     items: [
-      { href: "/developer", label: "Developer Console", show: (u) => u != null && ["builder", "provider"].includes(u.role) },
+      {
+        href: "/developer",
+        label: "Developer Console",
+        show: (u) => u != null && ["builder", "provider"].includes(u.role),
+      },
     ],
   },
   {
@@ -58,7 +62,11 @@ export const DASHBOARD_NAV: NavGroup[] = [
     items: [
       { href: "/provider", label: "Organisation", show: (u) => u?.role === "provider" },
       { href: "/provider/submit", label: "Publish", show: (u) => u?.role === "provider" },
-      { href: "/provider/submissions", label: "My submissions", show: (u) => u?.role === "provider" },
+      {
+        href: "/provider/submissions",
+        label: "My submissions",
+        show: (u) => u?.role === "provider",
+      },
     ],
   },
   {

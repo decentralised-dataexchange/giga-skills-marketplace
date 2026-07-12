@@ -42,7 +42,9 @@ export function MultiSelect({
     <div className="space-y-1.5">
       <span className="text-sm font-medium text-ink">
         {label}
-        {selected.length > 0 && <span className="ml-1 text-muted-foreground tabular-nums">({selected.length})</span>}
+        {selected.length > 0 && (
+          <span className="ml-1 text-muted-foreground tabular-nums">({selected.length})</span>
+        )}
       </span>
 
       <div className="relative">
@@ -51,7 +53,10 @@ export function MultiSelect({
           className="flex min-h-9 flex-wrap items-center gap-1.5 rounded-lg border border-input bg-white p-1.5 focus-within:border-ring focus-within:ring-2 focus-within:ring-ring/40"
         >
           {selected.map((s) => (
-            <span key={s} className="flex items-center gap-1 rounded-full bg-accent px-2 py-0.5 text-xs font-semibold text-brand-dark">
+            <span
+              key={s}
+              className="flex items-center gap-1 rounded-full bg-accent px-2 py-0.5 text-xs font-semibold text-brand-dark"
+            >
               {s}
               <button
                 type="button"
@@ -111,7 +116,9 @@ export function MultiSelect({
                     e.preventDefault();
                     add(o);
                   }}
-                  className={cn("block w-full px-3 py-1.5 text-left text-sm text-ink hover:bg-accent")}
+                  className={cn(
+                    "block w-full px-3 py-1.5 text-left text-sm text-ink hover:bg-accent",
+                  )}
                 >
                   {o}
                 </button>

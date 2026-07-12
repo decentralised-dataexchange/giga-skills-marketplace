@@ -15,7 +15,9 @@ import { cn } from "@/lib/utils";
 // Normalise a journey's prompts to steps, tolerating the legacy string shape.
 function steps(j: any): { prompt: string; skills: string[] }[] {
   return (j.prompts ?? []).map((p: any) =>
-    typeof p === "string" ? { prompt: p, skills: j.skills ?? [] } : { prompt: p.prompt ?? "", skills: p.skills ?? [] },
+    typeof p === "string"
+      ? { prompt: p, skills: j.skills ?? [] }
+      : { prompt: p.prompt ?? "", skills: p.skills ?? [] },
   );
 }
 
@@ -35,7 +37,9 @@ function PromptBox({ text }: { text: string }) {
       >
         {copied ? "Copied" : "Copy"}
       </button>
-      <p className="whitespace-pre-wrap pr-14 font-mono text-xs leading-relaxed text-ink/80">{text}</p>
+      <p className="whitespace-pre-wrap pr-14 font-mono text-xs leading-relaxed text-ink/80">
+        {text}
+      </p>
     </div>
   );
 }
@@ -52,8 +56,12 @@ export default function UsecasePage() {
       .catch((e) => setError(e.message));
   }, [slug]);
 
-  if (error) return <main className="mx-auto max-w-[1536px] px-5 py-10 text-muted-foreground">{error}</main>;
-  if (!detail) return <main className="mx-auto max-w-[1536px] px-5 py-10 text-muted-foreground">Loading...</main>;
+  if (error)
+    return <main className="mx-auto max-w-[1536px] px-5 py-10 text-muted-foreground">{error}</main>;
+  if (!detail)
+    return (
+      <main className="mx-auto max-w-[1536px] px-5 py-10 text-muted-foreground">Loading...</main>
+    );
 
   const { skill, org, version } = detail;
   const manifest = version.manifest ?? {};
@@ -75,11 +83,17 @@ export default function UsecasePage() {
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2">
-              <span className="rounded-full bg-brand/10 px-2.5 py-0.5 text-xs font-semibold text-brand">Use case</span>
+              <span className="rounded-full bg-brand/10 px-2.5 py-0.5 text-xs font-semibold text-brand">
+                Use case
+              </span>
               <OfficialBadge official={!!skill.official} />
             </div>
-            <h1 className="mt-2 text-3xl font-bold tracking-tight text-ink">{manifest.title ?? skill.slug}</h1>
-            <Markdown className="mt-2 max-w-3xl text-muted-foreground">{manifest.description}</Markdown>
+            <h1 className="mt-2 text-3xl font-bold tracking-tight text-ink">
+              {manifest.title ?? skill.slug}
+            </h1>
+            <Markdown className="mt-2 max-w-3xl text-muted-foreground">
+              {manifest.description}
+            </Markdown>
           </div>
           <a
             href="#journeys"
@@ -92,7 +106,10 @@ export default function UsecasePage() {
           <span>{journeys.length} journeys</span>
           <span>{manifest.license ?? "unlicensed"}</span>
           <span>Published {timeAgo(version.publishedAt)}</span>
-          <Link href={`/skill/${skill.slug}/review`} className="font-semibold text-brand hover:underline">
+          <Link
+            href={`/skill/${skill.slug}/review`}
+            className="font-semibold text-brand hover:underline"
+          >
             Review trail →
           </Link>
         </div>
@@ -129,8 +146,12 @@ export default function UsecasePage() {
                 ))}
               </ul>
               {allConfirmed && (
-                <p className="flex items-center gap-1.5 text-sm font-semibold text-emerald-700" role="status">
-                  <Check className="size-4" /> All prerequisites confirmed. You are ready to run the journeys.
+                <p
+                  className="flex items-center gap-1.5 text-sm font-semibold text-emerald-700"
+                  role="status"
+                >
+                  <Check className="size-4" /> All prerequisites confirmed. You are ready to run the
+                  journeys.
                 </p>
               )}
             </Card>
@@ -140,14 +161,22 @@ export default function UsecasePage() {
           <div id="journeys" className="scroll-mt-20 space-y-4">
             <h2 className="text-lg font-bold text-ink">Journeys</h2>
             {journeys.map((j, i) => (
-              <Card key={i} className={cn("gap-3 p-6", !allConfirmed && prerequisites.length > 0 && "opacity-95")}>
+              <Card
+                key={i}
+                className={cn(
+                  "gap-3 p-6",
+                  !allConfirmed && prerequisites.length > 0 && "opacity-95",
+                )}
+              >
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="rounded-md bg-brand px-2 py-0.5 text-xs font-bold text-primary-foreground">
                     {j.tag ?? `#${i + 1}`}
                   </span>
                   <h3 className="text-base font-bold text-ink">{j.title}</h3>
                 </div>
-                {j.description && <Markdown className="text-sm text-muted-foreground">{j.description}</Markdown>}
+                {j.description && (
+                  <Markdown className="text-sm text-muted-foreground">{j.description}</Markdown>
+                )}
                 {steps(j).map((step, k) => (
                   <div key={k} className="space-y-2">
                     {j.prompts.length > 1 && (
@@ -155,9 +184,15 @@ export default function UsecasePage() {
                     )}
                     {step.skills.length > 0 && (
                       <div className="flex flex-wrap items-center gap-1.5">
-                        <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Uses</span>
+                        <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                          Uses
+                        </span>
                         {step.skills.map((sk: string) => (
-                          <Link key={sk} href={`/skill/${sk}`} className="rounded-full bg-accent px-2.5 py-0.5 text-xs font-semibold text-brand-dark hover:underline">
+                          <Link
+                            key={sk}
+                            href={`/skill/${sk}`}
+                            className="rounded-full bg-accent px-2.5 py-0.5 text-xs font-semibold text-brand-dark hover:underline"
+                          >
                             {sk}
                           </Link>
                         ))}
@@ -193,7 +228,7 @@ export default function UsecasePage() {
                     >
                       {d.title ?? d.url} ↗
                     </a>
-                    {d.note && <span className="text-sm text-muted-foreground"> — {d.note}</span>}
+                    {d.note && <span className="text-sm text-muted-foreground"> - {d.note}</span>}
                   </li>
                 ))}
               </ul>
@@ -225,8 +260,8 @@ export default function UsecasePage() {
           <section className="border-t border-border pt-4">
             <h2 className="text-sm font-semibold text-ink">Install into your agent</h2>
             <p className="mt-2 text-sm text-muted-foreground">
-              Install the skills above into your own AI coding agent, then run the journeys in order. Later journeys
-              consume earlier outputs.
+              Install the skills above into your own AI coding agent, then run the journeys in
+              order. Later journeys consume earlier outputs.
             </p>
           </section>
 

@@ -5,7 +5,10 @@ import { ensureReady } from "./db";
 import { type Role, type User, userFromRequest } from "./auth";
 
 export class ApiError extends Error {
-  constructor(public status: number, message: string) {
+  constructor(
+    public status: number,
+    message: string,
+  ) {
     super(message);
   }
 }
@@ -34,7 +37,7 @@ export function route<P = Record<string, string>>(handler: Handler<P>, opts: Opt
         throw new ApiError(403, `Requires role: ${opts.roles.join(" or ")}`);
       }
       const params = (await routeCtx?.params) ?? ({} as P);
-      const body = async <T>() => ((await req.json().catch(() => ({}))) as T);
+      const body = async <T>() => (await req.json().catch(() => ({}))) as T;
       const result = await handler({ req, user, params, body });
       return result instanceof Response ? result : NextResponse.json(result);
     } catch (err) {
