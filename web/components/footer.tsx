@@ -12,7 +12,7 @@ const LINKS = [
 export function Footer() {
   return (
     <footer className="mt-auto bg-footer text-white/90">
-      <div className="mx-auto max-w-[1536px] px-5 py-14">
+      <div className="mx-auto max-w-[1536px] px-5 sm:px-6 lg:px-8 py-14">
         <div className="flex flex-wrap items-center justify-center gap-x-10 gap-y-4 border-b border-white/10 pb-10">
           {PARTNERS.map((p) => (
             <span key={p} className="text-sm font-semibold tracking-wide text-white/70">

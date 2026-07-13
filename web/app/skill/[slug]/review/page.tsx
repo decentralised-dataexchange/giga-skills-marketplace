@@ -47,10 +47,16 @@ export default function ReviewTrailPage() {
   }, [slug]);
 
   if (error)
-    return <main className="mx-auto max-w-[1536px] px-5 py-10 text-muted-foreground">{error}</main>;
+    return (
+      <main className="mx-auto max-w-[1536px] px-5 sm:px-6 lg:px-8 py-10 text-muted-foreground">
+        {error}
+      </main>
+    );
   if (!data)
     return (
-      <main className="mx-auto max-w-[1536px] px-5 py-10 text-muted-foreground">Loading...</main>
+      <main className="mx-auto max-w-[1536px] px-5 sm:px-6 lg:px-8 py-10 text-muted-foreground">
+        Loading...
+      </main>
     );
 
   const { version, trail } = data;
@@ -58,7 +64,7 @@ export default function ReviewTrailPage() {
   const passed = checks.filter((c) => c.status === "pass").length;
 
   return (
-    <main className="mx-auto w-full max-w-[1536px] px-5 pb-20 pt-8">
+    <main className="mx-auto w-full max-w-[1536px] px-5 sm:px-6 lg:px-8 pb-20 pt-8">
       <Link href={`/skill/${slug}`} className="text-sm font-semibold text-brand hover:underline">
         ← {slug}
       </Link>

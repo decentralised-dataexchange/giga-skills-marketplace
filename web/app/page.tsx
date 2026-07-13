@@ -49,6 +49,21 @@ const INFO = [
   },
 ];
 
+const HOW = [
+  {
+    title: "Providers publish",
+    body: "Wallet solution providers publish reviewed skill bundles — OpenAPI specs, credential schemas and rulebooks — and compose them into use cases.",
+  },
+  {
+    title: "You install",
+    body: "Install a skill or use case into your own AI coding agent: Claude Code, Codex, opencode, Cursor, Pi, and more.",
+  },
+  {
+    title: "Your agent builds",
+    body: "The agent wires up a working National Learner Registry and digital-credential solution. No vendor, model, or tool lock-in.",
+  },
+];
+
 function monogram(slug: string) {
   return slug
     .replace(/[^a-z0-9]/gi, "")
@@ -87,39 +102,60 @@ export default function MarketplacePage() {
     <main className="w-full">
       {/* Hero */}
       <section className="border-b border-border/60">
-        <div className="mx-auto w-full max-w-[1536px] px-5 py-16">
-          <h1 className="max-w-3xl text-balance text-4xl font-bold tracking-tight text-ink sm:text-5xl">
-            Skills &amp; use cases for AI-built DPI
-          </h1>
-          <p className="mt-5 max-w-3xl text-pretty text-lg text-ink/80">
-            Providers publish reviewed, agent-agnostic <b>skills</b> and <b>use cases</b> for the
-            education wallet building block. Anyone installs them into their own AI coding agent to
-            build a working National Learner Registry and digital-credential solution.
-          </p>
-          <p className="mt-3 max-w-3xl text-pretty text-ink/70">
-            Built on W3C Verifiable Credentials, SD-JWT VC, OpenID4VCI / OpenID4VP, and the GovStack
-            Wallet BB. Part of the ITU / UNICEF Giga initiative. No vendor, model, or tool lock-in.
-          </p>
-          <div className="mt-8 flex flex-wrap gap-3">
-            <a
-              href="#catalog"
-              className="rounded-[10px] bg-brand px-6 py-3 text-base font-semibold text-primary-foreground transition-colors hover:bg-brand-dark"
-            >
-              Browse catalog
-            </a>
-            <Link
-              href="/login"
-              className="rounded-[10px] border-2 border-brand bg-white px-6 py-3 text-base font-semibold text-brand transition-colors hover:bg-accent"
-            >
-              Publish
-            </Link>
+        <div className="mx-auto grid w-full max-w-[1536px] items-center gap-x-12 gap-y-10 px-5 py-16 sm:px-6 lg:grid-cols-2 lg:px-8 xl:gap-x-16 xl:py-20">
+          <div className="max-w-xl">
+            <h1 className="text-balance text-4xl font-bold tracking-tight text-ink sm:text-5xl">
+              Skills &amp; use cases for AI-built DPI
+            </h1>
+            <p className="mt-5 text-pretty text-lg text-ink/80">
+              Providers publish reviewed, agent-agnostic <b>skills</b> and <b>use cases</b> for the
+              education wallet building block. Anyone installs them into their own AI coding agent
+              to build a working National Learner Registry and digital-credential solution.
+            </p>
+            <p className="mt-3 text-pretty text-ink/70">
+              Built on W3C Verifiable Credentials, SD-JWT VC, OpenID4VCI / OpenID4VP, and the
+              GovStack Wallet BB. Part of the ITU / UNICEF Giga initiative. No vendor, model, or
+              tool lock-in.
+            </p>
+            <div className="mt-8 flex flex-wrap gap-3">
+              <a
+                href="#catalog"
+                className="rounded-[10px] bg-brand px-6 py-3 text-base font-semibold text-primary-foreground transition-colors hover:bg-brand-dark"
+              >
+                Browse catalog
+              </a>
+              <Link
+                href="/login"
+                className="rounded-[10px] border-2 border-brand bg-white px-6 py-3 text-base font-semibold text-brand transition-colors hover:bg-accent"
+              >
+                Publish
+              </Link>
+            </div>
+            <AgentsStrip label="Works with" className="mt-8" />
           </div>
-          <AgentsStrip label="Works with" className="mt-8" />
+
+          {/* Right: how it works — fills the hero at laptop widths and up */}
+          <div className="w-full rounded-2xl border border-brand/20 bg-gradient-to-br from-cyan-tint to-white p-6 shadow-sm sm:p-8">
+            <p className="text-xs font-bold uppercase tracking-[0.14em] text-brand">How it works</p>
+            <ol className="mt-5 space-y-5">
+              {HOW.map((step, i) => (
+                <li key={step.title} className="flex gap-4">
+                  <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-brand text-sm font-bold text-primary-foreground">
+                    {i + 1}
+                  </span>
+                  <div className="min-w-0">
+                    <p className="font-semibold text-ink">{step.title}</p>
+                    <p className="mt-0.5 text-sm leading-relaxed text-ink/70">{step.body}</p>
+                  </div>
+                </li>
+              ))}
+            </ol>
+          </div>
         </div>
       </section>
 
       {/* Info cards */}
-      <section className="mx-auto w-full max-w-[1536px] px-5 py-12">
+      <section className="mx-auto w-full max-w-[1536px] px-5 sm:px-6 lg:px-8 py-12">
         <div className="grid gap-5 md:grid-cols-3">
           {INFO.map((c) => (
             <div
@@ -142,7 +178,7 @@ export default function MarketplacePage() {
       </section>
 
       {/* Catalog */}
-      <section id="catalog" className="mx-auto w-full max-w-[1536px] px-5 pb-24">
+      <section id="catalog" className="mx-auto w-full max-w-[1536px] px-5 sm:px-6 lg:px-8 pb-24">
         <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
           <div>
             <h2 className="text-2xl font-bold tracking-tight text-ink">Catalog</h2>

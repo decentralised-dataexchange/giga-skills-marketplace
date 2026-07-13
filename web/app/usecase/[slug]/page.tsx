@@ -57,10 +57,16 @@ export default function UsecasePage() {
   }, [slug]);
 
   if (error)
-    return <main className="mx-auto max-w-[1536px] px-5 py-10 text-muted-foreground">{error}</main>;
+    return (
+      <main className="mx-auto max-w-[1536px] px-5 sm:px-6 lg:px-8 py-10 text-muted-foreground">
+        {error}
+      </main>
+    );
   if (!detail)
     return (
-      <main className="mx-auto max-w-[1536px] px-5 py-10 text-muted-foreground">Loading...</main>
+      <main className="mx-auto max-w-[1536px] px-5 sm:px-6 lg:px-8 py-10 text-muted-foreground">
+        Loading...
+      </main>
     );
 
   const { skill, org, version } = detail;
@@ -73,7 +79,7 @@ export default function UsecasePage() {
   const allConfirmed = prerequisites.length > 0 && confirmedCount === prerequisites.length;
 
   return (
-    <main className="mx-auto w-full max-w-[1536px] px-5 pb-20 pt-8">
+    <main className="mx-auto w-full max-w-[1536px] px-5 sm:px-6 lg:px-8 pb-20 pt-8">
       <Link href="/" className="text-sm font-semibold text-brand hover:underline">
         ← Catalog
       </Link>

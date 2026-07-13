@@ -103,7 +103,7 @@ export default function ShowcasePage() {
   }, [q, page]);
 
   return (
-    <main className="mx-auto w-full max-w-[1536px] px-5 pb-24 pt-10">
+    <main className="mx-auto w-full max-w-[1536px] px-5 sm:px-6 lg:px-8 pb-24 pt-10">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-ink">Showcase</h1>
