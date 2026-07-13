@@ -56,7 +56,7 @@ const HOW = [
   },
   {
     title: "You install",
-    body: "Install a skill or use case into your own AI coding agent: Claude Code, Codex, opencode, Cursor, Pi, and more.",
+    body: "Install a skill or use case into your own AI coding agent: Claude Code, Codex, opencode, or Pi.",
   },
   {
     title: "Your agent builds",

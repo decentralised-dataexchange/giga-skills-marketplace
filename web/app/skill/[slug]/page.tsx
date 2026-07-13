@@ -11,24 +11,9 @@ import { OfficialBadge } from "@/components/official-badge";
 import { StandardPill } from "@/components/standard-pill";
 import { Tip } from "@/components/tip";
 import { cn } from "@/lib/utils";
+import { AGENTS, installSnippet } from "@/lib/agents";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
-
-function installSnippets(slug: string): [string, string][] {
-  return [
-    [
-      "Claude Code",
-      `# .claude/skills/${slug}/\nDrop the bundle in and reference ./skills/${slug}/SKILL.md`,
-    ],
-    [
-      "Codex CLI",
-      `# AGENTS.md\nSee ./skills/${slug}/SKILL.md and the openapi/ specs it references.`,
-    ],
-    ["opencode", `# opencode.json\n{ "instructions": ["./skills/${slug}/SKILL.md"] }`],
-    ["Cursor", `# .cursor/rules\nReference ./skills/${slug}/SKILL.md and the openapi/ specs.`],
-    ["Pi", `# pi config\nAdd ./skills/${slug}/SKILL.md to the agent's skill paths.`],
-  ];
-}
 
 /* Small GitHub-style glyphs (currentColor). */
 const Icon = {
@@ -65,6 +50,11 @@ const Icon = {
   Clock: (p: any) => (
     <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true" {...p}>
       <path d="M8 0a8 8 0 1 1 0 16A8 8 0 0 1 8 0ZM1.5 8a6.5 6.5 0 1 0 13 0 6.5 6.5 0 0 0-13 0Zm7-3.25v2.992l2.028.812a.75.75 0 0 1-.557 1.392l-2.5-1A.751.751 0 0 1 7 8.25v-3.5a.75.75 0 0 1 1.5 0Z" />
+    </svg>
+  ),
+  Download: (p: any) => (
+    <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true" {...p}>
+      <path d="M7.47 10.78a.75.75 0 0 0 1.06 0l3.75-3.75a.75.75 0 0 0-1.06-1.06L8.75 8.44V1.75a.75.75 0 0 0-1.5 0v6.69L4.78 5.97a.75.75 0 0 0-1.06 1.06ZM3.75 13a.75.75 0 0 0 0 1.5h8.5a.75.75 0 0 0 0-1.5Z" />
     </svg>
   ),
 };
@@ -123,12 +113,22 @@ export default function SkillPage() {
               <OfficialBadge official={!!skill.official} className="ml-1" />
             </h1>
           </div>
-          <a
-            href="#install"
-            className="inline-flex items-center gap-2 rounded-[10px] bg-brand px-6 py-3 text-base font-semibold text-primary-foreground transition-colors hover:bg-brand-dark"
-          >
-            Install
-          </a>
+          <div className="flex shrink-0 items-center gap-2">
+            <a
+              href={`/api/skills/${skill.slug}/download`}
+              download={`${skill.slug}.zip`}
+              className="inline-flex items-center gap-2 rounded-[10px] border-2 border-brand bg-white px-5 py-3 text-base font-semibold text-brand transition-colors hover:bg-accent"
+            >
+              <Icon.Download className="size-4" />
+              Download .zip
+            </a>
+            <a
+              href="#install"
+              className="inline-flex items-center gap-2 rounded-[10px] bg-brand px-6 py-3 text-base font-semibold text-primary-foreground transition-colors hover:bg-brand-dark"
+            >
+              Install
+            </a>
+          </div>
         </div>
 
         <p className="mt-3 max-w-3xl text-muted-foreground">{manifest.description}</p>
@@ -219,16 +219,26 @@ export default function SkillPage() {
             </div>
             <div className="space-y-3 p-4">
               <p className="text-sm text-muted-foreground">
-                Agent-agnostic and model-agnostic: the same bundle installs on different agents via
-                a thin, per-agent step; its contents do not change.
+                Agent-agnostic and model-agnostic: download the bundle once, then install it into
+                your agent with a thin, per-agent step. Its contents do not change.
               </p>
-              {installSnippets(skill.slug).map(([agent, snippet]) => (
-                <div key={agent}>
+              <a
+                href={`/api/skills/${skill.slug}/download`}
+                download={`${skill.slug}.zip`}
+                className="inline-flex items-center gap-2 rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-primary-foreground transition-colors hover:bg-brand-dark"
+              >
+                <Icon.Download className="size-4" /> Download {skill.slug}.zip
+              </a>
+              {AGENTS.map((agent) => (
+                <div key={agent.id}>
                   <h3 className="mb-1 flex items-center gap-2 text-sm font-medium">
-                    <AgentLogo name={agent} className="size-5" />
-                    {agent}
+                    <AgentLogo name={agent.label} className="size-5" />
+                    {agent.label}
                   </h3>
-                  <CodeViewer content={snippet} maxHeightClass="max-h-40" />
+                  <CodeViewer
+                    content={installSnippet(agent.id, skill.slug)}
+                    maxHeightClass="max-h-48"
+                  />
                 </div>
               ))}
             </div>

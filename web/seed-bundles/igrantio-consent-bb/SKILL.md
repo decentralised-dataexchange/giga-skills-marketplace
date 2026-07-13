@@ -1,15 +1,15 @@
 ---
-name: govstack-consent-bb
+name: igrantio-consent-bb
 description: >
   Capture, enforce, and revoke learner-data consent using an ISO/IEC 27560
   aligned Consent Building Block API. Use when an application must obtain
   explicit consent before registering a learner or sharing credential data.
 version: 1.2.0
-provider: GovStack Trust Services
+provider: iGrant.io (LCubed AB)
 targets:
-  api: https://govstack.trust.example/docs/consent-bb
+  api: https://docs.igrant.io/docs/category/consent-management-admin-api
   openapi: ./openapi/consent.yaml
-  protocols: [ISO-IEC-27560, GovStack-Consent-BB]
+  protocols: [ISO-IEC-27560, Consent-BB]
 depends_on:
   schemas: [./schemas/consent-record.schema.json]
   rulebooks: [./rulebooks/consent-rules.md]

@@ -350,7 +350,7 @@ function Builder() {
               <ConversationEmptyState
                 title="Describe the app you want to build"
                 description={
-                  'Type / to invoke provider skills, e.g. "/igrantio-education-issuer /govstack-consent-bb Build a Ministry of Education portal that issues a diploma credential with a consent step." You get a complete single-file HTML app with a mock mode, ready to demo.'
+                  'Type / to invoke provider skills, e.g. "/igrantio-education-issuer /igrantio-consent-bb Build a Ministry of Education portal that issues a diploma credential with a consent step." You get a complete single-file HTML app with a mock mode, ready to demo.'
                 }
               />
             )}

@@ -125,12 +125,6 @@ export async function seedIfEmpty(): Promise<boolean> {
     "iGrant.io Developer Relations",
     "provider",
   );
-  const govstack = await addUser(
-    "trust@govstack.test",
-    "provider123",
-    "GovStack Trust Services",
-    "provider",
-  );
   const educhain = await addUser("labs@educhain.test", "provider123", "EduChain Labs", "provider");
   const student = await addUser("student@example.com", "student123", "Amina Okafor", "builder");
 
@@ -145,17 +139,6 @@ export async function seedIfEmpty(): Promise<boolean> {
     decidedBy: superadmin,
     notes: "Verified provider: developer APIs and sandbox documented at docs.igrant.io.",
   });
-  const orgGovstack = await addOrg({
-    name: "GovStack Trust Services",
-    website: "https://govstack.global",
-    description:
-      "Publishes GovStack building-block skill files: consent management (ISO/IEC 27560), e-signature, and information mediator patterns.",
-    contact: "trust@govstack.test",
-    ownerId: govstack,
-    status: "approved",
-    decidedBy: superadmin,
-    notes: "Verified provider.",
-  });
   await addOrg({
     name: "EduChain Labs",
     website: "https://educhain.example",
@@ -166,12 +149,13 @@ export async function seedIfEmpty(): Promise<boolean> {
     status: "pending",
   });
 
-  await addSkill(orgIgrant, "igrantio-education-issuer", igrant, true, reviewer); // community (vendor-published)
-  await addSkill(orgGovstack, "govstack-consent-bb", govstack, true, reviewer, true); // official (GovStack first-party)
+  // All catalog skills are published by iGrant.io (LCubed AB).
+  await addSkill(orgIgrant, "igrantio-education-issuer", igrant, true, reviewer);
+  await addSkill(orgIgrant, "igrantio-consent-bb", igrant, true, reviewer, true); // official
   await addSkill(orgIgrant, "igrantio-education-verifier", igrant, false); // sits in the review queue
 
   // A use-case template (journey-tagged prompt chain) composing the skills above.
-  await addSkill(orgGovstack, "national-learner-registry", govstack, true, reviewer, true);
+  await addSkill(orgIgrant, "national-learner-registry", igrant, true, reviewer, true);
 
   await addApplication({
     developerId: student,
@@ -190,7 +174,7 @@ export async function seedIfEmpty(): Promise<boolean> {
       "An enrolment flow that requests and shares alternative learner identifiers from an EUDI Wallet using DCQL over OpenID4VP. Scaffolded from the education issuer and consent skills.",
     videoUrl: "https://www.youtube.com/watch?v=K0WuGRXAubE",
     repoUrl: null,
-    skills: ["igrantio-education-issuer", "govstack-consent-bb"],
+    skills: ["igrantio-education-issuer", "igrantio-consent-bb"],
     usecases: ["national-learner-registry"],
   });
 

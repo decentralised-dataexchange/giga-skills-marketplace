@@ -8,7 +8,9 @@ import { api, timeAgo } from "@/lib/client";
 import { Card } from "@/components/ui/card";
 import { OfficialBadge } from "@/components/official-badge";
 import { Markdown } from "@/components/markdown";
+import { AgentLogo } from "@/components/agent-logo";
 import { cn } from "@/lib/utils";
+import { AGENTS, type AgentId, parsePrompt, renderPromptText, skillRef } from "@/lib/agents";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -21,24 +23,39 @@ function steps(j: any): { prompt: string; skills: string[] }[] {
   );
 }
 
-function PromptBox({ text }: { text: string }) {
+// Render a prompt for the selected agent: <skill:id> tokens become that agent's
+// invocation syntax (linked chips); Copy yields the plain substituted text.
+function PromptView({ text, agent }: { text: string; agent: AgentId }) {
   const [copied, setCopied] = useState(false);
+  const label = AGENTS.find((a) => a.id === agent)?.label ?? "agent";
   return (
     <div className="relative rounded-lg border border-border bg-muted p-3">
       <button
         type="button"
         onClick={() => {
-          navigator.clipboard?.writeText(text).then(() => {
+          navigator.clipboard?.writeText(renderPromptText(text, agent)).then(() => {
             setCopied(true);
             setTimeout(() => setCopied(false), 1500);
           });
         }}
         className="absolute right-2 top-2 rounded border border-border bg-white px-2 py-0.5 text-xs font-semibold text-brand hover:bg-accent"
       >
-        {copied ? "Copied" : "Copy"}
+        {copied ? "Copied" : `Copy for ${label}`}
       </button>
-      <p className="whitespace-pre-wrap pr-14 font-mono text-xs leading-relaxed text-ink/80">
-        {text}
+      <p className="whitespace-pre-wrap pr-28 font-mono text-xs leading-relaxed text-ink/80">
+        {parsePrompt(text).map((seg, i) =>
+          seg.type === "text" ? (
+            <span key={i}>{seg.value}</span>
+          ) : (
+            <Link
+              key={i}
+              href={`/skill/${seg.id}`}
+              className="rounded bg-brand/10 px-1 font-semibold text-brand-dark hover:underline"
+            >
+              {skillRef(agent, seg.id)}
+            </Link>
+          ),
+        )}
       </p>
     </div>
   );
@@ -49,6 +66,7 @@ export default function UsecasePage() {
   const [detail, setDetail] = useState<any>(null);
   const [error, setError] = useState("");
   const [confirmed, setConfirmed] = useState<Record<number, boolean>>({});
+  const [agent, setAgent] = useState<AgentId>("claude");
 
   useEffect(() => {
     api(`/api/marketplace/${slug}`)
@@ -165,7 +183,39 @@ export default function UsecasePage() {
 
           {/* Journeys */}
           <div id="journeys" className="scroll-mt-20 space-y-4">
-            <h2 className="text-lg font-bold text-ink">Journeys</h2>
+            <div className="flex flex-wrap items-end justify-between gap-3">
+              <h2 className="text-lg font-bold text-ink">Journeys</h2>
+              <div className="flex flex-col items-start gap-1">
+                <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  Prompts for
+                </span>
+                <div role="tablist" aria-label="Agent" className="flex flex-wrap gap-1">
+                  {AGENTS.map((a) => (
+                    <button
+                      key={a.id}
+                      type="button"
+                      role="tab"
+                      aria-selected={agent === a.id}
+                      onClick={() => setAgent(a.id)}
+                      className={cn(
+                        "flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-sm font-semibold transition-colors",
+                        agent === a.id
+                          ? "border-brand bg-accent text-ink"
+                          : "border-border text-muted-foreground hover:text-ink",
+                      )}
+                    >
+                      <AgentLogo name={a.label} className="size-4" />
+                      {a.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+            <p className="text-sm text-muted-foreground">
+              Skill references (<code className="font-mono text-xs">&lt;skill:id&gt;</code>) render
+              in the selected agent&apos;s invocation syntax; <b>Copy</b> gives the ready-to-paste
+              prompt.
+            </p>
             {journeys.map((j, i) => (
               <Card
                 key={i}
@@ -204,7 +254,7 @@ export default function UsecasePage() {
                         ))}
                       </div>
                     )}
-                    <PromptBox text={step.prompt} />
+                    <PromptView text={step.prompt} agent={agent} />
                   </div>
                 ))}
                 {j.done && (

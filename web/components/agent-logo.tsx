@@ -1,9 +1,10 @@
 import { cn } from "@/lib/utils";
+import { AGENT_LABELS } from "@/lib/agents";
 
 // Official brand marks for the AI coding agents a skill file installs into,
 // served from /public/agents. Some logos ship their own dark tile (opencode,
 // Pi); the white OpenAI mark needs a dark chip; the rest sit on a white chip.
-type AgentKey = "claude" | "codex" | "opencode" | "cursor" | "pi";
+type AgentKey = "claude" | "codex" | "opencode" | "pi";
 
 interface LogoDef {
   src: string;
@@ -35,13 +36,6 @@ const LOGOS: Record<AgentKey, LogoDef> = {
     pad: "",
     fit: "object-cover",
   },
-  cursor: {
-    src: "/agents/cursor.svg",
-    label: "Cursor",
-    chip: "bg-white ring-1 ring-black/10",
-    pad: "p-1.5",
-    fit: "object-contain",
-  },
   pi: { src: "/agents/pi.svg", label: "Pi", chip: "", pad: "", fit: "object-cover" },
 };
 
@@ -49,7 +43,6 @@ function keyFor(name: string): AgentKey {
   const n = name.toLowerCase();
   if (n.includes("claude")) return "claude";
   if (n.includes("codex") || n.includes("openai")) return "codex";
-  if (n.includes("cursor")) return "cursor";
   if (n.includes("pi")) return "pi";
   return "opencode";
 }
@@ -73,7 +66,7 @@ export function AgentLogo({ name, className }: { name: string; className?: strin
 
 // The AI coding agents a skill file installs into. Order is shared across the
 // hero strip and each skill's install section so the set reads consistently.
-export const AGENTS = ["Claude Code", "Codex CLI", "opencode", "Cursor", "Pi"] as const;
+export const AGENTS = AGENT_LABELS;
 
 export function AgentsStrip({ label, className }: { label?: string; className?: string }) {
   return (
