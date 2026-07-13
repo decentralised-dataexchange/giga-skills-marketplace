@@ -115,7 +115,7 @@ export default function SkillPage() {
           </div>
           <div className="flex shrink-0 items-center gap-2">
             <a
-              href={`/api/skills/${skill.slug}/download`}
+              href={`/api/bundles/${skill.slug}`}
               download={`${skill.slug}.zip`}
               className="inline-flex items-center gap-2 rounded-[10px] border-2 border-brand bg-white px-5 py-3 text-base font-semibold text-brand transition-colors hover:bg-accent"
             >
@@ -223,7 +223,7 @@ export default function SkillPage() {
                 your agent with a thin, per-agent step. Its contents do not change.
               </p>
               <a
-                href={`/api/skills/${skill.slug}/download`}
+                href={`/api/bundles/${skill.slug}`}
                 download={`${skill.slug}.zip`}
                 className="inline-flex items-center gap-2 rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-primary-foreground transition-colors hover:bg-brand-dark"
               >

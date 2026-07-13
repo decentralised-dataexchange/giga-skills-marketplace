@@ -96,6 +96,19 @@ export default function UsecasePage() {
   const confirmedCount = Object.values(confirmed).filter(Boolean).length;
   const allConfirmed = prerequisites.length > 0 && confirmedCount === prerequisites.length;
 
+  // The full use-case template as one Markdown file, ready to hand to an agent.
+  const markdown = (version.files ?? []).find((f: any) => f.path === "SKILL.md")?.content ?? "";
+  function downloadMarkdown() {
+    if (!markdown) return;
+    const blob = new Blob([markdown], { type: "text/markdown;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${skill.slug}.md`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
   return (
     <main className="mx-auto w-full max-w-[1536px] px-5 sm:px-6 lg:px-8 pb-20 pt-8">
       <Link href="/" className="text-sm font-semibold text-brand hover:underline">
@@ -119,12 +132,21 @@ export default function UsecasePage() {
               {manifest.description}
             </Markdown>
           </div>
-          <a
-            href="#journeys"
-            className="shrink-0 rounded-[10px] bg-brand px-6 py-3 text-base font-semibold text-primary-foreground transition-colors hover:bg-brand-dark"
-          >
-            View journeys
-          </a>
+          <div className="flex shrink-0 flex-wrap items-center gap-2">
+            <button
+              type="button"
+              onClick={downloadMarkdown}
+              className="inline-flex items-center gap-2 rounded-[10px] border-2 border-brand bg-white px-5 py-3 text-base font-semibold text-brand transition-colors hover:bg-accent"
+            >
+              Download as Markdown
+            </button>
+            <a
+              href="#journeys"
+              className="rounded-[10px] bg-brand px-6 py-3 text-base font-semibold text-primary-foreground transition-colors hover:bg-brand-dark"
+            >
+              View journeys
+            </a>
+          </div>
         </div>
         <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-muted-foreground">
           <span>{journeys.length} journeys</span>
