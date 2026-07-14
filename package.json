@@ -6,7 +6,8 @@
   "scripts": {
     "lint": "oxlint",
     "format": "oxfmt --write .",
-    "format:check": "oxfmt --check ."
+    "format:check": "oxfmt --check .",
+    "test:load": "node tests/load/catalog.mjs"
   },
   "devDependencies": {
     "oxfmt": "0.58.0",
