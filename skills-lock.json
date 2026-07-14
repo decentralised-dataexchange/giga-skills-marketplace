@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "skills": {
+    "igrantio-issuer-backend": {
+      "source": "giga-staging.igrant.io",
+      "sourceType": "well-known",
+      "computedHash": "c73ea0bb8d0dc4e9990e6eef83cb6aa3ca05b2a90d76a40b9db3e8f9763a431f"
+    }
+  }
+}

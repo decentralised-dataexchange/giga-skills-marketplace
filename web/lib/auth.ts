@@ -16,7 +16,12 @@ export interface User {
   role: Role;
   status: string;
   createdAt: string;
-  settings: { openrouterKey?: string; model?: string; avatar?: string | null };
+  settings: {
+    openrouterKey?: string;
+    vercelKey?: string;
+    model?: string;
+    avatar?: string | null;
+  };
 }
 
 export async function hashPassword(

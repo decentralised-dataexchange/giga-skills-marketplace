@@ -55,6 +55,11 @@ export const DASHBOARD_NAV: NavGroup[] = [
         label: "Developer Console",
         show: (u) => u != null && ["builder", "provider"].includes(u.role),
       },
+      {
+        href: "/builder",
+        label: "Integration Assistant",
+        show: (u) => u != null && ["builder", "provider"].includes(u.role),
+      },
     ],
   },
   {

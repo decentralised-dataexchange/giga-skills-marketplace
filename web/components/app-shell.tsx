@@ -6,7 +6,7 @@ import { Sidebar } from "@/components/sidebar";
 import { DashboardTopbar } from "@/components/dashboard-topbar";
 import { Footer } from "@/components/footer";
 
-const CONSOLE_ROUTES = ["/developer", "/provider", "/governance", "/settings"];
+const CONSOLE_ROUTES = ["/developer", "/builder", "/provider", "/governance", "/settings"];
 
 // Public-facing pages keep the marketing layout (top nav + centered content +
 // footer). The logged-in consoles are a proper dashboard (left admin sidebar +
