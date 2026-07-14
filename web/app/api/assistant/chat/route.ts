@@ -1,6 +1,5 @@
-import { convertToModelMessages, streamText, type UIMessage } from "ai";
+import { convertToModelMessages, createGateway, streamText, type UIMessage } from "ai";
 import { createOpenRouter } from "@openrouter/ai-sdk-provider";
-import { createGateway } from "@ai-sdk/gateway";
 import { buildInstructions, DEFAULT_MODEL, renderSkillContext } from "@/lib/assistant";
 import { check, route } from "@/lib/handler";
 
