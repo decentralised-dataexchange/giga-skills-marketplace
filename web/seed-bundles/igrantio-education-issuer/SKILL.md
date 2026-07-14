@@ -1,7 +1,7 @@
 ---
-name: igrantio-education-issuer
+name: igrantio-issuer
 description: >
-  Integrate education credential issuance (diploma, transcript,
+  Integrate credential issuance (diploma, transcript,
   micro-credential) against the iGrant.io Issuer API using OpenID4VCI.
   Use when an application must issue W3C Verifiable Credentials to a
   learner's wallet.
@@ -18,10 +18,10 @@ auth: API key (X-API-Key header); use the sandbox base URL for development
 license: Apache-2.0
 ---
 
-# Issue an education credential (iGrant.io Issuer API)
+# Issue an credential (iGrant.io Issuer API)
 
 ## When to use
-Use this skill when the application must issue a signed education credential
+Use this skill when the application must issue a signed credential
 to a learner's wallet and register it for later verification.
 
 ## Prerequisites

@@ -1,7 +1,7 @@
 ---
-name: igrantio-education-verifier
+name: igrantio-verifier
 description: >
-  Verify education credentials presented by a learner wallet using the
+  Verify credentials presented by a learner wallet using the
   iGrant.io Verifier API over OpenID4VP with DCQL. Use when a relying
   party (employer, university, agency) must check authenticity,
   integrity, issuer signature, and revocation status.
@@ -18,7 +18,7 @@ auth: API key (X-API-Key header); use the sandbox base URL for development
 license: Apache-2.0
 ---
 
-# Verify an education credential (iGrant.io Verifier API)
+# Verify a credential (iGrant.io Verifier API)
 
 ## When to use
 Use this skill when a relying party application must request and verify a

@@ -62,6 +62,15 @@ The schema bootstraps and demo data seeds on the first web API request.
 | `make check`                                 | `tsc --noEmit` plus `eslint` on the web app              |
 | `make up` / `make down` / `make reset`       | Build/run, stop, or stop and wipe the Docker stack       |
 
+Regression and capacity checks run against a started, seeded stack:
+
+```bash
+cd web && E2E_BASE_URL=http://localhost:4820 npm run test:e2e
+LOAD_URL=http://localhost:4820/api/marketplace?pageSize=12 npm run test:load
+```
+
+The E2E suite covers catalog/detail rendering, both download formats, route-conflict regressions, authentication, authorization, and role APIs. The capacity gate sends 10,000 requests at 100 concurrent clients and requires zero errors with p95 latency below 500 ms.
+
 ## Deployment
 
 Kubernetes deployment uses the Helm chart in [`deploy/helm/giga`](deploy/helm/giga). It provisions the web app, the marketplace service, PostgreSQL with a persistent volume, and an nginx plus cert-manager ingress with TLS.

@@ -16,15 +16,31 @@ image:
 web:
   name: giga-web
   port: 4820
-  replicas: 1
+  replicas: 2
+  dbMaxConnections: 8
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 6
+    targetCPUUtilizationPercentage: 70
 
 marketplace:
   name: giga-marketplace
   port: 4830
-  replicas: 1
+  replicas: 2
+  dbMaxConnections: 8
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 4
+    targetCPUUtilizationPercentage: 70
   internalToken: ""   # REQUIRED: shared secret between web and marketplace services
 
 postgres:
+  # The bundled single-node database is convenient for demos. For production,
+  # set enabled=false and provide externalDatabaseUrl from a secret values file.
+  enabled: true
+  externalDatabaseUrl: ""
   name: giga-postgres
   image: postgres:16-alpine
   db: govbuild

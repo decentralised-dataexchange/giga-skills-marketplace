@@ -4,6 +4,16 @@ const baseUrl = process.env.MARKETPLACE_API_URL?.replace(/\/$/, "");
 
 export const hasMarketplaceService = Boolean(baseUrl);
 
+export class MarketplaceApiError extends Error {
+  constructor(
+    public status: number,
+    message: string,
+  ) {
+    super(message);
+    this.name = "MarketplaceApiError";
+  }
+}
+
 export async function marketplaceRequest<T>(path: string, init?: RequestInit): Promise<T> {
   if (!baseUrl) throw new Error("MARKETPLACE_API_URL is not configured");
   const response = await fetch(`${baseUrl}${path}`, {
@@ -16,9 +26,10 @@ export async function marketplaceRequest<T>(path: string, init?: RequestInit): P
   });
   const body = (await response.json().catch(() => ({}))) as T & { error?: string };
   if (!response.ok) {
-    const error = new Error(body.error ?? `Marketplace request failed (${response.status})`);
-    Object.assign(error, { status: response.status });
-    throw error;
+    throw new MarketplaceApiError(
+      response.status,
+      body.error ?? `Marketplace request failed (${response.status})`,
+    );
   }
   return body;
 }

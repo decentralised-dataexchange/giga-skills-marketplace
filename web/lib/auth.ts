@@ -1,6 +1,9 @@
 // Accounts, sessions, and roles. Auth is a bearer token in the Authorization header.
-import { randomBytes, scryptSync, timingSafeEqual } from "node:crypto";
+import { randomBytes, scrypt as scryptCallback, timingSafeEqual } from "node:crypto";
+import { promisify } from "node:util";
 import { sql } from "./db";
+
+const scrypt = promisify(scryptCallback);
 
 export const ROLES = ["builder", "provider", "reviewer", "superadmin"] as const;
 export type Role = (typeof ROLES)[number];
@@ -16,13 +19,21 @@ export interface User {
   settings: { openrouterKey?: string; model?: string; avatar?: string | null };
 }
 
-export function hashPassword(password: string, salt = randomBytes(16).toString("hex")): string {
-  return `${salt}:${scryptSync(password, salt, 64).toString("hex")}`;
+export async function hashPassword(
+  password: string,
+  salt = randomBytes(16).toString("hex"),
+): Promise<string> {
+  const digest = (await scrypt(password, salt, 64)) as Buffer;
+  return `${salt}:${digest.toString("hex")}`;
 }
 
-export function verifyPassword(password: string, stored: string): boolean {
-  const [salt, digest] = stored.split(":");
-  return timingSafeEqual(Buffer.from(digest, "hex"), scryptSync(password, salt, 64));
+export async function verifyPassword(password: string, stored: string): Promise<boolean> {
+  const [salt, encodedDigest] = stored.split(":");
+  if (!salt || !encodedDigest) return false;
+  const expected = Buffer.from(encodedDigest, "hex");
+  if (expected.length !== 64) return false;
+  const actual = (await scrypt(password, salt, 64)) as Buffer;
+  return timingSafeEqual(expected, actual);
 }
 
 export async function issueToken(userId: number): Promise<string> {

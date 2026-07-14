@@ -27,19 +27,24 @@ export const GET = route<{ slug: string }>(async ({ params }) => {
   check(Array.isArray(files) && files.length > 0, 404, "No downloadable files for this skill");
 
   const zip = new AdmZip();
+  let fileCount = 0;
   for (const f of files!) {
     if (!f?.path || typeof f.content !== "string") continue;
     if (f.path.includes("..") || f.path.startsWith("/")) continue;
     zip.addFile(`${slug}/${f.path}`, Buffer.from(f.content, "utf8"));
+    fileCount++;
   }
+  check(fileCount > 0, 404, "No downloadable files for this skill");
   const buffer = zip.toBuffer();
+  const filename = `${slug.replace(/[^a-zA-Z0-9._-]/g, "-")}.zip`;
 
   return new Response(new Uint8Array(buffer), {
     headers: {
       "Content-Type": "application/zip",
-      "Content-Disposition": `attachment; filename="${slug}.zip"`,
+      "Content-Disposition": `attachment; filename="${filename}"`,
       "Content-Length": String(buffer.length),
-      "Cache-Control": "no-store",
+      "Cache-Control": "public, max-age=300, s-maxage=300, stale-while-revalidate=86400",
+      "X-Content-Type-Options": "nosniff",
     },
   });
 });

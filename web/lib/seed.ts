@@ -28,9 +28,10 @@ async function addUser(
   name: string,
   role: string,
 ): Promise<number> {
+  const passwordHash = await hashPassword(password);
   const [row] = await sql`
     INSERT INTO users (email, name, role, password_hash)
-    VALUES (${email}, ${name}, ${role}, ${hashPassword(password)}) RETURNING id`;
+    VALUES (${email}, ${name}, ${role}, ${passwordHash}) RETURNING id`;
   return row.id;
 }
 
@@ -129,7 +130,7 @@ export async function seedIfEmpty(): Promise<boolean> {
   const student = await addUser("student@example.com", "student123", "Amina Okafor", "builder");
 
   const orgIgrant = await addOrg({
-    name: "iGrant.io (LCubed AB)",
+    name: "iGrant.io",
     website: "https://igrant.io",
     description:
       "Data exchange and wallet provider. Publishes skill files for its Data Wallet (holder) and Organisation Wallet Suite (issuer and verifier).",

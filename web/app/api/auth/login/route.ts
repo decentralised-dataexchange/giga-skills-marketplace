@@ -8,11 +8,8 @@ export const POST = route(async ({ body }) => {
   const [user] = await sql`SELECT * FROM users WHERE email = ${String(email ?? "")
     .toLowerCase()
     .trim()}`;
-  check(
-    user && verifyPassword(password ?? "", user.password_hash),
-    401,
-    "Invalid email or password",
-  );
+  check(user, 401, "Invalid email or password");
+  check(await verifyPassword(password ?? "", user.password_hash), 401, "Invalid email or password");
   check(
     user.status === "active",
     403,

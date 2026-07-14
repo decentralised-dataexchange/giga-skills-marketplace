@@ -14,14 +14,19 @@ export const POST = route(
     check(newPassword.length >= 6, 400, "New password must be at least 6 characters");
 
     const [row] = await sql`SELECT password_hash FROM users WHERE id = ${user!.id}`;
-    check(verifyPassword(currentPassword, row.password_hash), 401, "Current password is incorrect");
     check(
-      !verifyPassword(newPassword, row.password_hash),
+      await verifyPassword(currentPassword, row.password_hash),
+      401,
+      "Current password is incorrect",
+    );
+    check(
+      !(await verifyPassword(newPassword, row.password_hash)),
       400,
       "New password must differ from the current one",
     );
 
-    await sql`UPDATE users SET password_hash = ${hashPassword(newPassword)} WHERE id = ${user!.id}`;
+    const passwordHash = await hashPassword(newPassword);
+    await sql`UPDATE users SET password_hash = ${passwordHash} WHERE id = ${user!.id}`;
 
     const currentToken = req.headers.get("authorization")?.replace(/^Bearer /, "") ?? "";
     await sql`DELETE FROM tokens WHERE user_id = ${user!.id} AND token <> ${currentToken}`;

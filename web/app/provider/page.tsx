@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { api, auth } from "@/lib/client";
+import { slugify } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -15,7 +16,10 @@ import { DashboardMain, useDashboardGuard } from "@/components/dashboard-shell";
 export default function ProviderOrganisationPage() {
   const { denied } = useDashboardGuard("/provider", ["provider"]);
   const [orgs, setOrgs] = useState<any[]>([]);
-  const [orgForm, setOrgForm] = useState({ name: "", website: "", description: "" });
+  const [orgForm, setOrgForm] = useState({ name: "", slug: "", website: "", description: "" });
+  const [origin] = useState(() =>
+    typeof window === "undefined" ? "https://your-marketplace-host" : window.location.origin,
+  );
   const [message, setMessage] = useState("");
 
   const load = useCallback(async () => {
@@ -62,6 +66,19 @@ export default function ProviderOrganisationPage() {
               value={orgForm.name}
               onChange={(e) => setOrgForm({ ...orgForm, name: e.target.value })}
             />
+            <div>
+              <Input
+                placeholder="Handle (optional, e.g. igrant-io)"
+                value={orgForm.slug}
+                onChange={(e) => setOrgForm({ ...orgForm, slug: e.target.value })}
+              />
+              <p className="mt-1 text-xs text-muted-foreground">
+                Used in your skills install command:{" "}
+                <code className="font-mono">
+                  npx skills add {origin}/{slugify(orgForm.slug || orgForm.name || "your-handle")}
+                </code>
+              </p>
+            </div>
             <Input
               placeholder="Website (https://...)"
               value={orgForm.website}

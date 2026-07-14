@@ -15,9 +15,10 @@ export const POST = route(async ({ body }) => {
 
   // Governance roles are granted by a super admin, never self-assigned.
   const wanted = ["builder", "provider"].includes(role) ? role : "builder";
+  const passwordHash = await hashPassword(password);
   const [user] = await sql`
     INSERT INTO users (email, name, role, password_hash)
-    VALUES (${cleanEmail}, ${name.trim()}, ${wanted}, ${hashPassword(password)}) RETURNING *`;
+    VALUES (${cleanEmail}, ${name.trim()}, ${wanted}, ${passwordHash}) RETURNING *`;
   await logEvent("user.registered", user.id, { userId: user.id }, { role: wanted });
   return { token: await issueToken(user.id), user: publicUser(user) };
 });

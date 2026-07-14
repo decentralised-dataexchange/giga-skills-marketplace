@@ -9,6 +9,7 @@ export interface BundleFile {
 export const orgView = (r: any) => ({
   id: r.id,
   name: r.name,
+  slug: r.slug ?? null,
   website: r.website,
   description: r.description,
   contact: r.contact,
@@ -87,6 +88,18 @@ export function chatView(r: any, full = false) {
     createdAt: r.created_at,
     updatedAt: r.updated_at,
     ...(full ? { messages: r.messages, appHtml: r.app_html } : {}),
+  };
+}
+
+export function providerView(r: any) {
+  return {
+    id: r.id,
+    name: r.name,
+    slug: r.slug ?? null,
+    website: r.website,
+    description: r.description ?? "",
+    skillCount: Number(r.skill_count),
+    usecaseCount: Number(r.usecase_count),
   };
 }
 

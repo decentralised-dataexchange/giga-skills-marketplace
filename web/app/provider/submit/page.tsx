@@ -1,13 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { api, auth } from "@/lib/client";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { CodeEditor } from "@/components/code-editor";
-import { UsecaseForm } from "@/components/usecase-form";
+import { UsecaseForm, type UsecaseInitial } from "@/components/usecase-form";
 import { DashboardMain, useDashboardGuard } from "@/components/dashboard-shell";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -15,6 +16,23 @@ import { DashboardMain, useDashboardGuard } from "@/components/dashboard-shell";
 interface BundleFile {
   path: string;
   content: string;
+}
+
+interface Bundle {
+  name: string;
+  files: BundleFile[];
+}
+
+// Base64-encode an ArrayBuffer in chunks (spreading a large Uint8Array overflows
+// the call stack).
+function toBase64(buf: ArrayBuffer): string {
+  const bytes = new Uint8Array(buf);
+  let bin = "";
+  const chunk = 0x8000;
+  for (let i = 0; i < bytes.length; i += chunk) {
+    bin += String.fromCharCode(...bytes.subarray(i, i + chunk));
+  }
+  return btoa(bin);
 }
 
 const TEMPLATE: BundleFile[] = [
@@ -46,15 +64,29 @@ function guessDir(name: string): string {
 }
 
 export default function ProviderSubmitPage() {
+  return (
+    <Suspense fallback={null}>
+      <ProviderSubmitInner />
+    </Suspense>
+  );
+}
+
+function ProviderSubmitInner() {
   const { denied } = useDashboardGuard("/provider/submit", ["provider"]);
   const [approvedOrg, setApprovedOrg] = useState<any>(null);
   const [ready, setReady] = useState(false);
   const [skillOpts, setSkillOpts] = useState<string[]>([]);
   const [files, setFiles] = useState<BundleFile[]>([]);
-  const [submitType, setSubmitType] = useState<"skill" | "usecase">("skill");
+  const [bundles, setBundles] = useState<Bundle[]>([]);
+  const [results, setResults] = useState<{ name: string; ok: boolean; message: string }[]>([]);
+  const [busy, setBusy] = useState(false);
+  const editSlug = useSearchParams().get("edit");
+  const [submitType, setSubmitType] = useState<"skill" | "usecase">(editSlug ? "usecase" : "skill");
+  const [ucInitial, setUcInitial] = useState<UsecaseInitial | null>(null);
   const [message, setMessage] = useState("");
   const filePicker = useRef<HTMLInputElement>(null);
   const zipPicker = useRef<HTMLInputElement>(null);
+  const multiZipPicker = useRef<HTMLInputElement>(null);
 
   const load = useCallback(async () => {
     const [o, pub] = await Promise.all([
@@ -70,6 +102,35 @@ export default function ProviderSubmitPage() {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- initial data fetch; setState happens after await
     if (auth.user?.role === "provider") load().catch((e) => setMessage(e.message));
   }, [load]);
+
+  useEffect(() => {
+    if (!editSlug) return;
+    api(`/api/marketplace/${editSlug}`)
+      .then((d) => {
+        const m = d.version?.manifest ?? {};
+        setUcInitial({
+          name: m.name ?? editSlug,
+          title: m.title ?? "",
+          description: m.description ?? "",
+          license: m.license ?? "Apache-2.0",
+          prerequisites: Array.isArray(m.prerequisites) ? m.prerequisites : [],
+          journeys: (Array.isArray(m.journeys) ? m.journeys : []).map((j: any) => ({
+            title: j.title ?? "",
+            description: j.description ?? "",
+            done: j.done ?? "",
+            prompts:
+              Array.isArray(j.prompts) && j.prompts.length
+                ? j.prompts.map((p: any) =>
+                    typeof p === "string"
+                      ? { prompt: p, skills: [] }
+                      : { prompt: p.prompt ?? "", skills: p.skills ?? [] },
+                  )
+                : [{ prompt: "", skills: [] }],
+          })),
+        });
+      })
+      .catch((e) => setMessage(e.message));
+  }, [editSlug]);
 
   async function pickedFiles(list: FileList | null) {
     if (!list) return;
@@ -94,6 +155,57 @@ export default function ProviderSubmitPage() {
     } catch (err) {
       setMessage(err instanceof Error ? err.message : String(err));
     }
+  }
+
+  async function pickedMultiZip(list: FileList | null) {
+    const file = list?.[0];
+    if (!file) return;
+    try {
+      const zipBase64 = toBase64(await file.arrayBuffer());
+      const { bundles: found } = await api("/api/bundles/unzip-multi", {
+        method: "POST",
+        json: { zipBase64 },
+      });
+      setBundles(found);
+      setResults([]);
+      setFiles([]);
+      setMessage(
+        `Found ${found.length} skill${found.length === 1 ? "" : "s"} in ${file.name}. Review below, then submit all.`,
+      );
+    } catch (err) {
+      setMessage(err instanceof Error ? err.message : String(err));
+    }
+  }
+
+  async function submitAll() {
+    if (!bundles.length) return;
+    setBusy(true);
+    const out: { name: string; ok: boolean; message: string }[] = [];
+    for (const b of bundles) {
+      try {
+        const { version } = await api("/api/skills", {
+          method: "POST",
+          json: { orgId: approvedOrg.id, files: b.files },
+        });
+        out.push({
+          name: b.name,
+          ok: version.status === "submitted",
+          message:
+            version.status === "submitted" ? "Submitted for review" : "Automated checks failed",
+        });
+      } catch (err) {
+        out.push({
+          name: b.name,
+          ok: false,
+          message: err instanceof Error ? err.message : String(err),
+        });
+      }
+    }
+    setResults(out);
+    setBusy(false);
+    setBundles([]);
+    const ok = out.filter((r) => r.ok).length;
+    setMessage(`Submitted ${ok} of ${out.length} skills for review.`);
   }
 
   async function submitBundle() {
@@ -164,6 +276,9 @@ export default function ProviderSubmitPage() {
                 <Button variant="secondary" onClick={() => zipPicker.current?.click()}>
                   Upload .zip bundle
                 </Button>
+                <Button variant="secondary" onClick={() => multiZipPicker.current?.click()}>
+                  Upload multi-skill .zip
+                </Button>
                 <Button variant="secondary" onClick={() => filePicker.current?.click()}>
                   Add files...
                 </Button>
@@ -175,6 +290,10 @@ export default function ProviderSubmitPage() {
                   Submit for review
                 </Button>
               </div>
+              <p className="text-xs text-muted-foreground">
+                A multi-skill .zip holds one folder per skill (each with its own SKILL.md); every
+                folder is submitted as a separate skill.
+              </p>
               <input
                 ref={filePicker}
                 type="file"
@@ -189,6 +308,70 @@ export default function ProviderSubmitPage() {
                 hidden
                 onChange={(e) => pickedZip(e.target.files)}
               />
+              <input
+                ref={multiZipPicker}
+                type="file"
+                accept=".zip"
+                hidden
+                onChange={(e) => pickedMultiZip(e.target.files)}
+              />
+
+              {bundles.length > 0 && (
+                <div className="rounded-lg border border-brand/30 bg-cyan-tint/40 p-4">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <p className="text-sm font-semibold text-ink">
+                      {bundles.length} skill{bundles.length === 1 ? "" : "s"} detected
+                    </p>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        disabled={busy}
+                        onClick={() => setBundles([])}
+                      >
+                        Clear
+                      </Button>
+                      <Button size="sm" disabled={busy} onClick={submitAll}>
+                        {busy ? "Submitting..." : `Submit all ${bundles.length} for review`}
+                      </Button>
+                    </div>
+                  </div>
+                  <ul className="mt-3 space-y-1">
+                    {bundles.map((b) => (
+                      <li
+                        key={b.name}
+                        className="flex items-center justify-between rounded border border-border bg-white px-3 py-1.5 text-sm"
+                      >
+                        <span className="font-mono text-ink">{b.name}</span>
+                        <span className="text-xs text-muted-foreground">
+                          {b.files.length} files
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {results.length > 0 && (
+                <div className="rounded-lg border border-border bg-white p-4">
+                  <p className="text-sm font-semibold text-ink">Submission results</p>
+                  <ul className="mt-2 space-y-1">
+                    {results.map((r) => (
+                      <li key={r.name} className="flex items-center justify-between gap-3 text-sm">
+                        <span className="font-mono text-ink">{r.name}</span>
+                        <span
+                          className={
+                            "text-xs font-semibold " +
+                            (r.ok ? "text-emerald-600" : "text-destructive")
+                          }
+                        >
+                          {r.message}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
               {files.map((f, i) => (
                 <div key={i} className="space-y-2">
                   <div className="flex gap-2">
@@ -218,8 +401,16 @@ export default function ProviderSubmitPage() {
                 </p>
               )}
             </>
+          ) : editSlug && !ucInitial ? (
+            <p className="text-sm text-muted-foreground">Loading use case…</p>
           ) : (
-            <UsecaseForm orgId={approvedOrg.id} skillOptions={skillOpts} onSubmitted={setMessage} />
+            <UsecaseForm
+              key={editSlug ?? "new"}
+              orgId={approvedOrg.id}
+              skillOptions={skillOpts}
+              onSubmitted={setMessage}
+              initial={ucInitial ?? undefined}
+            />
           )}
         </Card>
       ) : null}

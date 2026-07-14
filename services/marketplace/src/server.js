@@ -7,13 +7,19 @@ if (!databaseUrl) {
   throw new Error("DATABASE_URL is required; the marketplace supports PostgreSQL only");
 }
 
-const sql = postgres(databaseUrl, { onnotice: () => {} });
+const configuredMax = Number(process.env.DB_MAX_CONNECTIONS ?? 10);
+const max = Number.isInteger(configuredMax) && configuredMax > 0 ? configuredMax : 10;
+const sql = postgres(databaseUrl, { max, onnotice: () => {} });
 const internalToken = process.env.MARKETPLACE_INTERNAL_TOKEN;
 
-const json = (res, status, body) => {
+const PUBLIC_CACHE = "public, max-age=60, s-maxage=300, stale-while-revalidate=86400";
+
+const json = (res, status, body, headers = {}) => {
   res.writeHead(status, {
     "content-type": "application/json; charset=utf-8",
     "access-control-allow-origin": process.env.CORS_ORIGIN ?? "*",
+    "x-content-type-options": "nosniff",
+    ...headers,
   });
   res.end(JSON.stringify(body));
 };
@@ -41,11 +47,13 @@ const entry = (row) => {
 async function listSkills(url) {
   const q = url.searchParams.get("q")?.toLowerCase().trim() ?? "";
   const type = url.searchParams.get("type");
+  const providerId = Number(url.searchParams.get("provider"));
   const page = Math.max(1, Number(url.searchParams.get("page")) || 1);
   const pageSize = Math.min(48, Math.max(1, Number(url.searchParams.get("pageSize")) || 12));
   const offset = (page - 1) * pageSize;
   const like = `%${q}%`;
   const typeCond = type === "skill" || type === "usecase" ? sql`AND s.type = ${type}` : sql``;
+  const provCond = Number.isInteger(providerId) ? sql`AND s.org_id = ${providerId}` : sql``;
   const qCond = q
     ? sql`AND (lower(s.slug) LIKE ${like} OR lower(o.name) LIKE ${like} OR lower(coalesce(v.manifest->>'description','')) LIKE ${like})`
     : sql``;
@@ -56,7 +64,7 @@ async function listSkills(url) {
     FROM skills s
     JOIN orgs o ON o.id = s.org_id
     JOIN versions v ON v.id = s.published_version_id
-    WHERE s.status = 'published' ${typeCond} ${qCond}
+    WHERE s.status = 'published' ${typeCond} ${provCond} ${qCond}
     ORDER BY v.decided_at DESC NULLS LAST, s.id DESC
     LIMIT ${pageSize} OFFSET ${offset}`;
   const [{ n: total }] = await sql`
@@ -64,8 +72,53 @@ async function listSkills(url) {
     FROM skills s
     JOIN orgs o ON o.id = s.org_id
     JOIN versions v ON v.id = s.published_version_id
-    WHERE s.status = 'published' ${typeCond} ${qCond}`;
+    WHERE s.status = 'published' ${typeCond} ${provCond} ${qCond}`;
   return { skills: rows.map(entry), total, page, pageSize };
+}
+
+const providerEntry = (row) => ({
+  id: row.id,
+  name: row.name,
+  slug: row.slug ?? null,
+  website: row.website,
+  description: row.description ?? "",
+  skillCount: Number(row.skill_count),
+  usecaseCount: Number(row.usecase_count),
+});
+
+// Approved providers (organisations) with their published catalog counts.
+async function listProviders(url) {
+  const q = url.searchParams.get("q")?.toLowerCase().trim() ?? "";
+  const page = Math.max(1, Number(url.searchParams.get("page")) || 1);
+  const pageSize = Math.min(48, Math.max(1, Number(url.searchParams.get("pageSize")) || 12));
+  const offset = (page - 1) * pageSize;
+  const like = `%${q}%`;
+  const qCond = q ? sql`AND lower(o.name) LIKE ${like}` : sql``;
+  const rows = await sql`
+    SELECT o.id, o.name, o.slug, o.website, o.description,
+           count(s.id) FILTER (WHERE s.type = 'skill' AND s.status = 'published') AS skill_count,
+           count(s.id) FILTER (WHERE s.type = 'usecase' AND s.status = 'published') AS usecase_count
+    FROM orgs o
+    LEFT JOIN skills s ON s.org_id = o.id
+    WHERE o.status = 'approved' ${qCond}
+    GROUP BY o.id
+    ORDER BY skill_count DESC, o.name ASC
+    LIMIT ${pageSize} OFFSET ${offset}`;
+  const [{ n: total }] = await sql`
+    SELECT count(*)::int AS n FROM orgs o WHERE o.status = 'approved' ${qCond}`;
+  return { providers: rows.map(providerEntry), total, page, pageSize };
+}
+
+async function getProvider(id) {
+  const [row] = await sql`
+    SELECT o.id, o.name, o.slug, o.website, o.description,
+           count(s.id) FILTER (WHERE s.type = 'skill' AND s.status = 'published') AS skill_count,
+           count(s.id) FILTER (WHERE s.type = 'usecase' AND s.status = 'published') AS usecase_count
+    FROM orgs o
+    LEFT JOIN skills s ON s.org_id = o.id
+    WHERE o.id = ${id} AND o.status = 'approved'
+    GROUP BY o.id`;
+  return row ? providerEntry(row) : null;
 }
 
 async function getSkill(slug) {
@@ -138,7 +191,17 @@ const server = http.createServer(async (req, res) => {
       return json(res, 200, { status: "ok", database: "postgresql" });
     }
     if (req.method === "GET" && url.pathname === "/v1/skills") {
-      return json(res, 200, await listSkills(url));
+      return json(res, 200, await listSkills(url), { "cache-control": PUBLIC_CACHE });
+    }
+    if (req.method === "GET" && url.pathname === "/v1/providers") {
+      return json(res, 200, await listProviders(url), { "cache-control": PUBLIC_CACHE });
+    }
+    const providerMatch = url.pathname.match(/^\/v1\/providers\/(\d+)$/);
+    if (req.method === "GET" && providerMatch) {
+      const provider = await getProvider(Number(providerMatch[1]));
+      return provider
+        ? json(res, 200, provider, { "cache-control": PUBLIC_CACHE })
+        : json(res, 404, { error: "Provider not found" });
     }
     if (req.method === "GET" && url.pathname === "/internal/v1/skill-context") {
       if (internalToken && req.headers.authorization !== `Bearer ${internalToken}`) {
@@ -153,7 +216,7 @@ const server = http.createServer(async (req, res) => {
       if (req.method === "GET" && !match[2]) {
         const result = await getSkill(slug);
         return result
-          ? json(res, 200, result)
+          ? json(res, 200, result, { "cache-control": PUBLIC_CACHE })
           : json(res, 404, { error: "Skill not found or not published" });
       }
       if (req.method === "POST" && match[2]) {

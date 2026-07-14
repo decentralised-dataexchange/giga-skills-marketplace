@@ -29,21 +29,37 @@ const emptyJourney = (): JourneyDraft => ({
 
 // Authoring form for a use case: journeys, each with one or more agent prompts
 // that reference their own skills.
+export interface UsecaseInitial {
+  name: string;
+  title: string;
+  description: string;
+  license: string;
+  prerequisites: string[];
+  journeys: JourneyDraft[];
+}
+
 export function UsecaseForm({
   orgId,
   skillOptions,
   onSubmitted,
+  initial,
 }: {
   orgId: number;
   skillOptions: string[];
   onSubmitted: (msg: string) => void;
+  initial?: UsecaseInitial;
 }) {
-  const [name, setName] = useState("");
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [license, setLicense] = useState("Apache-2.0");
-  const [prereqs, setPrereqs] = useState<string[]>([""]);
-  const [journeys, setJourneys] = useState<JourneyDraft[]>([emptyJourney()]);
+  const editing = Boolean(initial);
+  const [name, setName] = useState(initial?.name ?? "");
+  const [title, setTitle] = useState(initial?.title ?? "");
+  const [description, setDescription] = useState(initial?.description ?? "");
+  const [license, setLicense] = useState(initial?.license ?? "Apache-2.0");
+  const [prereqs, setPrereqs] = useState<string[]>(
+    initial?.prerequisites?.length ? initial.prerequisites : [""],
+  );
+  const [journeys, setJourneys] = useState<JourneyDraft[]>(
+    initial?.journeys?.length ? initial.journeys : [emptyJourney()],
+  );
   const [err, setErr] = useState("");
 
   function setJourney(i: number, patch: Partial<JourneyDraft>) {
@@ -83,14 +99,16 @@ export function UsecaseForm({
       });
       onSubmitted(
         passed
-          ? "Use case submitted - automated checks passed, now in the review queue."
+          ? `Use case ${editing ? "updated" : "submitted"} - automated checks passed, now in the review queue.`
           : "Automated checks failed - see the check report under My submissions.",
       );
-      setName("");
-      setTitle("");
-      setDescription("");
-      setPrereqs([""]);
-      setJourneys([emptyJourney()]);
+      if (!editing) {
+        setName("");
+        setTitle("");
+        setDescription("");
+        setPrereqs([""]);
+        setJourneys([emptyJourney()]);
+      }
     } catch (e) {
       setErr(e instanceof Error ? e.message : String(e));
     }
@@ -109,7 +127,14 @@ export function UsecaseForm({
             value={name}
             onChange={(e) => setName(e.target.value)}
             required
+            readOnly={editing}
+            aria-describedby={editing ? "uc-name-help" : undefined}
           />
+          {editing && (
+            <p id="uc-name-help" className="text-xs text-muted-foreground">
+              Editing submits a new version for review; the name cannot change.
+            </p>
+          )}
         </div>
         <div className="space-y-1.5">
           <label htmlFor="uc-license" className="text-sm font-medium text-ink">
@@ -269,7 +294,9 @@ export function UsecaseForm({
       </div>
 
       {err && <p className="text-sm font-medium text-destructive">{err}</p>}
-      <Button type="submit">Submit use case for review</Button>
+      <Button type="submit">
+        {editing ? "Save new version for review" : "Submit use case for review"}
+      </Button>
     </form>
   );
 }

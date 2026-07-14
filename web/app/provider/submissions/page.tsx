@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { Fragment, useCallback, useEffect, useState } from "react";
 import { api, auth, fmtDate } from "@/lib/client";
 import { Button } from "@/components/ui/button";
@@ -21,6 +22,16 @@ export default function ProviderSubmissionsPage() {
     setSkills(s.skills);
   }, []);
 
+  async function delist(id: number, slug: string) {
+    try {
+      await api(`/api/skills/${id}/delist`, { method: "POST" });
+      setMessage(`Delisted ${slug}. It has been removed from the marketplace.`);
+      load();
+    } catch (e) {
+      setMessage(e instanceof Error ? e.message : String(e));
+    }
+  }
+
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- initial data fetch; setState happens after await
     if (auth.user?.role === "provider") load().catch((e) => setMessage(e.message));
@@ -36,7 +47,7 @@ export default function ProviderSubmissionsPage() {
       {skills.length ? (
         skills.map((s) => (
           <Card key={s.id} className="gap-3 p-6">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-wrap items-center justify-between gap-2">
               <span className="font-semibold">
                 {s.slug}
                 {s.type === "usecase" && (
@@ -45,7 +56,24 @@ export default function ProviderSubmissionsPage() {
                   </span>
                 )}
               </span>
-              <StatusBadge status={s.status} />
+              <div className="flex items-center gap-2">
+                <StatusBadge status={s.status} />
+                {s.status !== "delisted" && (
+                  <Link
+                    href={
+                      s.type === "usecase" ? `/provider/submit?edit=${s.slug}` : "/provider/submit"
+                    }
+                    className="rounded-md border border-border px-3 py-1 text-xs font-semibold text-ink transition-colors hover:bg-accent"
+                  >
+                    {s.type === "usecase" ? "Edit" : "New version"}
+                  </Link>
+                )}
+                {s.status === "published" && (
+                  <Button variant="destructive" size="sm" onClick={() => delist(s.id, s.slug)}>
+                    Delist
+                  </Button>
+                )}
+              </div>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full min-w-[720px] text-sm">

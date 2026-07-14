@@ -7,7 +7,6 @@ import { Input } from "@/components/ui/input";
 import { Markdown } from "@/components/markdown";
 import { AgentsStrip } from "@/components/agent-logo";
 import { OfficialBadge } from "@/components/official-badge";
-import { StandardPill } from "@/components/standard-pill";
 import { Pagination } from "@/components/pagination";
 
 interface Entry {
@@ -23,17 +22,28 @@ interface Entry {
   org: { name: string };
 }
 
+interface Provider {
+  id: number;
+  name: string;
+  website: string | null;
+  description: string;
+  skillCount: number;
+  usecaseCount: number;
+}
+
 const TABS = [
-  { id: "skill", label: "Skills" },
+  { id: "provider", label: "Providers" },
   { id: "usecase", label: "Use cases" },
 ] as const;
 
+type Tab = (typeof TABS)[number]["id"];
+
 const INFO = [
   {
-    title: "What is a skill?",
-    body: "A portable, declarative capability package - the provider's OpenAPI specs, credential schemas, protocol flows, and integration rulebooks - that teaches any AI coding agent how to wire up a wallet.",
-    href: "https://w3c-ccg.github.io/vc-ed/",
-    cta: "Standards",
+    title: "What is a provider?",
+    body: "A reviewed wallet solution organisation that publishes skills - its OpenAPI specs, credential schemas, protocol flows, and integration rulebooks - so any AI coding agent can wire up its wallet.",
+    href: "/login",
+    cta: "Become a provider",
   },
   {
     title: "What is a use case?",
@@ -56,7 +66,7 @@ const HOW = [
   },
   {
     title: "You install",
-    body: "Install a skill or use case into your own AI coding agent: Claude Code, Codex, opencode, or Pi.",
+    body: "Install a provider's skills or a use case into your own AI coding agent: Claude Code, Codex, opencode, or Pi.",
   },
   {
     title: "Your agent builds",
@@ -64,8 +74,8 @@ const HOW = [
   },
 ];
 
-function monogram(slug: string) {
-  return slug
+function monogram(text: string) {
+  return text
     .replace(/[^a-z0-9]/gi, "")
     .slice(0, 2)
     .toUpperCase();
@@ -74,29 +84,38 @@ function monogram(slug: string) {
 const PAGE_SIZE = 8;
 
 export default function MarketplacePage() {
-  const [tab, setTab] = useState<"skill" | "usecase">("skill");
+  const [tab, setTab] = useState<Tab>("provider");
   const [q, setQ] = useState("");
   const [page, setPage] = useState(1);
   const [data, setData] = useState<{ skills: Entry[]; total: number }>({ skills: [], total: 0 });
+  const [providers, setProviders] = useState<{ providers: Provider[]; total: number }>({
+    providers: [],
+    total: 0,
+  });
 
   useEffect(() => {
-    const params = new URLSearchParams({
-      type: tab,
-      page: String(page),
-      pageSize: String(PAGE_SIZE),
-    });
+    const params = new URLSearchParams({ page: String(page), pageSize: String(PAGE_SIZE) });
     if (q.trim()) params.set("q", q.trim());
-    api(`/api/marketplace?${params.toString()}`)
-      .then((d) => setData({ skills: d.skills, total: d.total ?? d.skills.length }))
-      .catch(console.error);
+    if (tab === "provider") {
+      api(`/api/providers?${params.toString()}`)
+        .then((d) => setProviders({ providers: d.providers, total: d.total ?? d.providers.length }))
+        .catch(console.error);
+    } else {
+      params.set("type", "usecase");
+      api(`/api/marketplace?${params.toString()}`)
+        .then((d) => setData({ skills: d.skills, total: d.total ?? d.skills.length }))
+        .catch(console.error);
+    }
   }, [tab, q, page]);
 
-  function switchTab(next: "skill" | "usecase") {
+  function switchTab(next: Tab) {
     setTab(next);
     setPage(1);
+    setQ("");
   }
 
-  const noun = tab === "usecase" ? "use case" : "skill";
+  const total = tab === "provider" ? providers.total : data.total;
+  const noun = tab === "provider" ? "provider" : "use case";
 
   return (
     <main className="w-full">
@@ -122,7 +141,7 @@ export default function MarketplacePage() {
                 href="#catalog"
                 className="rounded-[10px] bg-brand px-6 py-3 text-base font-semibold text-primary-foreground transition-colors hover:bg-brand-dark"
               >
-                Browse catalog
+                Browse providers
               </a>
               <Link
                 href="/login"
@@ -155,7 +174,7 @@ export default function MarketplacePage() {
       </section>
 
       {/* Info cards */}
-      <section className="mx-auto w-full max-w-[1536px] px-5 sm:px-6 lg:px-8 py-12">
+      <section className="mx-auto w-full max-w-[1536px] px-5 py-12 sm:px-6 lg:px-8">
         <div className="grid gap-5 md:grid-cols-3">
           {INFO.map((c) => (
             <div
@@ -178,18 +197,19 @@ export default function MarketplacePage() {
       </section>
 
       {/* Catalog */}
-      <section id="catalog" className="mx-auto w-full max-w-[1536px] px-5 sm:px-6 lg:px-8 pb-24">
+      <section id="catalog" className="mx-auto w-full max-w-[1536px] px-5 pb-24 sm:px-6 lg:px-8">
         <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
           <div>
             <h2 className="text-2xl font-bold tracking-tight text-ink">Catalog</h2>
             <p className="mt-1 text-sm text-muted-foreground">
-              {data.total} {noun}
-              {data.total === 1 ? "" : "s"} published · newest first
+              {total} {noun}
+              {total === 1 ? "" : "s"}
+              {tab === "provider" ? "" : " published · newest first"}
             </p>
           </div>
           <Input
             type="search"
-            aria-label={`Search ${noun}s, providers, protocols`}
+            aria-label={`Search ${noun}s`}
             className="max-w-xs border-input bg-white"
             placeholder={`Search ${noun}s…`}
             value={q}
@@ -224,33 +244,79 @@ export default function MarketplacePage() {
           ))}
         </div>
 
-        <div className="space-y-4">
-          {data.skills.map((s) => (
-            <Link
-              key={s.slug}
-              href={s.type === "usecase" ? `/usecase/${s.slug}` : `/skill/${s.slug}`}
-              className="group flex flex-col gap-4 rounded-xl border border-border bg-white p-5 shadow-sm transition-shadow hover:shadow-md sm:flex-row sm:items-center"
-            >
-              <div className="grid size-14 shrink-0 place-items-center rounded-xl bg-cyan-tint font-bold tracking-tight text-brand ring-1 ring-brand/15">
-                {monogram(s.slug)}
-              </div>
-
-              <div className="min-w-0 flex-1">
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="font-bold text-ink group-hover:text-brand">{s.slug}</span>
-                  {s.type === "usecase" && (
-                    <span className="rounded-full bg-brand/10 px-2 py-0.5 text-xs font-semibold text-brand">
-                      Use case
+        {/* Providers */}
+        {tab === "provider" ? (
+          <>
+            <div className="space-y-4">
+              {providers.providers.map((p) => (
+                <Link
+                  key={p.id}
+                  href={`/providers/${p.id}`}
+                  className="group flex flex-col gap-4 rounded-xl border border-border bg-white p-5 shadow-sm transition-shadow hover:shadow-md sm:flex-row sm:items-center"
+                >
+                  <div className="grid size-14 shrink-0 place-items-center rounded-xl bg-cyan-tint font-bold tracking-tight text-brand ring-1 ring-brand/15">
+                    {monogram(p.name)}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <span className="font-bold text-ink group-hover:text-brand">{p.name}</span>
+                    <Markdown className="mt-1 text-sm text-ink/70 [&_p]:m-0 [&_p]:line-clamp-2">
+                      {p.description}
+                    </Markdown>
+                    <div className="mt-2 flex flex-wrap items-center gap-1.5">
+                      <span className="rounded bg-secondary px-2 py-0.5 text-xs font-semibold text-ink/70">
+                        {p.skillCount} skill{p.skillCount === 1 ? "" : "s"}
+                      </span>
+                      <span className="rounded bg-secondary px-2 py-0.5 text-xs font-semibold text-ink/70">
+                        {p.usecaseCount} use case{p.usecaseCount === 1 ? "" : "s"}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="flex shrink-0 items-center justify-end border-t border-border pt-3 sm:w-40 sm:border-t-0 sm:pt-0">
+                    <span className="shrink-0 rounded-lg bg-brand px-4 py-2 text-xs font-semibold text-primary-foreground transition-colors group-hover:bg-brand-dark">
+                      View provider →
                     </span>
-                  )}
-                  <OfficialBadge official={s.official} />
-                </div>
-                <Markdown className="mt-1 text-sm text-ink/70 [&_p]:m-0 [&_p]:line-clamp-2">
-                  {s.description}
-                </Markdown>
-                <div className="mt-2 flex flex-wrap items-center gap-1.5">
-                  {s.type === "usecase" ? (
-                    <>
+                  </div>
+                </Link>
+              ))}
+              {!providers.providers.length && (
+                <p className="rounded-xl border border-dashed border-border bg-white py-16 text-center text-sm text-muted-foreground">
+                  No providers match your search.
+                </p>
+              )}
+            </div>
+            <Pagination
+              page={page}
+              pageSize={PAGE_SIZE}
+              total={providers.total}
+              onPage={setPage}
+              className="mt-6"
+            />
+          </>
+        ) : (
+          <>
+            <div className="space-y-4">
+              {data.skills.map((s) => (
+                <Link
+                  key={s.slug}
+                  href={`/usecase/${s.slug}`}
+                  className="group flex flex-col gap-4 rounded-xl border border-border bg-white p-5 shadow-sm transition-shadow hover:shadow-md sm:flex-row sm:items-center"
+                >
+                  <div className="grid size-14 shrink-0 place-items-center rounded-xl bg-cyan-tint font-bold tracking-tight text-brand ring-1 ring-brand/15">
+                    {monogram(s.slug)}
+                  </div>
+
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="font-bold text-ink group-hover:text-brand">{s.slug}</span>
+                      <span className="rounded-full bg-brand/10 px-2 py-0.5 text-xs font-semibold text-brand">
+                        Use case
+                      </span>
+                      <OfficialBadge official={s.official} />
+                    </div>
+                    <Markdown className="mt-1 text-sm text-ink/70 [&_p]:m-0 [&_p]:line-clamp-2">
+                      {s.description}
+                    </Markdown>
+                    <div className="mt-2 flex flex-wrap items-center gap-1.5">
                       <span className="rounded bg-secondary px-2 py-0.5 text-xs font-semibold text-ink/70">
                         {s.journeyCount} journeys
                       </span>
@@ -262,46 +328,35 @@ export default function MarketplacePage() {
                           {u}
                         </span>
                       ))}
-                    </>
-                  ) : (
-                    s.protocols
-                      .slice(0, 4)
-                      .map((p) => (
-                        <StandardPill
-                          key={p}
-                          code={p}
-                          className="rounded bg-secondary px-2 py-0.5 text-ink/70"
-                        />
-                      ))
-                  )}
-                </div>
-              </div>
+                    </div>
+                  </div>
 
-              <div className="flex shrink-0 items-center justify-between gap-4 border-t border-border pt-3 sm:w-52 sm:flex-col sm:items-end sm:border-t-0 sm:pt-0">
-                <div className="min-w-0 text-xs text-muted-foreground sm:text-right">
-                  <div className="truncate font-medium text-ink/70">{s.org.name}</div>
-                  <div>{timeAgo(s.publishedAt)}</div>
-                </div>
-                <span className="shrink-0 rounded-lg bg-brand px-4 py-2 text-xs font-semibold text-primary-foreground transition-colors group-hover:bg-brand-dark">
-                  View {noun} →
-                </span>
-              </div>
-            </Link>
-          ))}
-          {!data.skills.length && (
-            <p className="rounded-xl border border-dashed border-border bg-white py-16 text-center text-sm text-muted-foreground">
-              No {noun}s match your search.
-            </p>
-          )}
-        </div>
-
-        <Pagination
-          page={page}
-          pageSize={PAGE_SIZE}
-          total={data.total}
-          onPage={setPage}
-          className="mt-6"
-        />
+                  <div className="flex shrink-0 items-center justify-between gap-4 border-t border-border pt-3 sm:w-52 sm:flex-col sm:items-end sm:border-t-0 sm:pt-0">
+                    <div className="min-w-0 text-xs text-muted-foreground sm:text-right">
+                      <div className="truncate font-medium text-ink/70">{s.org.name}</div>
+                      <div>{timeAgo(s.publishedAt)}</div>
+                    </div>
+                    <span className="shrink-0 rounded-lg bg-brand px-4 py-2 text-xs font-semibold text-primary-foreground transition-colors group-hover:bg-brand-dark">
+                      View use case →
+                    </span>
+                  </div>
+                </Link>
+              ))}
+              {!data.skills.length && (
+                <p className="rounded-xl border border-dashed border-border bg-white py-16 text-center text-sm text-muted-foreground">
+                  No use cases match your search.
+                </p>
+              )}
+            </div>
+            <Pagination
+              page={page}
+              pageSize={PAGE_SIZE}
+              total={data.total}
+              onPage={setPage}
+              className="mt-6"
+            />
+          </>
+        )}
       </section>
     </main>
   );

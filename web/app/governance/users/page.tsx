@@ -12,7 +12,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { StatusBadge } from "@/components/status-badge";
-import { Pagination, pageSlice } from "@/components/pagination";
+import { Pagination } from "@/components/pagination";
 import { DashboardMain, useDashboardGuard } from "@/components/dashboard-shell";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -23,13 +23,15 @@ const PAGE = 12;
 export default function UsersPage() {
   const { user, denied } = useDashboardGuard("/governance/users", ["superadmin"]);
   const [users, setUsers] = useState<any[]>([]);
+  const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
   const [message, setMessage] = useState("");
 
   const load = useCallback(async () => {
-    const u = await api("/api/admin/users");
+    const u = await api(`/api/admin/users?page=${page}&pageSize=${PAGE}`);
     setUsers(u.users);
-  }, []);
+    setTotal(u.total);
+  }, [page]);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- initial data fetch; setState after await
@@ -62,7 +64,7 @@ export default function UsersPage() {
               </tr>
             </thead>
             <tbody>
-              {pageSlice(users, page, PAGE).map((u) => (
+              {users.map((u) => (
                 <tr key={u.id} className="border-t border-border">
                   <td className="py-2.5">
                     {u.name}
@@ -125,7 +127,7 @@ export default function UsersPage() {
             </tbody>
           </table>
         </div>
-        <Pagination page={page} pageSize={PAGE} total={users.length} onPage={setPage} />
+        <Pagination page={page} pageSize={PAGE} total={total} onPage={setPage} />
       </Card>
     </DashboardMain>
   );

@@ -105,8 +105,11 @@ export default function UsecasePage() {
     const a = document.createElement("a");
     a.href = url;
     a.download = `${skill.slug}.md`;
+    document.body.appendChild(a);
     a.click();
-    URL.revokeObjectURL(url);
+    a.remove();
+    // Firefox can still be reading the object URL immediately after click().
+    setTimeout(() => URL.revokeObjectURL(url), 0);
   }
 
   return (
@@ -136,7 +139,9 @@ export default function UsecasePage() {
             <button
               type="button"
               onClick={downloadMarkdown}
-              className="inline-flex items-center gap-2 rounded-[10px] border-2 border-brand bg-white px-5 py-3 text-base font-semibold text-brand transition-colors hover:bg-accent"
+              disabled={!markdown}
+              title={markdown ? undefined : "This use case has no SKILL.md file"}
+              className="inline-flex items-center gap-2 rounded-[10px] border-2 border-brand bg-white px-5 py-3 text-base font-semibold text-brand transition-colors hover:bg-accent disabled:cursor-not-allowed disabled:opacity-50"
             >
               Download as Markdown
             </button>

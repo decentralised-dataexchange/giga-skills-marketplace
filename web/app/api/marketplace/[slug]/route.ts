@@ -1,10 +1,16 @@
+import { NextResponse } from "next/server";
 import { sql } from "@/lib/db";
 import { check, route } from "@/lib/handler";
 import { hasMarketplaceService, marketplaceRequest } from "@/lib/marketplace-client";
 
 export const GET = route<{ slug: string }>(async ({ params }) => {
   if (hasMarketplaceService) {
-    return marketplaceRequest(`/v1/skills/${encodeURIComponent(params.slug)}`);
+    const data = await marketplaceRequest(`/v1/skills/${encodeURIComponent(params.slug)}`);
+    return NextResponse.json(data, {
+      headers: {
+        "Cache-Control": "public, max-age=60, s-maxage=300, stale-while-revalidate=86400",
+      },
+    });
   }
   const [skill] = await sql`
     SELECT s.*, o.name AS org_name, o.website AS org_website, o.description AS org_description,
@@ -16,34 +22,41 @@ export const GET = route<{ slug: string }>(async ({ params }) => {
   const history = await sql`
     SELECT id, version, status, decided_at FROM versions
     WHERE skill_id = ${skill.id} AND status IN ('published','superseded') ORDER BY id DESC`;
-  return {
-    skill: {
-      id: skill.id,
-      slug: skill.slug,
-      type: skill.type ?? "skill",
-      installs: skill.installs,
-      official: skill.official ?? false,
+  return NextResponse.json(
+    {
+      skill: {
+        id: skill.id,
+        slug: skill.slug,
+        type: skill.type ?? "skill",
+        installs: skill.installs,
+        official: skill.official ?? false,
+      },
+      org: {
+        name: skill.org_name,
+        website: skill.org_website,
+        description: skill.org_description,
+        status: skill.org_status,
+        contact: skill.org_contact,
+      },
+      version: {
+        id: version.id,
+        version: version.version,
+        manifest: version.manifest,
+        files: version.files,
+        checks: version.checks,
+        publishedAt: version.decided_at,
+      },
+      history: history.map((h) => ({
+        id: h.id,
+        version: h.version,
+        status: h.status,
+        publishedAt: h.decided_at,
+      })),
     },
-    org: {
-      name: skill.org_name,
-      website: skill.org_website,
-      description: skill.org_description,
-      status: skill.org_status,
-      contact: skill.org_contact,
+    {
+      headers: {
+        "Cache-Control": "public, max-age=60, s-maxage=300, stale-while-revalidate=86400",
+      },
     },
-    version: {
-      id: version.id,
-      version: version.version,
-      manifest: version.manifest,
-      files: version.files,
-      checks: version.checks,
-      publishedAt: version.decided_at,
-    },
-    history: history.map((h) => ({
-      id: h.id,
-      version: h.version,
-      status: h.status,
-      publishedAt: h.decided_at,
-    })),
-  };
+  );
 });

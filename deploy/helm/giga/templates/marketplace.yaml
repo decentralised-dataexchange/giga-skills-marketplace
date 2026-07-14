@@ -5,7 +5,9 @@ metadata:
   labels:
     app: {{ .Values.marketplace.name }}
 spec:
+  {{- if not .Values.marketplace.autoscaling.enabled }}
   replicas: {{ .Values.marketplace.replicas }}
+  {{- end }}
   selector:
     matchLabels:
       app: {{ .Values.marketplace.name }}
@@ -33,6 +35,8 @@ spec:
                 secretKeyRef:
                   name: giga-secrets
                   key: MARKETPLACE_INTERNAL_TOKEN
+            - name: DB_MAX_CONNECTIONS
+              value: {{ .Values.marketplace.dbMaxConnections | quote }}
           readinessProbe:
             httpGet:
               path: /health
@@ -62,3 +66,37 @@ spec:
   ports:
     - port: {{ .Values.marketplace.port }}
       targetPort: {{ .Values.marketplace.port }}
+{{- if .Values.marketplace.autoscaling.enabled }}
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: {{ .Values.marketplace.name }}
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: {{ .Values.marketplace.name }}
+  minReplicas: {{ .Values.marketplace.autoscaling.minReplicas }}
+  maxReplicas: {{ .Values.marketplace.autoscaling.maxReplicas }}
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 300
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: {{ .Values.marketplace.autoscaling.targetCPUUtilizationPercentage }}
+{{- end }}
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ .Values.marketplace.name }}
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: {{ .Values.marketplace.name }}
