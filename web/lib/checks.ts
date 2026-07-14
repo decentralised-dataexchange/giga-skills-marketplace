@@ -154,7 +154,8 @@ export function runChecks(files: BundleFile[]): {
     "openapi-present",
     "Bundle contains at least one OpenAPI spec under openapi/",
     apiFiles.length > 0,
-    apiFiles.map((f) => f.path).join(", ") || "none found",
+    apiFiles.map((f) => f.path).join(", ") || "none found - recommended for API skills",
+    "warn",
   );
   for (const f of apiFiles) {
     let ok = false;
