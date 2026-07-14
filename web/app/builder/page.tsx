@@ -118,7 +118,7 @@ function Builder() {
       .then(([m, mdl, s, c]) => {
         setMarketplace(m.skills);
         setModels(mdl.models);
-        setHasKey(s.settings.hasKey);
+        setHasKey(s.settings.hasKey || s.settings.hasVercelKey);
         if (s.settings.model) setModel(s.settings.model);
         setChatList(c.chats);
         const install = params.get("install");
@@ -127,7 +127,7 @@ function Builder() {
       .catch(console.error);
     const onSettings = (e: Event) => {
       const detail = (e as CustomEvent).detail;
-      setHasKey(detail.hasKey);
+      setHasKey(detail.hasKey || detail.hasVercelKey);
       if (detail.model) setModel(detail.model);
     };
     window.addEventListener("settings-updated", onSettings);
@@ -443,11 +443,7 @@ function Builder() {
                 </SelectContent>
               </Select>
               <div className="flex-1" />
-              <span
-                title={
-                  hasKey ? undefined : "Add your OpenRouter API key in Settings (menu bar) to send"
-                }
-              >
+              <span title={hasKey ? undefined : "Add your Vercel API key in Settings to send"}>
                 <Button onClick={send} disabled={busy || !hasKey || !input.trim()}>
                   Send
                 </Button>
