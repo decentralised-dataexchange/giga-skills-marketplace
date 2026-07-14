@@ -2,6 +2,17 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
+/*
+ * Streamdown (used by the AI Elements MessageResponse renderer) ships no CSS of
+ * its own -- it emits Tailwind utility class NAMES and relies on the host app's
+ * Tailwind build to generate them. Tailwind v4 does not scan node_modules by
+ * default, so utilities that ONLY Streamdown uses (e.g. `pointer-events-auto` on
+ * the code-block copy/download toolbar, and various border/background classes)
+ * were never generated -- leaving the toolbar unclickable and some chrome
+ * unstyled. Scanning Streamdown's dist fixes that. Required by AI Elements setup.
+ */
+@source "../node_modules/streamdown/dist/**/*.js";
+
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
@@ -267,4 +278,45 @@
 }
 .skip-link:focus {
   transform: translateY(0);
+}
+
+/*
+ * Assistant code blocks (AI Elements MessageResponse -> Streamdown code plugin).
+ * Streamdown wraps each fence in an outer card (border + bg-sidebar + padding)
+ * plus an inner `code-block-body` that is itself a bordered box, and reserves a
+ * 32px header row for the language label even when there is no language. That
+ * yields a double-box with an empty gap on top. Collapse it to a single tidy
+ * box: drop the inner box chrome, hide the empty language header, and let the
+ * copy/download toolbar overlap the code (top-right). Do NOT set overflow:hidden
+ * on the wrapper -- it clips the sticky, negatively-margined toolbar and kills
+ * its clicks (the toolbar pill is pointer-events:auto and must stay reachable).
+ * Scoped to .is-assistant so only rendered chat replies are affected.
+ */
+.is-assistant :is(div):has(> [data-streamdown="code-block-body"]) {
+  margin: 0.75rem 0;
+  gap: 0;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 0.6rem;
+  background: var(--muted);
+}
+.is-assistant [data-streamdown="code-block-header"][data-language=""] {
+  display: none;
+}
+.is-assistant [data-streamdown="code-block-body"] {
+  border: 0;
+  background: transparent;
+  border-radius: 0.6rem;
+  padding: 0.75rem 0.9rem;
+}
+.is-assistant [data-streamdown="code-block-body"] pre {
+  margin: 0;
+}
+/* With the empty header removed, re-seat the copy/download toolbar so it sits at
+   the top-right and the code slides up beneath it. */
+.is-assistant [data-streamdown="code-block-header"][data-language=""] + div {
+  margin-top: 0;
+  margin-bottom: -2rem;
+  top: 0.35rem;
+  padding-right: 0.4rem;
 }
