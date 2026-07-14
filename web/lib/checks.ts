@@ -18,6 +18,9 @@ export type Manifest = Record<string, unknown> & {
   version?: string;
   type?: string;
   title?: string;
+  provider?: string;
+  license?: string;
+  metadata?: Record<string, string>;
   uses_skills?: string[];
   prerequisites?: string[];
   journeys?: {
@@ -123,7 +126,7 @@ export function runChecks(files: BundleFile[]): {
     return { checks, passed: checks.every((c) => c.status !== "fail"), manifest };
   }
 
-  for (const field of ["name", "description", "provider", "license"]) {
+  for (const field of ["name", "description", "license"]) {
     const value = manifest[field];
     add(
       `field-${field}`,
@@ -132,6 +135,14 @@ export function runChecks(files: BundleFile[]): {
       value ? String(value).slice(0, 120) : "missing",
     );
   }
+  // provider may live at the top level (legacy) or under spec-conformant metadata.
+  const provider = manifest.provider ?? manifest.metadata?.provider;
+  add(
+    "field-provider",
+    "Manifest declares a provider (metadata.provider)",
+    !!provider,
+    provider ? String(provider).slice(0, 120) : "missing",
+  );
   if (manifest.name)
     add(
       "slug",

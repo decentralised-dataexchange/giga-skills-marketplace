@@ -92,6 +92,14 @@ export function chatView(r: any, full = false) {
   };
 }
 
+// Protocols may be a top-level targets.protocols array (legacy) or a
+// comma-separated string under spec-conformant metadata.protocols.
+export function manifestProtocols(m: any): string[] {
+  if (Array.isArray(m?.targets?.protocols)) return m.targets.protocols;
+  const p = m?.metadata?.protocols;
+  return typeof p === "string" ? p.split(/\s*,\s*/).filter(Boolean) : [];
+}
+
 export function providerView(r: any) {
   return {
     id: r.id,
@@ -119,7 +127,7 @@ export function marketplaceEntry(r: any) {
     publishedAt: r.decided_at,
     description: manifest.description ?? "",
     license: manifest.license ?? "",
-    protocols: manifest.targets?.protocols ?? [],
+    protocols: manifestProtocols(manifest),
     journeyCount: Array.isArray(manifest.journeys) ? manifest.journeys.length : 0,
     usesSkills: manifest.uses_skills ?? [],
   };

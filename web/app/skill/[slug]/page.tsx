@@ -89,7 +89,11 @@ export default function SkillPage() {
   const files: any[] = version.files ?? [];
   const file = files.find((f: any) => f.path === activeFile) ?? files[0];
   const deps = [...(manifest.depends_on?.schemas ?? []), ...(manifest.depends_on?.rulebooks ?? [])];
-  const protocols: string[] = manifest.targets?.protocols ?? [];
+  const protocols: string[] = Array.isArray(manifest.targets?.protocols)
+    ? manifest.targets.protocols
+    : typeof manifest.metadata?.protocols === "string"
+      ? manifest.metadata.protocols.split(/\s*,\s*/).filter(Boolean)
+      : [];
   const lineCount = (file?.content ?? "").replace(/\n$/, "").split("\n").length;
   const license = manifest.license ?? "unlicensed";
   const checks: any[] = version.checks ?? [];

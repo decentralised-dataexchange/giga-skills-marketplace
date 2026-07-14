@@ -38,7 +38,11 @@ const entry = (row) => {
     publishedAt: row.decided_at,
     description: manifest.description ?? "",
     license: manifest.license ?? "",
-    protocols: manifest.targets?.protocols ?? [],
+    protocols: Array.isArray(manifest.targets?.protocols)
+      ? manifest.targets.protocols
+      : typeof manifest.metadata?.protocols === "string"
+        ? manifest.metadata.protocols.split(/\s*,\s*/).filter(Boolean)
+        : [],
     journeyCount: Array.isArray(manifest.journeys) ? manifest.journeys.length : 0,
     usesSkills: manifest.uses_skills ?? [],
   };
