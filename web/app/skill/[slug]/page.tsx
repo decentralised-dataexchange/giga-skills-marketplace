@@ -6,12 +6,10 @@ import { useEffect, useState } from "react";
 import { api, fmtDate, timeAgo } from "@/lib/client";
 import { Badge } from "@/components/ui/badge";
 import { CodeViewer } from "@/components/code-viewer";
-import { AgentLogo } from "@/components/agent-logo";
 import { OfficialBadge } from "@/components/official-badge";
 import { StandardPill } from "@/components/standard-pill";
 import { Tip } from "@/components/tip";
 import { cn } from "@/lib/utils";
-import { AGENTS, installSnippet } from "@/lib/agents";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -73,6 +71,8 @@ export default function SkillPage() {
   const [detail, setDetail] = useState<any>(null);
   const [activeFile, setActiveFile] = useState("SKILL.md");
   const [error, setError] = useState("");
+  const [origin] = useState(() => (typeof window === "undefined" ? "" : window.location.origin));
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     api(`/api/marketplace/${slug}`)
@@ -94,6 +94,15 @@ export default function SkillPage() {
   const license = manifest.license ?? "unlicensed";
   const checks: any[] = version.checks ?? [];
   const checksPassed = checks.filter((c: any) => c.status === "pass").length;
+  const command = org.slug ? `npx skills add ${origin}/${org.slug} --skill ${skill.slug}` : "";
+
+  function copyCommand() {
+    if (!command) return;
+    navigator.clipboard?.writeText(command).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    });
+  }
 
   return (
     <main className="mx-auto w-full max-w-[1536px] px-5 sm:px-6 lg:px-8 pb-20 pt-8">
@@ -114,6 +123,14 @@ export default function SkillPage() {
             </h1>
           </div>
           <div className="flex shrink-0 items-center gap-2">
+            <button
+              type="button"
+              onClick={copyCommand}
+              disabled={!command}
+              className="inline-flex items-center gap-2 rounded-[10px] bg-brand px-6 py-3 text-base font-semibold text-primary-foreground transition-colors hover:bg-brand-dark disabled:opacity-50"
+            >
+              {copied ? "Copied" : "Copy install command"}
+            </button>
             <a
               href={`/api/bundles/${skill.slug}`}
               download={`${skill.slug}.zip`}
@@ -121,12 +138,6 @@ export default function SkillPage() {
             >
               <Icon.Download className="size-4" />
               Download .zip
-            </a>
-            <a
-              href="#install"
-              className="inline-flex items-center gap-2 rounded-[10px] bg-brand px-6 py-3 text-base font-semibold text-primary-foreground transition-colors hover:bg-brand-dark"
-            >
-              Install
             </a>
           </div>
         </div>
@@ -208,45 +219,40 @@ export default function SkillPage() {
             </div>
             <CodeViewer content={file?.content ?? ""} bare />
           </div>
-
-          {/* Install */}
-          <div
-            id="install"
-            className="scroll-mt-20 overflow-hidden rounded-xl border border-border"
-          >
-            <div className="border-b border-border bg-muted/60 px-4 py-2.5">
-              <h2 className="text-sm font-semibold text-ink">Install into your agent</h2>
-            </div>
-            <div className="space-y-3 p-4">
-              <p className="text-sm text-muted-foreground">
-                Agent-agnostic and model-agnostic: download the bundle once, then install it into
-                your agent with a thin, per-agent step. Its contents do not change.
-              </p>
-              <a
-                href={`/api/bundles/${skill.slug}`}
-                download={`${skill.slug}.zip`}
-                className="inline-flex items-center gap-2 rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-primary-foreground transition-colors hover:bg-brand-dark"
-              >
-                <Icon.Download className="size-4" /> Download {skill.slug}.zip
-              </a>
-              {AGENTS.map((agent) => (
-                <div key={agent.id}>
-                  <h3 className="mb-1 flex items-center gap-2 text-sm font-medium">
-                    <AgentLogo name={agent.label} className="size-5" />
-                    {agent.label}
-                  </h3>
-                  <CodeViewer
-                    content={installSnippet(agent.id, skill.slug)}
-                    maxHeightClass="max-h-48"
-                  />
-                </div>
-              ))}
-            </div>
-          </div>
         </div>
 
         {/* About sidebar */}
         <aside className="space-y-4">
+          <section>
+            <h2 className="text-sm font-semibold text-ink">Install</h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Add this skill to your AI coding agent:
+            </p>
+            {command && (
+              <div className="mt-2 overflow-x-auto rounded-lg border border-border bg-muted p-3">
+                <code className="whitespace-nowrap font-mono text-xs text-ink">{command}</code>
+              </div>
+            )}
+            <div className="mt-2 flex flex-wrap gap-2">
+              {command && (
+                <button
+                  type="button"
+                  onClick={copyCommand}
+                  className="rounded-md border border-border px-3 py-1 text-xs font-semibold text-ink transition-colors hover:bg-accent"
+                >
+                  {copied ? "Copied" : "Copy"}
+                </button>
+              )}
+              <a
+                href={`/api/bundles/${skill.slug}`}
+                download={`${skill.slug}.zip`}
+                className="inline-flex items-center gap-1.5 rounded-md border border-border px-3 py-1 text-xs font-semibold text-ink transition-colors hover:bg-accent"
+              >
+                <Icon.Download className="size-3.5" /> Download .zip
+              </a>
+            </div>
+          </section>
+
           <section>
             <h2 className="text-sm font-semibold text-ink">About</h2>
             <p className="mt-2 text-sm text-muted-foreground">{manifest.description}</p>
