@@ -62,7 +62,7 @@ const INFO = [
 const HOW = [
   {
     title: "Providers publish",
-    body: "Wallet solution providers publish reviewed skill bundles — OpenAPI specs, credential schemas and rulebooks — and compose them into use cases.",
+    body: "Wallet solution providers publish reviewed skill bundles (OpenAPI specs, credential schemas and rulebooks) and compose them into use cases.",
   },
   {
     title: "You install",
@@ -153,7 +153,7 @@ export default function MarketplacePage() {
             <AgentsStrip label="Works with" className="mt-8" />
           </div>
 
-          {/* Right: how it works — fills the hero at laptop widths and up */}
+          {/* Right: how it works, fills the hero at laptop widths and up */}
           <div className="w-full rounded-2xl border border-brand/20 bg-gradient-to-br from-cyan-tint to-white p-6 shadow-sm sm:p-8">
             <p className="text-xs font-bold uppercase tracking-[0.14em] text-brand">How it works</p>
             <ol className="mt-5 space-y-5">

@@ -1,5 +1,5 @@
 // The AI coding agents the marketplace targets, and how each one references an
-// installed skill. Single source of truth — the hero strip, skill install
+// installed skill. Single source of truth: the hero strip, skill install
 // section, and the use-case prompt tabs all read from here.
 //
 // NOTE: `skillRef` is the marketplace's recommended way to reference an installed
