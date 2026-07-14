@@ -18,3 +18,7 @@ CLAUDE.md
 deploy/**/values-secret.yaml
 deploy/**/*.local.yaml
 deploy/**/*.secret.yaml
+
+# Stray artifact from local 'npx skills add' runs
+skills-lock.json
+.claude/
