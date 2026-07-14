@@ -80,6 +80,7 @@ const providerEntry = (row) => ({
   id: row.id,
   name: row.name,
   slug: row.slug ?? null,
+  logo: row.logo ?? null,
   website: row.website,
   description: row.description ?? "",
   skillCount: Number(row.skill_count),
@@ -95,7 +96,7 @@ async function listProviders(url) {
   const like = `%${q}%`;
   const qCond = q ? sql`AND lower(o.name) LIKE ${like}` : sql``;
   const rows = await sql`
-    SELECT o.id, o.name, o.slug, o.website, o.description,
+    SELECT o.id, o.name, o.slug, o.logo, o.website, o.description,
            count(s.id) FILTER (WHERE s.type = 'skill' AND s.status = 'published') AS skill_count,
            count(s.id) FILTER (WHERE s.type = 'usecase' AND s.status = 'published') AS usecase_count
     FROM orgs o
@@ -111,7 +112,7 @@ async function listProviders(url) {
 
 async function getProvider(id) {
   const [row] = await sql`
-    SELECT o.id, o.name, o.slug, o.website, o.description,
+    SELECT o.id, o.name, o.slug, o.logo, o.website, o.description,
            count(s.id) FILTER (WHERE s.type = 'skill' AND s.status = 'published') AS skill_count,
            count(s.id) FILTER (WHERE s.type = 'usecase' AND s.status = 'published') AS usecase_count
     FROM orgs o
@@ -123,7 +124,7 @@ async function getProvider(id) {
 
 async function getSkill(slug) {
   const [skill] = await sql`
-    SELECT s.*, o.name AS org_name, o.slug AS org_slug, o.website AS org_website,
+    SELECT s.*, o.name AS org_name, o.slug AS org_slug, o.logo AS org_logo, o.website AS org_website,
            o.description AS org_description, o.status AS org_status, o.contact AS org_contact
     FROM skills s JOIN orgs o ON o.id = s.org_id
     WHERE s.slug = ${slug} AND s.status = 'published'`;
@@ -143,6 +144,7 @@ async function getSkill(slug) {
     org: {
       name: skill.org_name,
       slug: skill.org_slug ?? null,
+      logo: skill.org_logo ?? null,
       website: skill.org_website,
       description: skill.org_description,
       status: skill.org_status,

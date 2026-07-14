@@ -13,6 +13,7 @@ interface Provider {
   id: number;
   name: string;
   slug: string | null;
+  logo: string | null;
   website: string | null;
   description: string;
   skillCount: number;
@@ -83,9 +84,18 @@ export default function ProviderPage() {
       {/* Header */}
       <div className="mt-3 border-b border-border pb-6">
         <div className="flex flex-wrap items-start gap-4">
-          <div className="grid size-16 shrink-0 place-items-center rounded-2xl bg-cyan-tint text-xl font-bold tracking-tight text-brand ring-1 ring-brand/15">
-            {monogram(provider.name)}
-          </div>
+          {provider.logo ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={provider.logo}
+              alt=""
+              className="size-16 shrink-0 rounded-2xl object-cover ring-1 ring-border"
+            />
+          ) : (
+            <div className="grid size-16 shrink-0 place-items-center rounded-2xl bg-cyan-tint text-xl font-bold tracking-tight text-brand ring-1 ring-brand/15">
+              {monogram(provider.name)}
+            </div>
+          )}
           <div className="min-w-0 flex-1">
             <span className="rounded-full bg-brand/10 px-2.5 py-0.5 text-xs font-semibold text-brand">
               Provider

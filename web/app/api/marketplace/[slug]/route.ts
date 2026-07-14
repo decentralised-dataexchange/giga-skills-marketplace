@@ -13,7 +13,7 @@ export const GET = route<{ slug: string }>(async ({ params }) => {
     });
   }
   const [skill] = await sql`
-    SELECT s.*, o.name AS org_name, o.slug AS org_slug, o.website AS org_website,
+    SELECT s.*, o.name AS org_name, o.slug AS org_slug, o.logo AS org_logo, o.website AS org_website,
            o.description AS org_description, o.status AS org_status, o.contact AS org_contact
     FROM skills s JOIN orgs o ON o.id = s.org_id
     WHERE s.slug = ${params.slug} AND s.status = 'published'`;
@@ -34,6 +34,7 @@ export const GET = route<{ slug: string }>(async ({ params }) => {
       org: {
         name: skill.org_name,
         slug: skill.org_slug ?? null,
+        logo: skill.org_logo ?? null,
         website: skill.org_website,
         description: skill.org_description,
         status: skill.org_status,

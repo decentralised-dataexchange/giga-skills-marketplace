@@ -5,7 +5,7 @@
 #   helm upgrade ... --set postgres.password=... --set marketplace.internalToken=...
 # External operators should also override `domain` and `image.registry`.
 
-domain: giga.igrant.io
+domain: giga-staging.igrant.io
 
 image:
   # Registry hosting giga-web / giga-marketplace images. Override for your own registry.
@@ -52,4 +52,4 @@ postgres:
 ingress:
   className: nginx
   clusterIssuer: letsencrypt-prod
-  tlsSecret: giga-tls
+  tlsSecret: giga-staging-tls

@@ -25,6 +25,7 @@ interface Entry {
 interface Provider {
   id: number;
   name: string;
+  logo: string | null;
   website: string | null;
   description: string;
   skillCount: number;
@@ -254,9 +255,18 @@ export default function MarketplacePage() {
                   href={`/providers/${p.id}`}
                   className="group flex flex-col gap-4 rounded-xl border border-border bg-white p-5 shadow-sm transition-shadow hover:shadow-md sm:flex-row sm:items-center"
                 >
-                  <div className="grid size-14 shrink-0 place-items-center rounded-xl bg-cyan-tint font-bold tracking-tight text-brand ring-1 ring-brand/15">
-                    {monogram(p.name)}
-                  </div>
+                  {p.logo ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={p.logo}
+                      alt=""
+                      className="size-14 shrink-0 rounded-xl object-cover ring-1 ring-border"
+                    />
+                  ) : (
+                    <div className="grid size-14 shrink-0 place-items-center rounded-xl bg-cyan-tint font-bold tracking-tight text-brand ring-1 ring-brand/15">
+                      {monogram(p.name)}
+                    </div>
+                  )}
                   <div className="min-w-0 flex-1">
                     <span className="font-bold text-ink group-hover:text-brand">{p.name}</span>
                     <Markdown className="mt-1 text-sm text-ink/70 [&_p]:m-0 [&_p]:line-clamp-2">

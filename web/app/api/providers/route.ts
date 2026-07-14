@@ -23,7 +23,7 @@ export const GET = route(async ({ req }) => {
   const like = `%${q}%`;
   const qCond = q ? sql`AND lower(o.name) LIKE ${like}` : sql``;
   const rows = await sql`
-    SELECT o.id, o.name, o.slug, o.website, o.description,
+    SELECT o.id, o.name, o.slug, o.logo, o.website, o.description,
            count(s.id) FILTER (WHERE s.type = 'skill' AND s.status = 'published') AS skill_count,
            count(s.id) FILTER (WHERE s.type = 'usecase' AND s.status = 'published') AS usecase_count
     FROM orgs o
