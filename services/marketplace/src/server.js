@@ -14,6 +14,10 @@ const internalToken = process.env.MARKETPLACE_INTERNAL_TOKEN;
 
 const PUBLIC_CACHE = "public, max-age=60, s-maxage=300, stale-while-revalidate=86400";
 
+// Row ids are UUIDs; providers are addressed by slug but their UUID resolves too.
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const isUuid = (value) => typeof value === "string" && UUID_RE.test(value);
+
 const json = (res, status, body, headers = {}) => {
   res.writeHead(status, {
     "content-type": "application/json; charset=utf-8",
@@ -33,7 +37,12 @@ const entry = (row) => {
     status: row.status,
     official: row.official ?? false,
     installs: row.installs,
-    org: { id: row.org_id, name: row.org_name, website: row.org_website },
+    org: {
+      id: row.org_id,
+      slug: row.org_slug ?? null,
+      name: row.org_name,
+      website: row.org_website,
+    },
     version: row.version,
     publishedAt: row.decided_at,
     description: manifest.description ?? "",
@@ -51,25 +60,29 @@ const entry = (row) => {
 async function listSkills(url) {
   const q = url.searchParams.get("q")?.toLowerCase().trim() ?? "";
   const type = url.searchParams.get("type");
-  const providerId = Number(url.searchParams.get("provider"));
+  const provider = url.searchParams.get("provider") ?? "";
   const page = Math.max(1, Number(url.searchParams.get("page")) || 1);
   const pageSize = Math.min(48, Math.max(1, Number(url.searchParams.get("pageSize")) || 12));
   const offset = (page - 1) * pageSize;
   const like = `%${q}%`;
   const typeCond = type === "skill" || type === "usecase" ? sql`AND s.type = ${type}` : sql``;
-  const provCond = Number.isInteger(providerId) ? sql`AND s.org_id = ${providerId}` : sql``;
+  const provCond = !provider
+    ? sql``
+    : isUuid(provider)
+      ? sql`AND s.org_id = ${provider}`
+      : sql`AND o.slug = ${provider}`;
   const qCond = q
     ? sql`AND (lower(s.slug) LIKE ${like} OR lower(o.name) LIKE ${like} OR lower(coalesce(v.manifest->>'description','')) LIKE ${like})`
     : sql``;
   const rows = await sql`
     SELECT s.id, s.slug, s.type, s.status, s.official, s.installs,
-           o.id AS org_id, o.name AS org_name, o.website AS org_website,
+           o.id AS org_id, o.slug AS org_slug, o.name AS org_name, o.website AS org_website,
            v.version, v.manifest, v.decided_at
     FROM skills s
     JOIN orgs o ON o.id = s.org_id
     JOIN versions v ON v.id = s.published_version_id
     WHERE s.status = 'published' ${typeCond} ${provCond} ${qCond}
-    ORDER BY v.decided_at DESC NULLS LAST, s.id DESC
+    ORDER BY v.decided_at DESC NULLS LAST, s.created_at DESC
     LIMIT ${pageSize} OFFSET ${offset}`;
   const [{ n: total }] = await sql`
     SELECT count(*)::int AS n
@@ -114,14 +127,15 @@ async function listProviders(url) {
   return { providers: rows.map(providerEntry), total, page, pageSize };
 }
 
-async function getProvider(id) {
+async function getProvider(key) {
+  const match = isUuid(key) ? sql`o.id = ${key}` : sql`o.slug = ${key}`;
   const [row] = await sql`
     SELECT o.id, o.name, o.slug, o.logo, o.website, o.description,
            count(s.id) FILTER (WHERE s.type = 'skill' AND s.status = 'published') AS skill_count,
            count(s.id) FILTER (WHERE s.type = 'usecase' AND s.status = 'published') AS usecase_count
     FROM orgs o
     LEFT JOIN skills s ON s.org_id = o.id
-    WHERE o.id = ${id} AND o.status = 'approved'
+    WHERE ${match} AND o.status = 'approved'
     GROUP BY o.id`;
   return row ? providerEntry(row) : null;
 }
@@ -136,7 +150,8 @@ async function getSkill(slug) {
   const [version] = await sql`SELECT * FROM versions WHERE id = ${skill.published_version_id}`;
   const history = await sql`
     SELECT id, version, status, decided_at FROM versions
-    WHERE skill_id = ${skill.id} AND status IN ('published','superseded') ORDER BY id DESC`;
+    WHERE skill_id = ${skill.id} AND status IN ('published','superseded')
+    ORDER BY submitted_at DESC`;
   return {
     skill: {
       id: skill.id,
@@ -203,9 +218,9 @@ const server = http.createServer(async (req, res) => {
     if (req.method === "GET" && url.pathname === "/v1/providers") {
       return json(res, 200, await listProviders(url), { "cache-control": PUBLIC_CACHE });
     }
-    const providerMatch = url.pathname.match(/^\/v1\/providers\/(\d+)$/);
+    const providerMatch = url.pathname.match(/^\/v1\/providers\/([^/]+)$/);
     if (req.method === "GET" && providerMatch) {
-      const provider = await getProvider(Number(providerMatch[1]));
+      const provider = await getProvider(decodeURIComponent(providerMatch[1]));
       return provider
         ? json(res, 200, provider, { "cache-control": PUBLIC_CACHE })
         : json(res, 404, { error: "Provider not found" });

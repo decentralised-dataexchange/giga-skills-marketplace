@@ -1,10 +1,12 @@
 import { sql } from "@/lib/db";
 import { GOVERNANCE_ROLES } from "@/lib/auth";
 import { check, route } from "@/lib/handler";
+import { isUuid } from "@/lib/utils";
 import { versionView } from "@/lib/views";
 
 export const GET = route<{ id: string }>(
   async ({ user, params }) => {
+    check(isUuid(params.id), 404, "Version not found");
     const [row] = await sql`
     SELECT v.*, s.slug, s.org_id, s.official, o.owner_id, o.name AS org_name, o.description AS org_description,
            o.website AS org_website, o.status AS org_status

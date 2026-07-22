@@ -1,10 +1,12 @@
 import { sql, json } from "@/lib/db";
 import { check, route } from "@/lib/handler";
+import { isUuid } from "@/lib/utils";
 import { chatView } from "@/lib/views";
 import { cleanMessages, MAX_HTML, type ChatBody } from "@/lib/chats";
 
 export const GET = route<{ id: string }>(
   async ({ user, params }) => {
+    check(isUuid(params.id), 404, "Chat not found");
     const [chat] = await sql`SELECT * FROM chats WHERE id = ${params.id} AND user_id = ${user!.id}`;
     check(chat, 404, "Chat not found");
     return { chat: chatView(chat, true) };
@@ -14,6 +16,7 @@ export const GET = route<{ id: string }>(
 
 export const PUT = route<{ id: string }>(
   async ({ user, params, body }) => {
+    check(isUuid(params.id), 404, "Chat not found");
     const b = await body<ChatBody>();
     const [current] =
       await sql`SELECT * FROM chats WHERE id = ${params.id} AND user_id = ${user!.id}`;
@@ -39,6 +42,7 @@ export const PUT = route<{ id: string }>(
 
 export const DELETE = route<{ id: string }>(
   async ({ user, params }) => {
+    check(isUuid(params.id), 404, "Chat not found");
     const rows =
       await sql`DELETE FROM chats WHERE id = ${params.id} AND user_id = ${user!.id} RETURNING id`;
     check(rows.length > 0, 404, "Chat not found");

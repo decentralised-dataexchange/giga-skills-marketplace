@@ -11,7 +11,7 @@ description: >
 version: 1.1.0
 provider: iGrant.io (LCubed AB)
 license: Apache-2.0
-uses_skills: [igrantio-education-issuer, igrantio-education-verifier, igrantio-consent-bb]
+uses_skills: [igrantio-issuer, igrantio-verifier, igrantio-consent-bb]
 prerequisites:
   - An iGrant.io Organisation Wallet Suite (OWS) account with an organisation API key (use demo-api.igrant.io for demo or staging-api.igrant.io for staging).
   - Data agreements defined in the OWS for the learner data collected and shared (registration, issuance, verification).
@@ -25,10 +25,10 @@ journeys:
     title: Register learner into the NLR
     description: Onboard the learner as a consent individual, capture consent against the registration data agreement, validate civil-registry data, and create the learner profile with a Unique Learner Identifier (ULID).
     prompts:
-      - skills: [igrantio-consent-bb, igrantio-education-issuer]
+      - skills: [igrantio-consent-bb, igrantio-issuer]
         prompt: >
           Build the learner-registration step of an example National Learner Registry
-          app. Using <skill:igrantio-consent-bb> and <skill:igrantio-education-issuer>:
+          app. Using <skill:igrantio-consent-bb> and <skill:igrantio-issuer>:
           (1) authenticate the learner or guardian via the national IdP; (2) create the
           learner as a consent-management individual and store the returned individualId
           mapped to your app's userId in your database; (3) capture ISO/IEC 27560 consent
@@ -41,9 +41,9 @@ journeys:
     title: Issue a diploma as a Verifiable Credential
     description: Validate academic completion and issue an SD-JWT VC over OpenID4VCI, confirming issuance over SSE.
     prompts:
-      - skills: [igrantio-education-issuer]
+      - skills: [igrantio-issuer]
         prompt: >
-          Build the diploma-issuance step. Using <skill:igrantio-education-issuer>: submit
+          Build the diploma-issuance step. Using <skill:igrantio-issuer>: submit
           an issuance request to the OWS issuer API through your backend proxy
           (Authorization: ApiKey), passing the diploma credentialDefinitionId and claims
           (learner name, ULID, programme, grades); read credentialHistory.credentialOffer
@@ -56,9 +56,9 @@ journeys:
     title: Download and store the credential in a wallet
     description: Track issuance status for the exchange and expose the stored credential's verification tools, linked to the ULID.
     prompts:
-      - skills: [igrantio-education-issuer]
+      - skills: [igrantio-issuer]
         prompt: >
-          Using <skill:igrantio-education-issuer>, build the wallet-storage and status
+          Using <skill:igrantio-issuer>, build the wallet-storage and status
           step. After the learner scans the offer QR, read the OWS credential history for
           the CredentialExchangeId (via your backend proxy) to show issuance status; expose
           the credential's QR, signature chain, and revocation status; and link the stored
@@ -68,10 +68,10 @@ journeys:
     title: Share and verify with a relying party
     description: Present a selectively disclosed credential to a verifier over OpenID4VP/DCQL after explicit consent, and gate enrolment on the verified result.
     prompts:
-      - skills: [igrantio-education-verifier, igrantio-consent-bb]
+      - skills: [igrantio-verifier, igrantio-consent-bb]
         prompt: >
           Build the verification step of the example NLR app. Using
-          <skill:igrantio-education-verifier> and <skill:igrantio-consent-bb>: capture
+          <skill:igrantio-verifier> and <skill:igrantio-consent-bb>: capture
           explicit consent for the requested fields; send a DCQL verification request to
           the OWS verifier API through your backend proxy with the diploma
           presentationDefinitionId; read verificationHistory.vpTokenQrCode and render it as

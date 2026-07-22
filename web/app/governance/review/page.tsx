@@ -38,7 +38,7 @@ export default function ReviewQueuePage() {
     }
   }, [load]);
 
-  async function openReview(versionId: number, status: string) {
+  async function openReview(versionId: string, status: string) {
     if (status === "submitted")
       await api(`/api/review/versions/${versionId}/claim`, { method: "POST" });
     const r = await api(`/api/versions/${versionId}`);

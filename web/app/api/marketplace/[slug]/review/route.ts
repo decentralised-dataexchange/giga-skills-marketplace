@@ -30,7 +30,7 @@ export const GET = route<{ slug: string }>(async ({ params }) => {
     SELECT e.type, e.detail, e.at, u.name AS actor_name, u.role AS actor_role
     FROM events e LEFT JOIN users u ON u.id = e.actor_id
     WHERE e.subject->>'skillId' = ${String(skill.id)} AND e.type = ANY(${TRAIL_TYPES})
-    ORDER BY e.id ASC`;
+    ORDER BY e.at ASC`;
 
   const trail = [
     version.submitted_at && {

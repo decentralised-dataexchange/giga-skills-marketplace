@@ -2,6 +2,12 @@ import { expect, test, type APIRequestContext } from "@playwright/test";
 import fs from "node:fs/promises";
 import AdmZip from "adm-zip";
 
+const PROVIDER = "igrant-io";
+const SKILL = "igrantio-issuer";
+const USECASE = "national-learner-registry";
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 async function signIn(request: APIRequestContext, email: string, password: string) {
   const response = await request.post("/api/auth/login", { data: { email, password } });
   expect(response.status()).toBe(200);
@@ -10,58 +16,98 @@ async function signIn(request: APIRequestContext, email: string, password: strin
   return { authorization: `Bearer ${body.token}` };
 }
 
-test("catalog and detail pages render published skills and use cases", async ({ page }) => {
+test("catalog lists providers and use cases and links to provider-scoped pages", async ({
+  page,
+}) => {
   await page.goto("/");
-  await expect(page.getByText("igrantio-education-issuer", { exact: true })).toBeVisible();
+  await page
+    .getByRole("link", { name: /iGrant\.io/ })
+    .first()
+    .click();
+  await expect(page).toHaveURL(new RegExp(`/providers/${PROVIDER}$`));
+  await expect(page.getByRole("heading", { name: "iGrant.io", level: 1 })).toBeVisible();
 
+  await page.goto("/");
   await page.getByRole("tab", { name: "Use cases" }).click();
-  await expect(page.getByText("national-learner-registry", { exact: true })).toBeVisible();
-
-  await page.goto("/usecase/national-learner-registry");
+  await page
+    .getByRole("link", { name: new RegExp(USECASE) })
+    .first()
+    .click();
+  await expect(page).toHaveURL(`/providers/${PROVIDER}/usecases/${USECASE}`);
   await expect(page.getByRole("heading", { name: "National Learner Registry" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Journeys" })).toBeVisible();
   await expect(page.getByRole("tab")).toHaveCount(4);
 });
 
+test("provider page lists its skills and links into the provider-scoped detail page", async ({
+  page,
+}) => {
+  await page.goto(`/providers/${PROVIDER}`);
+  await expect(page.getByText(`/${PROVIDER}`, { exact: true })).toBeVisible();
+
+  await page
+    .getByRole("link", { name: new RegExp(SKILL) })
+    .first()
+    .click();
+  await expect(page).toHaveURL(`/providers/${PROVIDER}/skills/${SKILL}`);
+  await expect(page.getByRole("heading", { level: 1 })).toContainText("iGrant.io");
+  await expect(page.getByRole("heading", { level: 1 })).toContainText(SKILL);
+});
+
+test("skill and use-case slugs redirect to their owning provider's path", async ({ page }) => {
+  await page.goto(`/skill/${SKILL}`);
+  await expect(page).toHaveURL(`/providers/${PROVIDER}/skills/${SKILL}`);
+
+  await page.goto(`/usecase/${USECASE}`);
+  await expect(page).toHaveURL(`/providers/${PROVIDER}/usecases/${USECASE}`);
+
+  await page.goto(`/skill/${SKILL}/review`);
+  await expect(page).toHaveURL(`/providers/${PROVIDER}/skills/${SKILL}/review`);
+  await expect(page.getByRole("heading", { name: "Review trail" })).toBeVisible();
+});
+
+test("a skill addressed under the wrong provider moves to the canonical URL", async ({ page }) => {
+  await page.goto(`/providers/not-the-owner/skills/${SKILL}`);
+  await expect(page).toHaveURL(`/providers/${PROVIDER}/skills/${SKILL}`);
+});
+
 test("use-case Markdown download contains the complete SKILL.md", async ({ page }) => {
-  await page.goto("/usecase/national-learner-registry");
+  await page.goto(`/providers/${PROVIDER}/usecases/${USECASE}`);
   await expect(page.getByRole("button", { name: "Download as Markdown" })).toBeEnabled();
 
   const downloadPromise = page.waitForEvent("download");
   await page.getByRole("button", { name: "Download as Markdown" }).click();
   const download = await downloadPromise;
-  expect(download.suggestedFilename()).toBe("national-learner-registry.md");
+  expect(download.suggestedFilename()).toBe(`${USECASE}.md`);
 
   const path = await download.path();
   expect(path).not.toBeNull();
   const markdown = await fs.readFile(path!, "utf8");
-  expect(markdown).toContain("name: national-learner-registry");
+  expect(markdown).toContain(`name: ${USECASE}`);
   expect(markdown).toContain("journeys:");
   expect(markdown).toContain("# National Learner Registry");
 });
 
 test("skill bundle route returns a valid, path-preserving zip", async ({ page }) => {
-  await page.goto("/skill/igrantio-education-issuer");
+  await page.goto(`/providers/${PROVIDER}/skills/${SKILL}`);
 
   const downloadPromise = page.waitForEvent("download");
-  await page.getByRole("link", { name: "Download .zip" }).click();
+  await page.getByRole("link", { name: "Download .zip" }).first().click();
   const download = await downloadPromise;
-  expect(download.suggestedFilename()).toBe("igrantio-education-issuer.zip");
+  expect(download.suggestedFilename()).toBe(`${SKILL}.zip`);
 
   const path = await download.path();
   expect(path).not.toBeNull();
   const zip = new AdmZip(path!);
   const names = zip.getEntries().map((entry) => entry.entryName);
-  expect(names).toContain("igrantio-education-issuer/SKILL.md");
-  expect(names).toContain("igrantio-education-issuer/openapi/issuer.yaml");
-  expect(zip.readAsText("igrantio-education-issuer/SKILL.md")).toContain(
-    "name: igrantio-education-issuer",
-  );
+  expect(names).toContain(`${SKILL}/SKILL.md`);
+  expect(names).toContain(`${SKILL}/openapi/issuer.yaml`);
+  expect(zip.readAsText(`${SKILL}/SKILL.md`)).toContain(`name: ${SKILL}`);
 });
 
 test("moved bundle route and skill API siblings do not conflict", async ({ request }) => {
   const getChecks: [string, number][] = [
-    ["/api/bundles/igrantio-education-issuer", 200],
+    [`/api/bundles/${SKILL}`, 200],
     ["/api/bundles/not-a-real-skill", 404],
     ["/api/marketplace/not-a-real-skill", 404],
     ["/api/skills/mine", 401],
@@ -74,13 +120,61 @@ test("moved bundle route and skill API siblings do not conflict", async ({ reque
   }
 });
 
+test("ids are UUIDs and providers resolve by slug or UUID", async ({ request }) => {
+  const bySlug = await request.get(`/api/providers/${PROVIDER}`);
+  expect(bySlug.status()).toBe(200);
+  const provider = await bySlug.json();
+  expect(provider.id).toMatch(UUID_RE);
+  expect(provider.slug).toBe(PROVIDER);
+
+  const byUuid = await request.get(`/api/providers/${provider.id}`);
+  expect(byUuid.status()).toBe(200);
+  expect((await byUuid.json()).slug).toBe(PROVIDER);
+
+  expect((await request.get("/api/providers/no-such-provider")).status()).toBe(404);
+
+  // The catalog filter accepts either form and carries the owning provider.
+  for (const key of [PROVIDER, provider.id]) {
+    const listed = await request.get(`/api/marketplace?type=skill&provider=${key}`);
+    expect(listed.status(), key).toBe(200);
+    const body = await listed.json();
+    expect(body.total, key).toBeGreaterThan(0);
+    expect(body.skills[0].id).toMatch(UUID_RE);
+    expect(body.skills[0].org.slug).toBe(PROVIDER);
+  }
+
+  const detail = await request.get(`/api/marketplace/${SKILL}`);
+  expect(detail.status()).toBe(200);
+  const detailBody = await detail.json();
+  expect(detailBody.skill.id).toMatch(UUID_RE);
+  expect(detailBody.version.id).toMatch(UUID_RE);
+  expect(detailBody.org.slug).toBe(PROVIDER);
+});
+
+test("malformed ids are rejected as not-found rather than erroring", async ({ request }) => {
+  const admin = await signIn(request, "superadmin@govbuild.test", "super123");
+  const checks: [path: string, body: object][] = [
+    ["/api/skills/not-a-uuid/official", { official: true }],
+    ["/api/skills/not-a-uuid/delist", {}],
+    ["/api/review/versions/not-a-uuid/claim", {}],
+    ["/api/review/versions/not-a-uuid/decision", { decision: "approve" }],
+    ["/api/admin/orgs/not-a-uuid/decision", { decision: "approve" }],
+  ];
+  for (const [path, data] of checks) {
+    const response = await request.post(path, { headers: admin, data });
+    expect(response.status(), path).toBe(404);
+  }
+  expect((await request.get("/api/chats/not-a-uuid", { headers: admin })).status()).toBe(404);
+  expect((await request.get("/api/versions/not-a-uuid", { headers: admin })).status()).toBe(404);
+});
+
 test("public, provider, reviewer, and admin API smoke matrix", async ({ request }) => {
   const list = await request.get("/api/marketplace?type=skill&page=1&pageSize=1");
   expect(list.status()).toBe(200);
   expect(list.headers()["cache-control"]).toContain("s-maxage=300");
   expect((await list.json()).skills).toHaveLength(1);
 
-  const detail = await request.get("/api/marketplace/national-learner-registry");
+  const detail = await request.get(`/api/marketplace/${USECASE}`);
   expect(detail.status()).toBe(200);
   expect((await detail.json()).skill.type).toBe("usecase");
 
@@ -98,7 +192,90 @@ test("public, provider, reviewer, and admin API smoke matrix", async ({ request 
   expect(users.status()).toBe(200);
   const usersBody = await users.json();
   expect(usersBody.users).toHaveLength(2);
+  expect(usersBody.users[0].id).toMatch(UUID_RE);
   expect(usersBody.total).toBeGreaterThanOrEqual(5);
   expect((await request.get("/api/admin/stats", { headers: admin })).status()).toBe(200);
   expect((await request.get("/api/admin/orgs", { headers: admin })).status()).toBe(200);
+});
+
+// A self-contained submit -> claim -> approve -> delist cycle, so the suite can
+// be re-run against the same database without depending on the seeded queue.
+const E2E_SKILL = "e2e-regression-skill";
+const E2E_BUNDLE = [
+  {
+    path: "SKILL.md",
+    content: `---
+name: ${E2E_SKILL}
+version: 1.0.0
+description: Fixture bundle submitted by the regression suite.
+license: Apache-2.0
+metadata:
+  provider: iGrant.io
+  protocols: OpenID4VCI, OpenID4VP
+---
+
+# Regression fixture
+
+This bundle exists only so the end-to-end suite can drive a submission through
+the review pipeline. It declares no OpenAPI surface, schemas or rulebooks, which
+the automated checks report as warnings rather than failures.
+`,
+  },
+];
+
+test("a submission moves through review to a provider-scoped published page", async ({
+  request,
+}) => {
+  const provider = await signIn(request, "provider@igrant.io", "provider123");
+  const orgs = await request.get("/api/orgs/mine", { headers: provider });
+  expect(orgs.status()).toBe(200);
+  const org = (await orgs.json()).orgs.find((o: { status: string }) => o.status === "approved");
+  expect(org.id).toMatch(UUID_RE);
+
+  const submitted = await request.post("/api/skills", {
+    headers: provider,
+    data: { orgId: org.id, files: E2E_BUNDLE },
+  });
+  expect(submitted.status()).toBe(200);
+  const { skill, version } = await submitted.json();
+  expect(skill.id).toMatch(UUID_RE);
+  expect(version.id).toMatch(UUID_RE);
+  expect(version.status, JSON.stringify(version.checks)).toBe("submitted");
+
+  const reviewer = await signIn(request, "reviewer@govbuild.test", "review123");
+  const queue = await request.get("/api/review/queue", { headers: reviewer });
+  expect(queue.status()).toBe(200);
+  expect((await queue.json()).queue.map((v: { id: string }) => v.id)).toContain(version.id);
+
+  expect((await request.get(`/api/versions/${version.id}`, { headers: reviewer })).status()).toBe(
+    200,
+  );
+  expect(
+    (
+      await request.post(`/api/review/versions/${version.id}/claim`, { headers: reviewer })
+    ).status(),
+  ).toBe(200);
+
+  const decision = await request.post(`/api/review/versions/${version.id}/decision`, {
+    headers: reviewer,
+    data: { decision: "approve", notes: "Approved by the regression suite." },
+  });
+  expect(decision.status()).toBe(200);
+  const decided = await decision.json();
+  expect(decided.skill.status).toBe("published");
+  expect(decided.skill.publishedVersionId).toBe(version.id);
+
+  const published = await request.get(`/api/marketplace/${E2E_SKILL}`);
+  expect(published.status()).toBe(200);
+  expect((await published.json()).org.slug).toBe(PROVIDER);
+
+  // The audit trail keys off the skill UUID, so it must resolve after publication.
+  const trail = await request.get(`/api/marketplace/${E2E_SKILL}/review`);
+  expect(trail.status()).toBe(200);
+  expect((await trail.json()).trail.map((t: { type: string }) => t.type)).toContain(
+    "review.approve",
+  );
+
+  const delisted = await request.post(`/api/skills/${skill.id}/delist`, { headers: provider });
+  expect(delisted.status()).toBe(200);
 });

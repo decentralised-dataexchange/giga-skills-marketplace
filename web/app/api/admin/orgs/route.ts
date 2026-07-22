@@ -6,7 +6,7 @@ export const GET = route(
   async () => {
     const rows = await sql`
     SELECT o.*, u.email AS owner_email, u.name AS owner_name, u.role AS owner_role
-    FROM orgs o JOIN users u ON u.id = o.owner_id ORDER BY o.id`;
+    FROM orgs o JOIN users u ON u.id = o.owner_id ORDER BY o.created_at`;
     return {
       orgs: rows.map((r) => ({
         ...orgView(r),

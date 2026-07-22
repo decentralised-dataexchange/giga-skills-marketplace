@@ -14,7 +14,7 @@ import { DashboardMain, useDashboardGuard } from "@/components/dashboard-shell";
 export default function ProviderSubmissionsPage() {
   const { denied } = useDashboardGuard("/provider/submissions", ["provider"]);
   const [skills, setSkills] = useState<any[]>([]);
-  const [openChecks, setOpenChecks] = useState<number | null>(null);
+  const [openChecks, setOpenChecks] = useState<string | null>(null);
   const [message, setMessage] = useState("");
 
   const load = useCallback(async () => {
@@ -22,7 +22,7 @@ export default function ProviderSubmissionsPage() {
     setSkills(s.skills);
   }, []);
 
-  async function delist(id: number, slug: string) {
+  async function delist(id: string, slug: string) {
     try {
       await api(`/api/skills/${id}/delist`, { method: "POST" });
       setMessage(`Delisted ${slug}. It has been removed from the marketplace.`);

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
-import { Menu, X } from "lucide-react";
+import { ArrowLeft, Menu, X } from "lucide-react";
 import { api, auth, useSession } from "@/lib/client";
 import { Button } from "@/components/ui/button";
 import { UserAvatar } from "@/components/user-avatar";
@@ -55,9 +55,10 @@ export function DashboardTopbar({ className }: { className?: string }) {
           <Link
             href="/"
             onClick={() => setOpen(false)}
-            className="block rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-secondary hover:text-ink"
+            className="flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-secondary hover:text-ink"
           >
-            ← Marketplace
+            <ArrowLeft className="size-4" aria-hidden="true" />
+            Marketplace
           </Link>
           {DASHBOARD_NAV.map((group) => {
             const items = group.items.filter((l) => l.show(user));

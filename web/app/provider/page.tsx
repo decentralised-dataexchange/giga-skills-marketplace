@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { ArrowRight } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { api, auth } from "@/lib/client";
 import { slugify } from "@/lib/utils";
@@ -21,7 +22,7 @@ export default function ProviderOrganisationPage() {
     typeof window === "undefined" ? "https://your-marketplace-host" : window.location.origin,
   );
   const [message, setMessage] = useState("");
-  const [editing, setEditing] = useState<number | null>(null);
+  const [editing, setEditing] = useState<string | null>(null);
   const [editForm, setEditForm] = useState({
     name: "",
     website: "",
@@ -72,7 +73,7 @@ export default function ProviderOrganisationPage() {
     reader.readAsDataURL(file);
   }
 
-  async function saveOrg(id: number) {
+  async function saveOrg(id: string) {
     try {
       await api(`/api/orgs/${id}`, { method: "PATCH", json: editForm });
       setMessage("Organisation updated.");
@@ -257,8 +258,12 @@ export default function ProviderOrganisationPage() {
       {approvedOrg && (
         <p className="text-sm text-muted-foreground">
           Your organisation is verified.{" "}
-          <Link href="/provider/submit" className="font-semibold text-brand hover:underline">
-            Publish a skill or use case →
+          <Link
+            href="/provider/submit"
+            className="inline-flex items-center gap-1 font-semibold text-brand hover:underline"
+          >
+            Publish a skill or use case
+            <ArrowRight className="size-4" aria-hidden="true" />
           </Link>
         </p>
       )}

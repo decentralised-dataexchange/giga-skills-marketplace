@@ -1,13 +1,14 @@
 import { sql, logEvent } from "@/lib/db";
 import { check, route } from "@/lib/handler";
 import { orgView } from "@/lib/views";
-import { slugify, RESERVED_SLUGS } from "@/lib/utils";
+import { isUuid, slugify, RESERVED_SLUGS } from "@/lib/utils";
 
 // Superadmin edit of an organisation: rename, change its slug, or set status
 // (e.g. reject an already-approved provider to remove it from the directory).
 export const PATCH = route<{ id: string }>(
   async ({ user, params, body }) => {
     const b = await body<{ name?: string; slug?: string; status?: string }>();
+    check(isUuid(params.id), 404, "Organisation not found");
     const [current] = await sql`SELECT * FROM orgs WHERE id = ${params.id}`;
     check(current, 404, "Organisation not found");
 
@@ -44,6 +45,7 @@ export const PATCH = route<{ id: string }>(
 // cases, and their versions).
 export const DELETE = route<{ id: string }>(
   async ({ user, params }) => {
+    check(isUuid(params.id), 404, "Organisation not found");
     const [org] = await sql`SELECT * FROM orgs WHERE id = ${params.id}`;
     check(org, 404, "Organisation not found");
     await sql`DELETE FROM versions WHERE skill_id IN (SELECT id FROM skills WHERE org_id = ${org.id})`;

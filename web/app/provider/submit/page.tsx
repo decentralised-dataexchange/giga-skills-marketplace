@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Suspense, useCallback, useEffect, useRef, useState } from "react";
+import { ArrowRight } from "lucide-react";
 import { api, auth } from "@/lib/client";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -240,8 +241,12 @@ function ProviderSubmitInner() {
         <Card className="max-w-xl gap-2 p-6">
           <p className="text-sm text-muted-foreground">
             You need a verified organisation before publishing.{" "}
-            <Link href="/provider" className="font-semibold text-brand hover:underline">
-              Register your organisation →
+            <Link
+              href="/provider"
+              className="inline-flex items-center gap-1 font-semibold text-brand hover:underline"
+            >
+              Register your organisation
+              <ArrowRight className="size-4" aria-hidden="true" />
             </Link>
           </p>
         </Card>

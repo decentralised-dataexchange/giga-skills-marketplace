@@ -38,7 +38,7 @@ interface Entry {
   org: { name: string };
 }
 interface ChatSummary {
-  id: number;
+  id: string;
   title: string;
   appUrl: string | null;
 }
@@ -81,7 +81,7 @@ function Builder() {
   const [hasKey, setHasKey] = useState(true);
   const [skills, setSkills] = useState<string[]>([]);
   const [chatList, setChatList] = useState<ChatSummary[]>([]);
-  const [chatId, setChatId] = useState<number | null>(null);
+  const [chatId, setChatId] = useState<string | null>(null);
   const [appUrl, setAppUrl] = useState<string | null>(null);
   const [input, setInput] = useState("");
   const [slashIndex, setSlashIndex] = useState(0);
@@ -197,7 +197,7 @@ function Builder() {
     }
   };
 
-  async function loadChat(id: number) {
+  async function loadChat(id: string) {
     if (busy) return;
     const { chat } = await api(`/api/chats/${id}`);
     setChatId(chat.id);
@@ -222,7 +222,7 @@ function Builder() {
     setPreviewPref(null);
   }
 
-  async function deleteChat(id: number) {
+  async function deleteChat(id: string) {
     if (!confirm("Delete this saved chat? The generated app goes with it.")) return;
     await api(`/api/chats/${id}`, { method: "DELETE" });
     setChatList((prev) => prev.filter((c) => c.id !== id));
@@ -350,7 +350,7 @@ function Builder() {
               <ConversationEmptyState
                 title="Describe the app you want to build"
                 description={
-                  'Type / to invoke provider skills, e.g. "/igrantio-education-issuer /igrantio-consent-bb Build a Ministry of Education portal that issues a diploma credential with a consent step." You get a complete single-file HTML app with a mock mode, ready to demo.'
+                  'Type / to invoke provider skills, e.g. "/igrantio-issuer /igrantio-consent-bb Build a Ministry of Education portal that issues a diploma credential with a consent step." You get a complete single-file HTML app with a mock mode, ready to demo.'
                 }
               />
             )}

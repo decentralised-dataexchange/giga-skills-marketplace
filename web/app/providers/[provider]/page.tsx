@@ -3,14 +3,15 @@
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import { Blocks, Copy, ExternalLink } from "lucide-react";
+import { ArrowLeft, Blocks, ChevronRight, Copy, ExternalLink } from "lucide-react";
 import { api, timeAgo } from "@/lib/client";
 import { Markdown } from "@/components/markdown";
 import { OfficialBadge } from "@/components/official-badge";
 import { StandardPill } from "@/components/standard-pill";
+import { skillPath } from "@/lib/routes";
 
 interface Provider {
-  id: number;
+  id: string;
   name: string;
   slug: string | null;
   logo: string | null;
@@ -36,7 +37,8 @@ function monogram(name: string) {
 }
 
 export default function ProviderPage() {
-  const { id } = useParams<{ id: string }>();
+  // The path segment is the provider's slug; its UUID also resolves.
+  const { provider: handle } = useParams<{ provider: string }>();
   const [provider, setProvider] = useState<Provider | null>(null);
   const [skills, setSkills] = useState<SkillEntry[]>([]);
   const [error, setError] = useState("");
@@ -44,13 +46,13 @@ export default function ProviderPage() {
   const [origin] = useState(() => (typeof window === "undefined" ? "" : window.location.origin));
 
   useEffect(() => {
-    api(`/api/providers/${id}`)
+    api(`/api/providers/${encodeURIComponent(handle)}`)
       .then(setProvider)
       .catch((e) => setError(e.message));
-    api(`/api/marketplace?type=skill&provider=${id}&pageSize=48`)
+    api(`/api/marketplace?type=skill&provider=${encodeURIComponent(handle)}&pageSize=48`)
       .then((d) => setSkills(d.skills))
       .catch(() => setSkills([]));
-  }, [id]);
+  }, [handle]);
 
   const command = provider?.slug ? `npx skills add ${origin}/${provider.slug}` : "";
 
@@ -77,8 +79,12 @@ export default function ProviderPage() {
 
   return (
     <main className="mx-auto w-full max-w-[1536px] px-5 pb-20 pt-8 sm:px-6 lg:px-8">
-      <Link href="/" className="text-sm font-semibold text-brand hover:underline">
-        ← Providers
+      <Link
+        href="/"
+        className="inline-flex items-center gap-1.5 text-sm font-semibold text-brand hover:underline"
+      >
+        <ArrowLeft className="size-4" aria-hidden="true" />
+        Providers
       </Link>
 
       {/* Header */}
@@ -101,6 +107,9 @@ export default function ProviderPage() {
               Provider
             </span>
             <h1 className="mt-2 text-3xl font-bold tracking-tight text-ink">{provider.name}</h1>
+            {provider.slug && (
+              <p className="mt-1 font-mono text-sm text-muted-foreground">/{provider.slug}</p>
+            )}
             <Markdown className="mt-2 max-w-3xl text-muted-foreground">
               {provider.description}
             </Markdown>
@@ -118,7 +127,7 @@ export default function ProviderPage() {
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-1 font-semibold text-brand hover:underline"
                 >
-                  Website <ExternalLink className="size-3.5" />
+                  Website <ExternalLink className="size-3.5" aria-hidden="true" />
                 </a>
               )}
             </div>
@@ -129,7 +138,7 @@ export default function ProviderPage() {
             disabled={!command || !skills.length}
             className="inline-flex shrink-0 items-center gap-2 rounded-[10px] bg-brand px-6 py-3 text-base font-semibold text-primary-foreground transition-colors hover:bg-brand-dark disabled:cursor-not-allowed disabled:opacity-50"
           >
-            <Copy className="size-4" />
+            <Copy className="size-4" aria-hidden="true" />
             {copied ? "Copied" : "Install all skills"}
           </button>
         </div>
@@ -145,7 +154,7 @@ export default function ProviderPage() {
           {skills.map((s) => (
             <Link
               key={s.slug}
-              href={`/skill/${s.slug}`}
+              href={skillPath(provider.slug ?? handle, s.slug)}
               className="group flex flex-col gap-4 rounded-xl border border-border bg-white p-5 shadow-sm transition-shadow hover:shadow-md sm:flex-row sm:items-center"
             >
               <div className="grid size-12 shrink-0 place-items-center rounded-xl bg-cyan-tint font-bold tracking-tight text-brand ring-1 ring-brand/15">
@@ -169,8 +178,12 @@ export default function ProviderPage() {
                   ))}
                 </div>
               </div>
-              <div className="shrink-0 text-xs text-muted-foreground sm:text-right">
+              <div className="flex shrink-0 items-center gap-1.5 text-xs text-muted-foreground sm:justify-end">
                 {timeAgo(s.publishedAt)}
+                <ChevronRight
+                  className="size-4 transition-transform group-hover:translate-x-0.5 group-hover:text-brand"
+                  aria-hidden="true"
+                />
               </div>
             </Link>
           ))}
@@ -185,7 +198,7 @@ export default function ProviderPage() {
         <aside className="min-w-0">
           <div className="rounded-xl border border-brand/30 bg-white p-6 lg:sticky lg:top-6">
             <div className="flex items-center gap-2">
-              <Blocks className="size-5 text-brand" />
+              <Blocks className="size-5 text-brand" aria-hidden="true" />
               <h2 className="text-lg font-bold text-ink">Install instructions</h2>
             </div>
             <p className="mt-1 text-sm text-muted-foreground">
@@ -201,7 +214,7 @@ export default function ProviderPage() {
                   onClick={copyInstall}
                   className="mt-3 inline-flex items-center gap-2 rounded-[10px] border-2 border-brand bg-white px-4 py-2 text-sm font-semibold text-brand transition-colors hover:bg-accent"
                 >
-                  <Copy className="size-4" />
+                  <Copy className="size-4" aria-hidden="true" />
                   {copied ? "Copied" : "Copy command"}
                 </button>
                 <p className="mt-3 text-xs text-muted-foreground">

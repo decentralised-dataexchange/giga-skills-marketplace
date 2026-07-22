@@ -1,11 +1,13 @@
 "use client";
 
 import Link from "next/link";
+import { ArrowUpRight } from "lucide-react";
 import { useEffect, useState } from "react";
 import { api, timeAgo } from "@/lib/client";
 import { Input } from "@/components/ui/input";
 import { Markdown } from "@/components/markdown";
 import { Pagination } from "@/components/pagination";
+import { skillEntryPath, usecaseEntryPath } from "@/lib/routes";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -34,9 +36,10 @@ function AppCard({ app }: { app: any }) {
           href={app.videoUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="grid aspect-video w-full place-items-center border-b border-border bg-cyan-tint text-sm font-semibold text-brand hover:bg-accent"
+          className="flex aspect-video w-full items-center justify-center gap-1.5 border-b border-border bg-cyan-tint text-sm font-semibold text-brand hover:bg-accent"
         >
-          Watch demo ↗
+          Watch demo
+          <ArrowUpRight className="size-4" aria-hidden="true" />
         </a>
       ) : null}
       <div className="flex flex-1 flex-col gap-2 p-5">
@@ -48,7 +51,7 @@ function AppCard({ app }: { app: any }) {
           {app.usecases.map((u: string) => (
             <Link
               key={u}
-              href={`/usecase/${u}`}
+              href={usecaseEntryPath(u)}
               className="rounded-full bg-brand/10 px-2 py-0.5 text-xs font-semibold text-brand hover:underline"
             >
               {u}
@@ -57,7 +60,7 @@ function AppCard({ app }: { app: any }) {
           {app.skills.map((s: string) => (
             <Link
               key={s}
-              href={`/skill/${s}`}
+              href={skillEntryPath(s)}
               className="rounded bg-secondary px-2 py-0.5 text-xs font-semibold text-ink/70 hover:underline"
             >
               {s}
@@ -73,9 +76,10 @@ function AppCard({ app }: { app: any }) {
               href={app.repoUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="font-semibold text-brand hover:underline"
+              className="inline-flex items-center gap-1 font-semibold text-brand hover:underline"
             >
-              Source ↗
+              Source
+              <ArrowUpRight className="size-3.5" aria-hidden="true" />
             </a>
           )}
         </div>

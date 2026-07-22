@@ -2,6 +2,7 @@ import { stringify as yamlStringify } from "yaml";
 import { sql, logEvent, json } from "@/lib/db";
 import { runChecks } from "@/lib/checks";
 import { check, route } from "@/lib/handler";
+import { isUuid } from "@/lib/utils";
 import { skillView, versionView } from "@/lib/views";
 
 interface Step {
@@ -16,7 +17,7 @@ interface Journey {
   done?: string;
 }
 interface Form {
-  orgId: number;
+  orgId: string;
   name: string;
   title: string;
   description?: string;
@@ -33,6 +34,7 @@ export const POST = route(
     const f = await body<Form>();
     check(f.name?.trim() && f.title?.trim(), 400, "Name and title are required");
 
+    check(isUuid(f.orgId), 404, "Organisation not found");
     const [org] = await sql`SELECT * FROM orgs WHERE id = ${f.orgId} AND owner_id = ${user!.id}`;
     check(org, 404, "Organisation not found");
     check(org.status === "approved", 403, "Your organisation must be approved before publishing");

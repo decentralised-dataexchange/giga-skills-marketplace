@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import { api, auth, useSession } from "@/lib/client";
 import { Button } from "@/components/ui/button";
@@ -34,9 +35,10 @@ export function Sidebar({ className }: { className?: string }) {
 
       <Link
         href="/"
-        className="mx-3 mb-2 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-ink"
+        className="mx-3 mb-2 flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-ink"
       >
-        ← Marketplace
+        <ArrowLeft className="size-4" aria-hidden="true" />
+        Marketplace
       </Link>
 
       <nav aria-label="Dashboard" className="flex-1 space-y-4 overflow-y-auto px-3 pb-3">

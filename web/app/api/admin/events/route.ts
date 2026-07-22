@@ -6,7 +6,7 @@ export const GET = route(
   async () => {
     const rows = await sql`
     SELECT e.*, u.name AS actor_name, u.email AS actor_email
-    FROM events e LEFT JOIN users u ON u.id = e.actor_id ORDER BY e.id DESC LIMIT 200`;
+    FROM events e LEFT JOIN users u ON u.id = e.actor_id ORDER BY e.at DESC LIMIT 200`;
     return {
       events: rows.map((r) => ({
         id: r.id,

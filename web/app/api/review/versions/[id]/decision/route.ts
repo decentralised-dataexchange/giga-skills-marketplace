@@ -1,6 +1,7 @@
 import { sql, logEvent } from "@/lib/db";
 import { GOVERNANCE_ROLES } from "@/lib/auth";
 import { check, route } from "@/lib/handler";
+import { isUuid } from "@/lib/utils";
 import { skillView, versionView } from "@/lib/views";
 
 const STATUS = {
@@ -17,6 +18,7 @@ export const POST = route<{ id: string }>(
       official?: boolean;
     }>();
     check(decision in STATUS, 400, "decision must be approve, reject or request_changes");
+    check(isUuid(params.id), 404, "Version not found");
     const [current] = await sql`SELECT * FROM versions WHERE id = ${params.id}`;
     check(current, 404, "Version not found");
     check(["submitted", "in_review"].includes(current.status), 409, `Version is ${current.status}`);

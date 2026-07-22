@@ -4,7 +4,7 @@ import { orgView } from "@/lib/views";
 
 export const GET = route(
   async ({ user }) => {
-    const rows = await sql`SELECT * FROM orgs WHERE owner_id = ${user!.id} ORDER BY id`;
+    const rows = await sql`SELECT * FROM orgs WHERE owner_id = ${user!.id} ORDER BY created_at`;
     return { orgs: rows.map(orgView) };
   },
   { roles: ["provider"] },

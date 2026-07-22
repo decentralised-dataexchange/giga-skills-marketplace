@@ -122,7 +122,7 @@ export function marketplaceEntry(r: any) {
     status: r.status,
     official: r.official ?? false,
     installs: r.installs,
-    org: { id: r.org_id, name: r.org_name, website: r.org_website },
+    org: { id: r.org_id, slug: r.org_slug ?? null, name: r.org_name, website: r.org_website },
     version: r.version,
     publishedAt: r.decided_at,
     description: manifest.description ?? "",

@@ -1,12 +1,14 @@
 import { sql, logEvent } from "@/lib/db";
 import { check, route } from "@/lib/handler";
+import { isUuid } from "@/lib/utils";
 import { publicUser } from "@/lib/views";
 
 export const POST = route<{ id: string }>(
   async ({ user, params, body }) => {
     const { status } = await body<{ status: string }>();
     check(["active", "suspended"].includes(status), 400, "status must be active or suspended");
-    check(Number(params.id) !== user!.id, 409, "You cannot suspend your own account");
+    check(isUuid(params.id), 404, "User not found");
+    check(params.id !== user!.id, 409, "You cannot suspend your own account");
     const [updated] =
       await sql`UPDATE users SET status = ${status} WHERE id = ${params.id} RETURNING *`;
     check(updated, 404, "User not found");

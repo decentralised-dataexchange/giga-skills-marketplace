@@ -1,11 +1,13 @@
 import { sql, logEvent } from "@/lib/db";
 import { check, route } from "@/lib/handler";
+import { isUuid } from "@/lib/utils";
 import { orgView } from "@/lib/views";
 
 export const POST = route<{ id: string }>(
   async ({ user, params, body }) => {
     const { decision, notes } = await body<{ decision: string; notes?: string }>();
     check(["approve", "reject"].includes(decision), 400, "decision must be approve or reject");
+    check(isUuid(params.id), 404, "Organisation not found");
     const [current] = await sql`SELECT * FROM orgs WHERE id = ${params.id}`;
     check(current, 404, "Organisation not found");
     check(current.status === "pending", 409, `Organisation is already ${current.status}`);

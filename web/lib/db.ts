@@ -15,9 +15,13 @@ export const sql = DATABASE_URL
 /** JSONB parameter helper; postgres.js json() has an overly narrow input type. */
 export const json = (value: unknown) => sql.json(value as never);
 
+// Every primary key is a UUID (gen_random_uuid(), built into PostgreSQL 13+),
+// so identifiers are opaque and non-enumerable in URLs and API payloads.
+// Because UUIDs carry no ordering, every "newest first" query orders on a
+// timestamp column rather than on the id.
 const SCHEMA = `
 CREATE TABLE IF NOT EXISTS users (
-  id            SERIAL PRIMARY KEY,
+  id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   email         TEXT UNIQUE NOT NULL,
   name          TEXT NOT NULL,
   role          TEXT NOT NULL CHECK (role IN ('builder','provider','reviewer','superadmin')),
@@ -28,51 +32,51 @@ CREATE TABLE IF NOT EXISTS users (
 );
 CREATE TABLE IF NOT EXISTS tokens (
   token      TEXT PRIMARY KEY,
-  user_id    INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  user_id    UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 CREATE TABLE IF NOT EXISTS orgs (
-  id             SERIAL PRIMARY KEY,
+  id             UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   name           TEXT NOT NULL,
   website        TEXT,
   description    TEXT,
   contact        TEXT,
-  owner_id       INT NOT NULL REFERENCES users(id),
+  owner_id       UUID NOT NULL REFERENCES users(id),
   status         TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending','approved','rejected')),
   created_at     TIMESTAMPTZ NOT NULL DEFAULT now(),
   decided_at     TIMESTAMPTZ,
-  decided_by     INT REFERENCES users(id),
+  decided_by     UUID REFERENCES users(id),
   decision_notes TEXT
 );
 CREATE TABLE IF NOT EXISTS skills (
-  id                   SERIAL PRIMARY KEY,
+  id                   UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   slug                 TEXT UNIQUE NOT NULL,
-  org_id               INT NOT NULL REFERENCES orgs(id),
+  org_id               UUID NOT NULL REFERENCES orgs(id),
   type                 TEXT NOT NULL DEFAULT 'skill' CHECK (type IN ('skill','usecase')),
   status               TEXT NOT NULL DEFAULT 'in_submission',
   official             BOOLEAN NOT NULL DEFAULT false,
-  published_version_id INT,
+  published_version_id UUID,
   installs             INT NOT NULL DEFAULT 0,
   created_at           TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 CREATE TABLE IF NOT EXISTS versions (
-  id           SERIAL PRIMARY KEY,
-  skill_id     INT NOT NULL REFERENCES skills(id),
+  id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  skill_id     UUID NOT NULL REFERENCES skills(id),
   version      TEXT NOT NULL,
   manifest     JSONB,
   files        JSONB NOT NULL,
   checks       JSONB NOT NULL DEFAULT '[]',
   status       TEXT NOT NULL,
-  submitted_by INT REFERENCES users(id),
+  submitted_by UUID REFERENCES users(id),
   submitted_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-  reviewer_id  INT REFERENCES users(id),
+  reviewer_id  UUID REFERENCES users(id),
   review_notes TEXT,
   decided_at   TIMESTAMPTZ
 );
 CREATE TABLE IF NOT EXISTS chats (
-  id         SERIAL PRIMARY KEY,
+  id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   share_id   TEXT UNIQUE,
-  user_id    INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  user_id    UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   title      TEXT NOT NULL DEFAULT 'Untitled app',
   model      TEXT,
   skills     JSONB NOT NULL DEFAULT '[]',
@@ -82,16 +86,16 @@ CREATE TABLE IF NOT EXISTS chats (
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 CREATE TABLE IF NOT EXISTS events (
-  id       SERIAL PRIMARY KEY,
+  id       UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   type     TEXT NOT NULL,
-  actor_id INT REFERENCES users(id),
+  actor_id UUID REFERENCES users(id),
   subject  JSONB,
   detail   JSONB,
   at       TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 CREATE TABLE IF NOT EXISTS applications (
-  id           SERIAL PRIMARY KEY,
-  developer_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  developer_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   title        TEXT NOT NULL,
   description  TEXT,
   video_url    TEXT,
@@ -108,12 +112,13 @@ ALTER TABLE orgs ADD COLUMN IF NOT EXISTS slug TEXT;
 ALTER TABLE orgs ADD COLUMN IF NOT EXISTS logo TEXT;
 CREATE UNIQUE INDEX IF NOT EXISTS idx_orgs_slug ON orgs(slug);
 CREATE INDEX IF NOT EXISTS idx_tokens_user ON tokens(user_id);
-CREATE INDEX IF NOT EXISTS idx_orgs_owner ON orgs(owner_id, id);
+CREATE INDEX IF NOT EXISTS idx_orgs_owner ON orgs(owner_id, created_at);
+CREATE INDEX IF NOT EXISTS idx_skills_org ON skills(org_id, created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_skills_type ON skills(type, status);
-CREATE INDEX IF NOT EXISTS idx_applications_status ON applications(status, id DESC);
-CREATE INDEX IF NOT EXISTS idx_applications_developer ON applications(developer_id, id DESC);
+CREATE INDEX IF NOT EXISTS idx_applications_status ON applications(status, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_applications_developer ON applications(developer_id, created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_chats_user ON chats(user_id, updated_at DESC);
-CREATE INDEX IF NOT EXISTS idx_versions_skill ON versions(skill_id);
+CREATE INDEX IF NOT EXISTS idx_versions_skill ON versions(skill_id, submitted_at DESC);
 CREATE INDEX IF NOT EXISTS idx_versions_status_submitted ON versions(status, submitted_at);
 CREATE INDEX IF NOT EXISTS idx_events_at ON events(at DESC);
 `;
@@ -130,6 +135,10 @@ export function ensureReady(): Promise<void> {
     const bootstrap = await sql.reserve();
     try {
       await bootstrap`SELECT pg_advisory_lock(7142026)`;
+      // Databases created before UUID ids still carry SERIAL primary keys; the
+      // migration is a no-op once they have been converted.
+      const { migrateIntegerIdsToUuid } = await import("./migrations");
+      if (await migrateIntegerIdsToUuid()) console.log("Migrated integer ids to UUIDs.");
       await sql.unsafe(SCHEMA);
       const { seedIfEmpty } = await import("./seed");
       if (await seedIfEmpty()) console.log("Seeded demo users, organisations, and skills.");
@@ -146,7 +155,7 @@ export function ensureReady(): Promise<void> {
 // and the install command). Runs each boot; only touches rows with a null slug.
 async function backfillOrgSlugs(): Promise<void> {
   const { slugify, RESERVED_SLUGS } = await import("./utils");
-  const missing = await sql`SELECT id, name FROM orgs WHERE slug IS NULL ORDER BY id`;
+  const missing = await sql`SELECT id, name FROM orgs WHERE slug IS NULL ORDER BY created_at`;
   if (!missing.length) return;
   const taken = new Set<string>([
     ...RESERVED_SLUGS,
@@ -179,7 +188,7 @@ async function createDatabaseIfMissing(): Promise<void> {
 
 export async function logEvent(
   type: string,
-  actorId: number | null,
+  actorId: string | null,
   subject: object | null,
   detail: object | null,
 ): Promise<void> {

@@ -27,7 +27,7 @@ async function addUser(
   password: string,
   name: string,
   role: string,
-): Promise<number> {
+): Promise<string> {
   const passwordHash = await hashPassword(password);
   const [row] = await sql`
     INSERT INTO users (email, name, role, password_hash)
@@ -40,11 +40,11 @@ async function addOrg(org: {
   website: string;
   description: string;
   contact: string;
-  ownerId: number;
+  ownerId: string;
   status: string;
-  decidedBy?: number;
+  decidedBy?: string;
   notes?: string;
-}): Promise<number> {
+}): Promise<string> {
   const [row] = await sql`
     INSERT INTO orgs (name, website, description, contact, owner_id, status, decided_at, decided_by, decision_notes)
     VALUES (${org.name}, ${org.website}, ${org.description}, ${org.contact}, ${org.ownerId}, ${org.status},
@@ -54,11 +54,11 @@ async function addOrg(org: {
 }
 
 async function addSkill(
-  orgId: number,
+  orgId: string,
   bundle: string,
-  submitterId: number,
+  submitterId: string,
   publish: boolean,
-  reviewerId?: number,
+  reviewerId?: string,
   official = false,
 ) {
   const files = readBundle(bundle);
@@ -90,7 +90,7 @@ async function addSkill(
 }
 
 async function addApplication(app: {
-  developerId: number;
+  developerId: string;
   title: string;
   description: string;
   videoUrl: string | null;
@@ -165,7 +165,7 @@ export async function seedIfEmpty(): Promise<boolean> {
       "A verifier that requests a learner credential from an EUDI Wallet using a DCQL query over OpenID4VP, then checks the presented diploma before enrolment. Built with an agent from the NLR use case.",
     videoUrl: "https://www.youtube.com/watch?v=d2MOt01HKx4",
     repoUrl: "https://github.com/decentralised-dataexchange/ai-integrator",
-    skills: ["igrantio-education-verifier"],
+    skills: ["igrantio-verifier"],
     usecases: ["national-learner-registry"],
   });
   await addApplication({
@@ -175,7 +175,7 @@ export async function seedIfEmpty(): Promise<boolean> {
       "An enrolment flow that requests and shares alternative learner identifiers from an EUDI Wallet using DCQL over OpenID4VP. Scaffolded from the education issuer and consent skills.",
     videoUrl: "https://www.youtube.com/watch?v=K0WuGRXAubE",
     repoUrl: null,
-    skills: ["igrantio-education-issuer", "igrantio-consent-bb"],
+    skills: ["igrantio-issuer", "igrantio-consent-bb"],
     usecases: ["national-learner-registry"],
   });
 

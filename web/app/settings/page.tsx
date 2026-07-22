@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { ArrowRight } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { api, auth, fmtDate, useSession } from "@/lib/client";
 import { Badge } from "@/components/ui/badge";
@@ -13,7 +14,7 @@ import { UserAvatar } from "@/components/user-avatar";
 const MAX_AVATAR_BYTES = 256 * 1024;
 
 interface Profile {
-  id: number;
+  id: string;
   name: string;
   email: string;
   role: string;
@@ -204,9 +205,10 @@ function AssistantSection() {
             )}
             <Link
               href="/builder"
-              className="inline-flex items-center rounded-md border border-border px-3 py-2 text-sm font-semibold text-ink transition-colors hover:bg-accent"
+              className="inline-flex items-center gap-1.5 rounded-md border border-border px-3 py-2 text-sm font-semibold text-ink transition-colors hover:bg-accent"
             >
-              Open assistant →
+              Open assistant
+              <ArrowRight className="size-4" aria-hidden="true" />
             </Link>
           </div>
         </form>

@@ -4,7 +4,7 @@
 import { useSyncExternalStore } from "react";
 
 export interface SessionUser {
-  id: number;
+  id: string;
   email: string;
   name: string;
   role: "builder" | "provider" | "reviewer" | "superadmin";

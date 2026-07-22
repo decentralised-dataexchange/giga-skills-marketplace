@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { FormEvent, Suspense, useState } from "react";
 import { api, auth, type SessionUser } from "@/lib/client";
@@ -159,8 +160,12 @@ function LoginForm() {
         </Card>
 
         <div className="mt-4 text-center">
-          <Link href="/" className="text-sm font-semibold text-brand hover:underline">
-            ← Back to marketplace
+          <Link
+            href="/"
+            className="inline-flex items-center gap-1.5 text-sm font-semibold text-brand hover:underline"
+          >
+            <ArrowLeft className="size-4" aria-hidden="true" />
+            Back to marketplace
           </Link>
         </div>
       </div>

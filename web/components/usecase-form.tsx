@@ -44,7 +44,7 @@ export function UsecaseForm({
   onSubmitted,
   initial,
 }: {
-  orgId: number;
+  orgId: string;
   skillOptions: string[];
   onSubmitted: (msg: string) => void;
   initial?: UsecaseInitial;

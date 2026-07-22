@@ -1,5 +1,6 @@
 import { sql, logEvent } from "@/lib/db";
 import { check, route } from "@/lib/handler";
+import { isUuid } from "@/lib/utils";
 import { orgView } from "@/lib/views";
 
 const MAX_LOGO = 512 * 1024; // ~512 KB data: URL
@@ -15,6 +16,7 @@ export const PATCH = route<{ id: string }>(
       description?: string;
       logo?: string | null;
     }>();
+    check(isUuid(params.id), 404, "Organisation not found");
     const [org] = await sql`SELECT * FROM orgs WHERE id = ${params.id}`;
     check(org, 404, "Organisation not found");
     check(

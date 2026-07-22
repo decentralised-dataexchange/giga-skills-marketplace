@@ -21,7 +21,8 @@ export const GET = route<{ slug: string }>(async ({ params }) => {
   const [version] = await sql`SELECT * FROM versions WHERE id = ${skill.published_version_id}`;
   const history = await sql`
     SELECT id, version, status, decided_at FROM versions
-    WHERE skill_id = ${skill.id} AND status IN ('published','superseded') ORDER BY id DESC`;
+    WHERE skill_id = ${skill.id} AND status IN ('published','superseded')
+    ORDER BY submitted_at DESC`;
   return NextResponse.json(
     {
       skill: {

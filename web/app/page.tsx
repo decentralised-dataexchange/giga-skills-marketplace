@@ -2,12 +2,14 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { ArrowRight, ArrowUpRight } from "lucide-react";
 import { api, timeAgo } from "@/lib/client";
 import { Input } from "@/components/ui/input";
 import { Markdown } from "@/components/markdown";
 import { AgentsStrip } from "@/components/agent-logo";
 import { OfficialBadge } from "@/components/official-badge";
 import { Pagination } from "@/components/pagination";
+import { providerPath, usecaseEntryPath, usecasePath } from "@/lib/routes";
 
 interface Entry {
   slug: string;
@@ -19,11 +21,12 @@ interface Entry {
   journeyCount: number;
   usesSkills: string[];
   publishedAt: string | null;
-  org: { name: string };
+  org: { name: string; slug: string | null };
 }
 
 interface Provider {
-  id: number;
+  id: string;
+  slug: string | null;
   name: string;
   logo: string | null;
   website: string | null;
@@ -188,9 +191,10 @@ export default function MarketplacePage() {
                 href={c.href}
                 target={c.href.startsWith("http") ? "_blank" : undefined}
                 rel={c.href.startsWith("http") ? "noopener noreferrer" : undefined}
-                className="mt-4 text-sm font-bold text-brand hover:underline"
+                className="mt-4 inline-flex items-center gap-1 text-sm font-bold text-brand hover:underline"
               >
-                {c.cta} ↗
+                {c.cta}
+                <ArrowUpRight className="size-4" aria-hidden="true" />
               </a>
             </div>
           ))}
@@ -252,7 +256,7 @@ export default function MarketplacePage() {
               {providers.providers.map((p) => (
                 <Link
                   key={p.id}
-                  href={`/providers/${p.id}`}
+                  href={providerPath(p.slug ?? p.id)}
                   className="group flex flex-col gap-4 rounded-xl border border-border bg-white p-5 shadow-sm transition-shadow hover:shadow-md sm:flex-row sm:items-center"
                 >
                   {p.logo ? (
@@ -282,8 +286,12 @@ export default function MarketplacePage() {
                     </div>
                   </div>
                   <div className="flex shrink-0 items-center justify-end border-t border-border pt-3 sm:w-40 sm:border-t-0 sm:pt-0">
-                    <span className="shrink-0 rounded-lg bg-brand px-4 py-2 text-xs font-semibold text-primary-foreground transition-colors group-hover:bg-brand-dark">
-                      View provider →
+                    <span className="inline-flex shrink-0 items-center gap-1.5 rounded-lg bg-brand px-4 py-2 text-xs font-semibold text-primary-foreground transition-colors group-hover:bg-brand-dark">
+                      View provider
+                      <ArrowRight
+                        className="size-3.5 transition-transform group-hover:translate-x-0.5"
+                        aria-hidden="true"
+                      />
                     </span>
                   </div>
                 </Link>
@@ -308,7 +316,7 @@ export default function MarketplacePage() {
               {data.skills.map((s) => (
                 <Link
                   key={s.slug}
-                  href={`/usecase/${s.slug}`}
+                  href={s.org.slug ? usecasePath(s.org.slug, s.slug) : usecaseEntryPath(s.slug)}
                   className="group flex flex-col gap-4 rounded-xl border border-border bg-white p-5 shadow-sm transition-shadow hover:shadow-md sm:flex-row sm:items-center"
                 >
                   <div className="grid size-14 shrink-0 place-items-center rounded-xl bg-cyan-tint font-bold tracking-tight text-brand ring-1 ring-brand/15">
@@ -346,8 +354,12 @@ export default function MarketplacePage() {
                       <div className="truncate font-medium text-ink/70">{s.org.name}</div>
                       <div>{timeAgo(s.publishedAt)}</div>
                     </div>
-                    <span className="shrink-0 rounded-lg bg-brand px-4 py-2 text-xs font-semibold text-primary-foreground transition-colors group-hover:bg-brand-dark">
-                      View use case →
+                    <span className="inline-flex shrink-0 items-center gap-1.5 rounded-lg bg-brand px-4 py-2 text-xs font-semibold text-primary-foreground transition-colors group-hover:bg-brand-dark">
+                      View use case
+                      <ArrowRight
+                        className="size-3.5 transition-transform group-hover:translate-x-0.5"
+                        aria-hidden="true"
+                      />
                     </span>
                   </div>
                 </Link>

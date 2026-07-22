@@ -18,7 +18,7 @@ export const GET = route(async ({ req }) => {
     SELECT a.*, u.name AS developer_name
     FROM applications a JOIN users u ON u.id = a.developer_id
     WHERE a.status = 'published' ${qCond}
-    ORDER BY a.id DESC
+    ORDER BY a.created_at DESC
     LIMIT ${pageSize} OFFSET ${(page - 1) * pageSize}`;
   const [{ n: total }] = await sql`
     SELECT count(*)::int AS n FROM applications a WHERE a.status = 'published' ${qCond}`;

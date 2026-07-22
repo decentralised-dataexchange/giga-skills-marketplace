@@ -1,10 +1,12 @@
 import { sql, logEvent, json } from "@/lib/db";
 import { check, route } from "@/lib/handler";
+import { isUuid } from "@/lib/utils";
 import { applicationView } from "@/lib/views";
 
 const isHttp = (u: string) => /^https?:\/\/.+/i.test(u);
 
-async function ownedApp(id: string, userId: number) {
+async function ownedApp(id: string, userId: string) {
+  check(isUuid(id), 404, "Application not found");
   const [app] = await sql`SELECT * FROM applications WHERE id = ${id}`;
   check(app, 404, "Application not found");
   check(app.developer_id === userId, 403, "You can only edit your own applications");

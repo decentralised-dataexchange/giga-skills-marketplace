@@ -1,6 +1,7 @@
 import { sql, logEvent } from "@/lib/db";
 import { GOVERNANCE_ROLES } from "@/lib/auth";
 import { check, route } from "@/lib/handler";
+import { isUuid } from "@/lib/utils";
 import { applicationView } from "@/lib/views";
 
 // Moderation: a reviewer or super admin can delist (or restore) an application.
@@ -12,6 +13,7 @@ export const POST = route<{ id: string }>(
       400,
       "status must be published or delisted",
     );
+    check(isUuid(params.id), 404, "Application not found");
     const [app] = await sql`SELECT * FROM applications WHERE id = ${params.id}`;
     check(app, 404, "Application not found");
     const [updated] = await sql`

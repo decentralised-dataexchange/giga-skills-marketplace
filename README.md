@@ -29,7 +29,21 @@ The public catalog is separated from the web app by an HTTP API so the two can b
 - **`services/marketplace/`** is a standalone Node service that owns public catalog reads, item details and the internal skill-context API.
 - **`web/`** is a Next.js 16 app: the public marketplace and showcase, plus a role-based admin dashboard (provider, governance and developer consoles).
 - **PostgreSQL** is the only datastore, via postgres.js. Both deployables accept `DATABASE_URL`. Postgres runs in Docker; there is no host install to manage.
-- **UI** uses shadcn/ui and Tailwind with Manrope and Open Sans (Giga branding) and `streamdown` for markdown.
+- **UI** uses shadcn/ui and Tailwind with Manrope and Open Sans (Giga branding), `lucide-react` for iconography, and `streamdown` for markdown.
+
+Every row is keyed by a UUID (`gen_random_uuid()`), so ids are opaque and non-enumerable wherever they appear. A database created before this carries SERIAL keys; the web app converts it in place on first boot, remapping foreign keys and the ids embedded in the audit log.
+
+Catalog URLs name the provider that owns the item:
+
+| Path                                          | Page                         |
+| --------------------------------------------- | ---------------------------- |
+| `/providers/<provider>`                       | Provider detail              |
+| `/providers/<provider>/skills/<skill>`        | Skill detail                 |
+| `/providers/<provider>/skills/<skill>/review` | Review trail                 |
+| `/providers/<provider>/usecases/<usecase>`    | Use-case detail              |
+| `/<provider>/.well-known/skills/index.json`   | Agent Skills discovery index |
+
+`<provider>` is the organisation slug (its UUID also resolves). Bare `/skill/<slug>` and `/usecase/<slug>` redirect to the canonical path, because a slug travels alone in a manifest's `uses_skills` list, a showcase entry and an agent prompt.
 
 ## Quick start
 
@@ -69,7 +83,7 @@ cd web && E2E_BASE_URL=http://localhost:4820 npm run test:e2e
 LOAD_URL=http://localhost:4820/api/marketplace?pageSize=12 npm run test:load
 ```
 
-The E2E suite covers catalog/detail rendering, both download formats, route-conflict regressions, authentication, authorization, and role APIs. The capacity gate sends 10,000 requests at 100 concurrent clients and requires zero errors with p95 latency below 500 ms.
+The E2E suite covers catalog/detail rendering, provider-scoped URLs and their redirects, UUID id handling (including malformed ids answering 404 rather than erroring), a full submit-review-publish cycle, both download formats, route-conflict regressions, authentication, authorization, and role APIs. The capacity gate sends 10,000 requests at 100 concurrent clients and requires zero errors with p95 latency below 500 ms.
 
 ## Deployment
 

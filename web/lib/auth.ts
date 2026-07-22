@@ -10,7 +10,7 @@ export type Role = (typeof ROLES)[number];
 export const GOVERNANCE_ROLES: Role[] = ["reviewer", "superadmin"];
 
 export interface User {
-  id: number;
+  id: string;
   email: string;
   name: string;
   role: Role;
@@ -41,7 +41,7 @@ export async function verifyPassword(password: string, stored: string): Promise<
   return timingSafeEqual(expected, actual);
 }
 
-export async function issueToken(userId: number): Promise<string> {
+export async function issueToken(userId: string): Promise<string> {
   const token = randomBytes(32).toString("hex");
   await sql`INSERT INTO tokens (token, user_id) VALUES (${token}, ${userId})`;
   return token;

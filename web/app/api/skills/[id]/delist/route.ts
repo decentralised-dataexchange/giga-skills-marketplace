@@ -1,8 +1,10 @@
 import { sql, logEvent } from "@/lib/db";
 import { check, route } from "@/lib/handler";
+import { isUuid } from "@/lib/utils";
 
 export const POST = route<{ id: string }>(
   async ({ user, params }) => {
+    check(isUuid(params.id), 404, "Skill not found");
     const [skill] = await sql`
     SELECT s.*, o.owner_id FROM skills s JOIN orgs o ON o.id = s.org_id WHERE s.id = ${params.id}`;
     check(skill, 404, "Skill not found");
