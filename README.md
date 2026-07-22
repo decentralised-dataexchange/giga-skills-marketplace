@@ -45,7 +45,15 @@ Catalog URLs name the provider that owns the item:
 
 `<provider>` is the organisation slug (its UUID also resolves). Bare `/skill/<slug>` and `/usecase/<slug>` redirect to the canonical path, because a slug travels alone in a manifest's `uses_skills` list, a showcase entry and an agent prompt.
 
-The public application showcase (`/showcase`) and the Integration Assistant (`/builder`) are built but currently switched off in [`web/lib/features.ts`](web/lib/features.ts): their navigation entries and inbound links disappear and the routes answer 404. Nothing behind them is removed, so re-enabling one is a single edit in that file.
+Several surfaces are built but currently switched off in [`web/lib/features.ts`](web/lib/features.ts). A disabled surface loses its navigation entries and inbound links, and its route answers 404:
+
+| Flag            | Switches off                                                                                                      |
+| --------------- | ----------------------------------------------------------------------------------------------------------------- |
+| `showcase`      | The public gallery at `/showcase`, the Developer Console that submits to it, and its governance moderation screen |
+| `assistant`     | The Integration Assistant at `/builder` and its API-key section in Settings                                       |
+| `developerRole` | The `builder` ("Developer") account role at registration and in role assignment                                   |
+
+Nothing behind them is removed, so re-enabling one is a single edit in that file. A disabled role stays a recognised value: accounts that already hold it keep signing in and still display as Developer.
 
 ## Quick start
 
@@ -129,7 +137,7 @@ Skills and use cases can be endorsed **Official** by the marketplace operator; o
 
 | Role                  | Can do                                                                                                                           |
 | --------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
-| `builder` (Developer) | Browse the marketplace, install skills and use cases into their own agent, submit application showcases                          |
+| `builder` (Developer) | **Currently disabled** - cannot be chosen at registration or assigned; existing accounts keep working                            |
 | `provider`            | Everything a developer can, plus register an organisation and publish skills and use cases for review                            |
 | `reviewer`            | Governance: claim the review queue, inspect bundles and check reports, approve, reject or request changes, moderate applications |
 | `superadmin`          | Everything a reviewer can, plus verify organisations, manage users and roles, suspend accounts, endorse Official, delist         |
@@ -138,14 +146,12 @@ Governance roles are granted by a super admin and can never be self-assigned at 
 
 Demo accounts (seeded on first run):
 
-| Email                    | Password    | Role                                        |
-| ------------------------ | ----------- | ------------------------------------------- |
-| superadmin@govbuild.test | super123    | Super admin                                 |
-| reviewer@govbuild.test   | review123   | Skill reviewer                              |
-| provider@igrant.io       | provider123 | Approved provider (iGrant.io)               |
-| trust@govstack.test      | provider123 | Approved provider (GovStack Trust Services) |
-| labs@educhain.test       | provider123 | Provider with a pending organisation        |
-| student@example.com      | student123  | Developer (student)                         |
+| Email                    | Password    | Role                                 |
+| ------------------------ | ----------- | ------------------------------------ |
+| superadmin@govbuild.test | super123    | Super admin                          |
+| reviewer@govbuild.test   | review123   | Skill reviewer                       |
+| provider@igrant.io       | provider123 | Approved provider (iGrant.io)        |
+| labs@educhain.test       | provider123 | Provider with a pending organisation |
 
 ## Contributing
 

@@ -14,10 +14,10 @@ import {
 import { StatusBadge } from "@/components/status-badge";
 import { Pagination } from "@/components/pagination";
 import { DashboardMain, useDashboardGuard } from "@/components/dashboard-shell";
+import { ASSIGNABLE_ROLES, roleLabel } from "@/lib/roles";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-const ROLES = ["builder", "provider", "reviewer", "superadmin"];
 const PAGE = 12;
 
 export default function UsersPage() {
@@ -93,9 +93,9 @@ export default function UsersPage() {
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          {ROLES.map((r) => (
+                          {ASSIGNABLE_ROLES.map((r) => (
                             <SelectItem key={r} value={r}>
-                              {r}
+                              {roleLabel(r)}
                             </SelectItem>
                           ))}
                         </SelectContent>

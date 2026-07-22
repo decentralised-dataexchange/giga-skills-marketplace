@@ -1,5 +1,6 @@
 import { sql, logEvent } from "@/lib/db";
 import { hashPassword, issueToken } from "@/lib/auth";
+import { DEFAULT_SELF_SERVICE_ROLE, SELF_SERVICE_ROLES } from "@/lib/roles";
 import { check, route } from "@/lib/handler";
 import { publicUser } from "@/lib/views";
 
@@ -13,8 +14,9 @@ export const POST = route(async ({ body }) => {
   const [dupe] = await sql`SELECT 1 FROM users WHERE email = ${cleanEmail}`;
   check(!dupe, 409, "An account with that email already exists");
 
-  // Governance roles are granted by a super admin, never self-assigned.
-  const wanted = ["builder", "provider"].includes(role) ? role : "builder";
+  // Governance roles are granted by a super admin, never self-assigned, and a
+  // role that has been switched off cannot be claimed here either.
+  const wanted = (SELF_SERVICE_ROLES as string[]).includes(role) ? role : DEFAULT_SELF_SERVICE_ROLE;
   const passwordHash = await hashPassword(password);
   const [user] = await sql`
     INSERT INTO users (email, name, role, password_hash)

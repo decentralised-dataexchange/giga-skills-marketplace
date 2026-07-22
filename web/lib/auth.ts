@@ -5,9 +5,8 @@ import { sql } from "./db";
 
 const scrypt = promisify(scryptCallback);
 
-export const ROLES = ["builder", "provider", "reviewer", "superadmin"] as const;
-export type Role = (typeof ROLES)[number];
-export const GOVERNANCE_ROLES: Role[] = ["reviewer", "superadmin"];
+export { ROLES, GOVERNANCE_ROLES, type Role } from "./roles";
+import type { Role } from "./roles";
 
 export interface User {
   id: string;

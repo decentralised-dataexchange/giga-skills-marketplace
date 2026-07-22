@@ -1,5 +1,6 @@
 "use client";
 
+import { notFound } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { api, auth, fmtDate } from "@/lib/client";
 import { Button } from "@/components/ui/button";
@@ -8,10 +9,12 @@ import { Input } from "@/components/ui/input";
 import { StatusBadge } from "@/components/status-badge";
 import { MultiSelect } from "@/components/multi-select";
 import { MarkdownEditor } from "@/components/markdown-editor";
+import { FEATURES } from "@/lib/features";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 export default function DeveloperPage() {
+  if (!FEATURES.showcase) notFound();
   const [skillOpts, setSkillOpts] = useState<string[]>([]);
   const [usecaseOpts, setUsecaseOpts] = useState<string[]>([]);
   const [mine, setMine] = useState<any[]>([]);

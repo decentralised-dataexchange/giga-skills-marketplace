@@ -109,10 +109,67 @@ test("disabled surfaces are unlinked and unreachable", async ({ page }) => {
   await page.goto("/");
   await expect(page.getByRole("link", { name: "Showcase" })).toHaveCount(0);
 
-  for (const path of ["/showcase", "/builder"]) {
+  for (const path of ["/showcase", "/builder", "/developer", "/governance/applications"]) {
     const response = await page.goto(path);
     expect(response?.status(), path).toBe(404);
   }
+});
+
+test("the disabled Developer role cannot be claimed or assigned", async ({ page, request }) => {
+  await page.goto("/login");
+  await page.getByRole("button", { name: "Create account" }).click();
+  await expect(page.getByRole("heading", { name: "Create an account" })).toBeVisible();
+  await expect(page.getByRole("radio")).toHaveCount(0);
+
+  await page.getByRole("button", { name: "View demo accounts" }).click();
+  await expect(page.getByText("student@example.com")).toHaveCount(0);
+
+  // Self-registration lands on the only role still on offer.
+  const email = `e2e-role-${Date.now()}@example.test`;
+  const registered = await request.post("/api/auth/register", {
+    data: { email, password: "register123", name: "Role Fixture", role: "builder" },
+  });
+  expect(registered.status()).toBe(200);
+  expect((await registered.json()).user.role).toBe("provider");
+
+  // Nor can an operator hand the role out.
+  const admin = await signIn(request, "superadmin@govbuild.test", "super123");
+  const users = await request.get("/api/admin/users?page=1&pageSize=100", { headers: admin });
+  const created = (await users.json()).users.find((u: { email: string }) => u.email === email);
+  const assigned = await request.post(`/api/admin/users/${created.id}/role`, {
+    headers: admin,
+    data: { role: "builder" },
+  });
+  expect(assigned.status()).toBe(400);
+});
+
+test("the signed-in dashboard drops the disabled surfaces", async ({ page, request }) => {
+  // Sign in over the API and hand the session to the browser the way the app
+  // does, so no credentials are typed into the page.
+  const response = await request.post("/api/auth/login", {
+    data: { email: "superadmin@govbuild.test", password: "super123" },
+  });
+  expect(response.status()).toBe(200);
+  const { token, user } = await response.json();
+  await page.addInitScript(
+    ([t, u]) => {
+      localStorage.setItem("token", t as string);
+      localStorage.setItem("user", u as string);
+    },
+    [token, JSON.stringify(user)],
+  );
+
+  await page.goto("/governance");
+  await expect(page.getByRole("heading", { name: "Overview" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Applications" })).toHaveCount(0);
+  await expect(page.getByRole("link", { name: "Developer Console" })).toHaveCount(0);
+  await expect(page.getByRole("link", { name: "Integration Assistant" })).toHaveCount(0);
+  await expect(page.getByText("Showcase apps")).toHaveCount(0);
+  await expect(page.getByRole("link", { name: "Review queue" })).toBeVisible();
+
+  await page.goto("/settings");
+  await expect(page.getByRole("heading", { name: "Integration Assistant" })).toHaveCount(0);
+  await expect(page.getByRole("heading", { name: "Account details" })).toBeVisible();
 });
 
 test("moved bundle route and skill API siblings do not conflict", async ({ request }) => {
@@ -203,7 +260,7 @@ test("public, provider, reviewer, and admin API smoke matrix", async ({ request 
   const usersBody = await users.json();
   expect(usersBody.users).toHaveLength(2);
   expect(usersBody.users[0].id).toMatch(UUID_RE);
-  expect(usersBody.total).toBeGreaterThanOrEqual(5);
+  expect(usersBody.total).toBeGreaterThanOrEqual(4);
   expect((await request.get("/api/admin/stats", { headers: admin })).status()).toBe(200);
   expect((await request.get("/api/admin/orgs", { headers: admin })).status()).toBe(200);
 });

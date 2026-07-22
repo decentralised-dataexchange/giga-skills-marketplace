@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { api, auth } from "@/lib/client";
 import { Card } from "@/components/ui/card";
 import { DashboardMain, useDashboardGuard } from "@/components/dashboard-shell";
+import { FEATURES } from "@/lib/features";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -24,14 +25,16 @@ export default function GovernanceOverviewPage() {
     ? [
         [stats.skillsByStatus.published ?? 0, "Published skills"],
         [stats.usecasesByStatus?.published ?? 0, "Published use cases"],
-        [stats.applications ?? 0, "Showcase apps"],
+        ...(FEATURES.showcase ? [[stats.applications ?? 0, "Showcase apps"]] : []),
         [stats.reviewQueue, "In review queue"],
         [stats.orgsByStatus.approved ?? 0, "Verified providers"],
         [stats.orgsByStatus.pending ?? 0, "Orgs pending"],
-        [
-          (stats.usersByRole.builder ?? 0) + (stats.usersByRole.provider ?? 0),
-          "Developers & providers",
-        ],
+        FEATURES.developerRole
+          ? [
+              (stats.usersByRole.builder ?? 0) + (stats.usersByRole.provider ?? 0),
+              "Developers & providers",
+            ]
+          : [stats.usersByRole.provider ?? 0, "Provider accounts"],
       ]
     : [];
 

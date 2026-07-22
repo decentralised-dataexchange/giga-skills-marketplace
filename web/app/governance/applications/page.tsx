@@ -1,5 +1,6 @@
 "use client";
 
+import { notFound } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { api, auth, fmtDate } from "@/lib/client";
 import { Button } from "@/components/ui/button";
@@ -7,12 +8,14 @@ import { Card } from "@/components/ui/card";
 import { StatusBadge } from "@/components/status-badge";
 import { Pagination, pageSlice } from "@/components/pagination";
 import { DashboardMain, useDashboardGuard } from "@/components/dashboard-shell";
+import { FEATURES } from "@/lib/features";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 const PAGE = 10;
 
 export default function ApplicationsModerationPage() {
+  if (!FEATURES.showcase) notFound();
   const { denied } = useDashboardGuard("/governance/applications", ["reviewer", "superadmin"]);
   const [apps, setApps] = useState<any[]>([]);
   const [page, setPage] = useState(1);

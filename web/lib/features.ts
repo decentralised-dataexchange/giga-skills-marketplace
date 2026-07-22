@@ -6,8 +6,17 @@
 // pages, their API routes and the console screens that feed them are untouched,
 // so re-enabling one is a single edit here.
 export const FEATURES = {
-  /** Public gallery of developer applications at /showcase. */
+  /**
+   * Developer applications: the public gallery at /showcase, the Developer
+   * Console that submits to it, and the governance screen that moderates it.
+   */
   showcase: false,
   /** Integration Assistant (AI app builder) at /builder, and its API-key settings. */
   assistant: false,
+  /**
+   * The "Developer" account role (`builder`). While off it cannot be chosen at
+   * registration or assigned by an operator; accounts that already hold it keep
+   * working and still display as Developer.
+   */
+  developerRole: false,
 };

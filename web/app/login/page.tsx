@@ -11,20 +11,35 @@ import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Logo } from "@/components/logo";
 import { primaryConsole } from "@/components/nav-links";
+import { DEFAULT_SELF_SERVICE_ROLE, SELF_SERVICE_ROLES } from "@/lib/roles";
 
 const DEMO_ACCOUNTS = [
   ["superadmin@govbuild.test", "super123", "Super admin (orgs, users, roles, full governance)"],
   ["reviewer@govbuild.test", "review123", "Skill reviewer (review queue only)"],
   ["provider@igrant.io", "provider123", "Approved provider (iGrant.io)"],
   ["labs@educhain.test", "provider123", "Provider awaiting org approval"],
-  ["student@example.com", "student123", "Developer (student)"],
 ];
+
+// Only the roles a visitor may still claim are offered.
+const REGISTER_ROLES: [role: string, title: string, description: string][] = [
+  [
+    "builder",
+    "Developer",
+    "install skills and use cases into your own agent and showcase what you build",
+  ],
+  ["provider", "Provider", "register an organisation and publish skills and use cases for review"],
+].filter(([role]) => (SELF_SERVICE_ROLES as string[]).includes(role)) as [string, string, string][];
 
 function LoginForm() {
   const router = useRouter();
   const next = useSearchParams().get("next");
   const [mode, setMode] = useState<"login" | "register">("login");
-  const [form, setForm] = useState({ email: "", password: "", name: "", role: "builder" });
+  const [form, setForm] = useState({
+    email: "",
+    password: "",
+    name: "",
+    role: DEFAULT_SELF_SERVICE_ROLE as string,
+  });
   const [error, setError] = useState("");
   const [demoOpen, setDemoOpen] = useState(false);
 
@@ -111,20 +126,9 @@ function LoginForm() {
               onChange={set("password")}
               required
             />
-            {mode === "register" && (
+            {mode === "register" && REGISTER_ROLES.length > 1 && (
               <div className="space-y-2">
-                {[
-                  [
-                    "builder",
-                    "Developer",
-                    "install skills and use cases into your own agent and showcase what you build",
-                  ],
-                  [
-                    "provider",
-                    "Provider",
-                    "register an organisation and publish skills and use cases for review",
-                  ],
-                ].map(([value, title, desc]) => (
+                {REGISTER_ROLES.map(([value, title, desc]) => (
                   <label
                     key={value}
                     className="flex cursor-pointer items-start gap-3 rounded-lg border border-border p-3 text-sm"

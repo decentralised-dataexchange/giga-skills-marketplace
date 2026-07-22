@@ -18,7 +18,7 @@ export const CONSOLE_LINKS: NavLink[] = [
   {
     href: "/developer",
     label: "Developer Console",
-    show: (u) => u != null && ["builder", "provider"].includes(u.role),
+    show: (u) => FEATURES.showcase && u != null && ["builder", "provider"].includes(u.role),
   },
   { href: "/provider", label: "Provider Console", show: (u) => u?.role === "provider" },
   {
@@ -34,7 +34,7 @@ export function primaryConsole(u: SessionUser | null): string {
   if (!u) return "/login";
   if (["reviewer", "superadmin"].includes(u.role)) return "/governance";
   if (u.role === "provider") return "/provider";
-  if (u.role === "builder") return "/developer";
+  if (u.role === "builder") return FEATURES.showcase ? "/developer" : "/settings";
   return "/settings";
 }
 
@@ -54,7 +54,7 @@ export const DASHBOARD_NAV: NavGroup[] = [
       {
         href: "/developer",
         label: "Developer Console",
-        show: (u) => u != null && ["builder", "provider"].includes(u.role),
+        show: (u) => FEATURES.showcase && u != null && ["builder", "provider"].includes(u.role),
       },
       {
         href: "/builder",
@@ -80,7 +80,11 @@ export const DASHBOARD_NAV: NavGroup[] = [
     items: [
       { href: "/governance", label: "Overview", show: gov },
       { href: "/governance/review", label: "Review queue", show: gov },
-      { href: "/governance/applications", label: "Applications", show: gov },
+      {
+        href: "/governance/applications",
+        label: "Applications",
+        show: (u) => FEATURES.showcase && gov(u),
+      },
       { href: "/governance/organisations", label: "Organisations", show: superadmin },
       { href: "/governance/users", label: "Users & roles", show: superadmin },
       { href: "/governance/published", label: "Published", show: superadmin },
