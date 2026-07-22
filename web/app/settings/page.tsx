@@ -10,6 +10,7 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { StatusBadge } from "@/components/status-badge";
 import { UserAvatar } from "@/components/user-avatar";
+import { FEATURES } from "@/lib/features";
 
 const MAX_AVATAR_BYTES = 256 * 1024;
 
@@ -151,68 +152,70 @@ function AssistantSection() {
 
   return (
     <div className="space-y-4">
-      <Card className="gap-4 p-6">
-        <div>
-          <h2 className="text-lg font-bold text-ink">Integration Assistant</h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Add your Vercel API key to power the Integration Assistant. Models run through the
-            Vercel AI Gateway, and the same key can run builds in Vercel Sandbox. Stored on your
-            account and used server-side only.
-          </p>
-        </div>
-        <Notice text={err} tone="error" />
-        <Notice text={msg} tone="ok" />
-        {hasKey && (
-          <p className="text-sm text-muted-foreground">
-            Current key: <code className="font-mono">{masked}</code>
-          </p>
-        )}
-        <form
-          className="space-y-3"
-          onSubmit={(e) => {
-            e.preventDefault();
-            if (key.trim()) persist({ vercelKey: key.trim() }, "Vercel API key saved.");
-          }}
-        >
-          <div className="space-y-1.5">
-            <label htmlFor="vercel-key" className="text-sm font-medium text-ink">
-              Vercel API key
-            </label>
-            <Input
-              id="vercel-key"
-              type="password"
-              placeholder="vck_..."
-              autoComplete="off"
-              value={key}
-              onChange={(e) => setKey(e.target.value)}
-            />
-            <p className="text-xs text-muted-foreground">
-              Create a token with AI Gateway access at vercel.com/account/tokens.
+      {FEATURES.assistant && (
+        <Card className="gap-4 p-6">
+          <div>
+            <h2 className="text-lg font-bold text-ink">Integration Assistant</h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Add your Vercel API key to power the Integration Assistant. Models run through the
+              Vercel AI Gateway, and the same key can run builds in Vercel Sandbox. Stored on your
+              account and used server-side only.
             </p>
           </div>
-          <div className="flex flex-wrap gap-2">
-            <Button type="submit" disabled={!key.trim()}>
-              Save key
-            </Button>
-            {hasKey && (
-              <Button
-                type="button"
-                variant="secondary"
-                onClick={() => persist({ clearVercelKey: true }, "Vercel API key removed.")}
-              >
-                Remove
+          <Notice text={err} tone="error" />
+          <Notice text={msg} tone="ok" />
+          {hasKey && (
+            <p className="text-sm text-muted-foreground">
+              Current key: <code className="font-mono">{masked}</code>
+            </p>
+          )}
+          <form
+            className="space-y-3"
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (key.trim()) persist({ vercelKey: key.trim() }, "Vercel API key saved.");
+            }}
+          >
+            <div className="space-y-1.5">
+              <label htmlFor="vercel-key" className="text-sm font-medium text-ink">
+                Vercel API key
+              </label>
+              <Input
+                id="vercel-key"
+                type="password"
+                placeholder="vck_..."
+                autoComplete="off"
+                value={key}
+                onChange={(e) => setKey(e.target.value)}
+              />
+              <p className="text-xs text-muted-foreground">
+                Create a token with AI Gateway access at vercel.com/account/tokens.
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <Button type="submit" disabled={!key.trim()}>
+                Save key
               </Button>
-            )}
-            <Link
-              href="/builder"
-              className="inline-flex items-center gap-1.5 rounded-md border border-border px-3 py-2 text-sm font-semibold text-ink transition-colors hover:bg-accent"
-            >
-              Open assistant
-              <ArrowRight className="size-4" aria-hidden="true" />
-            </Link>
-          </div>
-        </form>
-      </Card>
+              {hasKey && (
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={() => persist({ clearVercelKey: true }, "Vercel API key removed.")}
+                >
+                  Remove
+                </Button>
+              )}
+              <Link
+                href="/builder"
+                className="inline-flex items-center gap-1.5 rounded-md border border-border px-3 py-2 text-sm font-semibold text-ink transition-colors hover:bg-accent"
+              >
+                Open assistant
+                <ArrowRight className="size-4" aria-hidden="true" />
+              </Link>
+            </div>
+          </form>
+        </Card>
+      )}
     </div>
   );
 }

@@ -10,6 +10,7 @@ import { AgentsStrip } from "@/components/agent-logo";
 import { OfficialBadge } from "@/components/official-badge";
 import { Pagination } from "@/components/pagination";
 import { providerPath, usecaseEntryPath, usecasePath } from "@/lib/routes";
+import { FEATURES } from "@/lib/features";
 
 interface Entry {
   slug: string;
@@ -52,8 +53,9 @@ const INFO = [
   {
     title: "What is a use case?",
     body: "A journey-tagged prompt chain (J1, J2, …) that composes published skills into a working solution. It lists prerequisites and, per journey, the agent prompts and done-criteria. Install it into your own agent.",
-    href: "/showcase",
-    cta: "See what people built",
+    ...(FEATURES.showcase
+      ? { href: "/showcase", cta: "See what people built" }
+      : { href: "#catalog", cta: "Browse use cases" }),
   },
   {
     title: "How submissions are reviewed",

@@ -45,6 +45,8 @@ Catalog URLs name the provider that owns the item:
 
 `<provider>` is the organisation slug (its UUID also resolves). Bare `/skill/<slug>` and `/usecase/<slug>` redirect to the canonical path, because a slug travels alone in a manifest's `uses_skills` list, a showcase entry and an agent prompt.
 
+The public application showcase (`/showcase`) and the Integration Assistant (`/builder`) are built but currently switched off in [`web/lib/features.ts`](web/lib/features.ts): their navigation entries and inbound links disappear and the routes answer 404. Nothing behind them is removed, so re-enabling one is a single edit in that file.
+
 ## Quick start
 
 PostgreSQL always runs in Docker. A `Makefile` wraps the common routines; run `make help` to list them.

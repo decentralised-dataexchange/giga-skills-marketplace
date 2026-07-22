@@ -1,7 +1,7 @@
 "use client";
 
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { notFound, useSearchParams } from "next/navigation";
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport, type UIMessage } from "ai";
 import { api, auth } from "@/lib/client";
@@ -31,6 +31,7 @@ import {
 } from "@/components/ai-elements/web-preview";
 import { CodeIcon, DownloadIcon, ExternalLinkIcon, PanelLeftIcon, XIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { FEATURES } from "@/lib/features";
 
 interface Entry {
   slug: string;
@@ -504,6 +505,7 @@ function Builder() {
 }
 
 export default function BuilderPage() {
+  if (!FEATURES.assistant) notFound();
   return (
     <Suspense>
       <Builder />

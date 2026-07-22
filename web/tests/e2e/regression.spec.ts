@@ -105,6 +105,16 @@ test("skill bundle route returns a valid, path-preserving zip", async ({ page })
   expect(zip.readAsText(`${SKILL}/SKILL.md`)).toContain(`name: ${SKILL}`);
 });
 
+test("disabled surfaces are unlinked and unreachable", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.getByRole("link", { name: "Showcase" })).toHaveCount(0);
+
+  for (const path of ["/showcase", "/builder"]) {
+    const response = await page.goto(path);
+    expect(response?.status(), path).toBe(404);
+  }
+});
+
 test("moved bundle route and skill API siblings do not conflict", async ({ request }) => {
   const getChecks: [string, number][] = [
     [`/api/bundles/${SKILL}`, 200],

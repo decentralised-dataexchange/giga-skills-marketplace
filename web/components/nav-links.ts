@@ -1,4 +1,5 @@
 import type { SessionUser } from "@/lib/client";
+import { FEATURES } from "@/lib/features";
 
 export interface NavLink {
   href: string;
@@ -9,7 +10,7 @@ export interface NavLink {
 // Public-facing browsing, shown in the top nav.
 export const PUBLIC_LINKS: NavLink[] = [
   { href: "/", label: "Marketplace", show: () => true },
-  { href: "/showcase", label: "Showcase", show: () => true },
+  { href: "/showcase", label: "Showcase", show: () => FEATURES.showcase },
 ];
 
 // Administrative / console features, shown only in the logged-in dashboard sidebar.
@@ -58,7 +59,7 @@ export const DASHBOARD_NAV: NavGroup[] = [
       {
         href: "/builder",
         label: "Integration Assistant",
-        show: (u) => u != null && ["builder", "provider"].includes(u.role),
+        show: (u) => FEATURES.assistant && u != null && ["builder", "provider"].includes(u.role),
       },
     ],
   },

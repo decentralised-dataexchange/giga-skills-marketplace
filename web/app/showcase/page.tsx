@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { notFound } from "next/navigation";
 import { ArrowUpRight } from "lucide-react";
 import { useEffect, useState } from "react";
 import { api, timeAgo } from "@/lib/client";
@@ -8,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Markdown } from "@/components/markdown";
 import { Pagination } from "@/components/pagination";
 import { skillEntryPath, usecaseEntryPath } from "@/lib/routes";
+import { FEATURES } from "@/lib/features";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -89,6 +91,7 @@ function AppCard({ app }: { app: any }) {
 }
 
 export default function ShowcasePage() {
+  if (!FEATURES.showcase) notFound();
   const [q, setQ] = useState("");
   const [page, setPage] = useState(1);
   const [data, setData] = useState<{ applications: any[]; total: number }>({
