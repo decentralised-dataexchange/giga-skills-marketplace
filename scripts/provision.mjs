@@ -73,8 +73,9 @@ async function findPresentationDefinition(key, label) {
     'GET',
     `/v2/config/digital-wallet/openid/sdjwt/presentation-definitions?search=${encodeURIComponent(label)}&limit=50`
   );
+  // The list answer nests the array under the singular key.
   const items =
-    list?.presentationDefinitions ?? list?.items ?? list?.data ?? [];
+    list?.presentationDefinition ?? list?.presentationDefinitions ?? [];
   return items.find(
     (item) => (item.label ?? item.presentationDefinition?.label) === label
   );
@@ -184,14 +185,21 @@ async function main() {
     version: 'version_01',
     responseType: 'vp_token',
     responseMode: 'direct_post',
-    transactionDataDefinitionType: 'payment_data',
+    // TS12 payment confirmation. At send time the request must carry
+    // transactionData with transaction_id, payee{name,id}, currency, amount.
+    transactionDataDefinitionType: 'payment',
     dcqlQuery: {
       credentials: [
         {
           id: 'payment-account',
           format: 'dc+sd-jwt',
+          // The vct of the demo Payment Account Credential issued by
+          // igrant.io/demo/ts12-payment-credential-issuance.html (Piggy Bank
+          // sandbox issuer on oid4vc.igrant.io).
           meta: {
-            vct_values: [`${BASE}/service/vct-metadata/payment_account`],
+            vct_values: [
+              'https://oid4vc.igrant.io/service/vct-metadata/payment_account',
+            ],
           },
           claims: [
             { path: ['iban'] },
