@@ -233,10 +233,11 @@ async function main() {
     version: 'version_01',
     responseType: 'vp_token',
     responseMode: 'direct_post',
-    // x509: the request is signed with the organisation certificate chain,
-    // which is granted on the NXD WRPAC trust list, so wallets trust it.
+    // x509 with a dedicated key: the request is signed with this
+    // definition's own certificate, granted on the NXD WRPAC trust list.
     clientIdScheme: 'x509_hash',
     trustAnchor: 'x509',
+    kid: env.PID_VERIFY_KID || undefined,
     dcqlQuery: {
       credentials: [
         {
@@ -261,6 +262,7 @@ async function main() {
     responseMode: 'direct_post',
     clientIdScheme: 'x509_hash',
     trustAnchor: 'x509',
+    kid: env.PAYMENT_VERIFY_KID || undefined,
     // TS12 payment confirmation. At send time the request must carry
     // transactionData with transaction_id, payee{name,id}, currency, amount.
     transactionDataDefinitionType: 'payment',
@@ -291,9 +293,10 @@ async function main() {
   const studentIdDef = await ensureCredentialDefinition(moeKey, {
     label: 'Verifiable Student ID',
     version: 'version_01',
-    // x509: credentials are signed with the organisation certificate chain,
-    // granted on the NXD Pub-EAA trust list.
+    // x509 with a dedicated key: credentials are signed with this
+    // definition's own certificate, granted on the NXD Pub-EAA trust list.
     trustAnchor: 'x509',
+    kid: env.STUDENT_ID_KID || undefined,
     display: {
       name: 'Student ID',
       description: 'National Learner Registry student identity',
@@ -317,6 +320,7 @@ async function main() {
     label: 'National Diploma',
     version: 'version_01',
     trustAnchor: 'x509',
+    kid: env.DIPLOMA_KID || undefined,
     display: {
       name: 'Diploma',
       description: 'Ministry of Education diploma credential',
@@ -344,6 +348,7 @@ async function main() {
     responseMode: 'direct_post',
     clientIdScheme: 'x509_hash',
     trustAnchor: 'x509',
+    kid: env.DIPLOMA_CHECK_KID || undefined,
     dcqlQuery: {
       credentials: [
         {

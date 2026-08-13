@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 import { authClient } from '@/lib/auth-client';
+import { Drawer } from '@/components/Drawer';
 import type { DemoAccount } from '@/lib/demo-accounts';
 
 /**
@@ -31,7 +32,7 @@ export function StaffLoginForm({
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
-  const [revealed, setRevealed] = useState(false);
+  const [drawerOpen, setDrawerOpen] = useState(false);
 
   async function submit(event: React.FormEvent) {
     event.preventDefault();
@@ -80,36 +81,48 @@ export function StaffLoginForm({
       </form>
       {demoAccount ? (
         <div className="demo-try">
-          {revealed ? (
+          <p className="demo-try-line">
+            Want to try it out?{' '}
             <button
               type="button"
-              className="demo-account"
-              onClick={() => {
-                setEmail(demoAccount.email);
-                setPassword(demoAccount.password);
-                setError(null);
-              }}
+              className="demo-try-link"
+              onClick={() => setDrawerOpen(true)}
             >
-              <span className="demo-account-creds">
-                {demoAccount.email} · {demoAccount.password}
-              </span>
-              <span className="demo-account-label">
-                {demoAccount.label} — click to fill the form
-              </span>
+              Use a demo account
             </button>
-          ) : (
-            <p className="demo-try-line">
-              Want to try it out?{' '}
+          </p>
+        </div>
+      ) : null}
+      {demoAccount && drawerOpen ? (
+        <Drawer
+          title="Demo accounts"
+          onClose={() => setDrawerOpen(false)}
+          footer={
+            <button type="button" onClick={() => setDrawerOpen(false)}>
+              Close
+            </button>
+          }
+        >
+          <p className="drawer-hint">Click an account to fill the sign-in form.</p>
+          <ul className="drawer-accounts">
+            <li>
               <button
                 type="button"
-                className="demo-try-link"
-                onClick={() => setRevealed(true)}
+                onClick={() => {
+                  setEmail(demoAccount.email);
+                  setPassword(demoAccount.password);
+                  setError(null);
+                  setDrawerOpen(false);
+                }}
               >
-                Use a demo account
+                <span className="demo-account-creds">
+                  {demoAccount.email} · {demoAccount.password}
+                </span>
+                <span className="demo-account-label">{demoAccount.label}</span>
               </button>
-            </p>
-          )}
-        </div>
+            </li>
+          </ul>
+        </Drawer>
       ) : null}
     </>
   );
