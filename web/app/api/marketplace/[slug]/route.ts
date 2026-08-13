@@ -28,9 +28,6 @@ export const GET = route<{ slug: string }>(async ({ params }) => {
       skill: {
         id: skill.id,
         slug: skill.slug,
-        type: skill.type ?? "skill",
-        installs: skill.installs,
-        official: skill.official ?? false,
       },
       org: {
         name: skill.org_name,
@@ -47,6 +44,7 @@ export const GET = route<{ slug: string }>(async ({ params }) => {
         manifest: version.manifest,
         files: version.files,
         checks: version.checks,
+        repo: version.repo ?? null,
         publishedAt: version.decided_at,
       },
       history: history.map((h) => ({

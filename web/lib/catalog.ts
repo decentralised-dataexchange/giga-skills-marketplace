@@ -5,29 +5,26 @@ import {
   MarketplaceApiError,
   marketplaceRequest,
 } from "./marketplace-client";
-import { skillPath, usecasePath } from "./routes";
+import { skillPath } from "./routes";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 /**
- * Canonical, provider-scoped path for a published skill or use case, or null
+ * Canonical, provider- and source-scoped path for a published skill, or null
  * when nothing published owns the slug.
  */
 export async function canonicalCatalogPath(slug: string): Promise<string | null> {
-  const entry = await publishedEntry(slug);
-  if (!entry?.provider) return null;
-  return entry.type === "usecase"
-    ? usecasePath(entry.provider, slug)
-    : skillPath(entry.provider, slug);
+  const home = await publishedHome(slug);
+  return home ? skillPath(home.provider, home.source, slug) : null;
 }
 
-async function publishedEntry(
-  slug: string,
-): Promise<{ provider: string | null; type: string } | null> {
+async function publishedHome(slug: string): Promise<{ provider: string; source: string } | null> {
   if (hasMarketplaceService) {
     try {
       const detail = await marketplaceRequest<any>(`/v1/skills/${encodeURIComponent(slug)}`);
-      return { provider: detail?.org?.slug ?? null, type: detail?.skill?.type ?? "skill" };
+      const provider = detail?.org?.slug ?? null;
+      if (!provider) return null;
+      return { provider, source: detail?.version?.repo?.repo ?? "bundles" };
     } catch (e) {
       if (e instanceof MarketplaceApiError && e.status === 404) return null;
       throw e;
@@ -36,8 +33,11 @@ async function publishedEntry(
 
   await ensureReady();
   const [row] = await sql`
-    SELECT s.type, o.slug AS provider
-    FROM skills s JOIN orgs o ON o.id = s.org_id
+    SELECT o.slug AS provider, v.repo AS repo
+    FROM skills s
+    JOIN orgs o ON o.id = s.org_id
+    LEFT JOIN versions v ON v.id = s.published_version_id
     WHERE s.slug = ${slug} AND s.status = 'published'`;
-  return row ? { provider: (row.provider as string) ?? null, type: row.type as string } : null;
+  if (!row?.provider) return null;
+  return { provider: row.provider as string, source: (row.repo as any)?.repo ?? "bundles" };
 }

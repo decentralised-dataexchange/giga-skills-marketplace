@@ -28,9 +28,7 @@ export const PATCH = route<{ id: string }>(
     }
 
     const status =
-      b.status && ["pending", "approved", "rejected"].includes(b.status)
-        ? b.status
-        : current.status;
+      b.status && ["approved", "rejected"].includes(b.status) ? b.status : current.status;
 
     const [org] = await sql`
     UPDATE orgs SET name = ${name}, slug = ${slug}, status = ${status}

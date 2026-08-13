@@ -7,7 +7,7 @@ export interface SessionUser {
   id: string;
   email: string;
   name: string;
-  role: "builder" | "provider" | "reviewer" | "superadmin";
+  role: "provider" | "reviewer" | "superadmin";
   avatar?: string | null;
 }
 
@@ -115,4 +115,18 @@ export function timeAgo(iso?: string | null): string {
   if (months < 12) return `${months} month${months === 1 ? "" : "s"} ago`;
   const years = Math.floor(days / 365);
   return `${years} year${years === 1 ? "" : "s"} ago`;
+}
+
+// Walk every catalog page for one provider: a single source can carry up to
+// 200 skills, and a provider can publish from several sources.
+export async function fetchAllProviderSkills(provider: string) {
+  const all: any[] = [];
+  for (let page = 1; page <= 25; page++) {
+    const d = await api(
+      `/api/marketplace?provider=${encodeURIComponent(provider)}&page=${page}&pageSize=200`,
+    );
+    all.push(...d.skills);
+    if (!d.skills.length || all.length >= (d.total ?? all.length)) break;
+  }
+  return all;
 }

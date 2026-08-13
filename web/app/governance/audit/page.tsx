@@ -2,8 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { api, auth } from "@/lib/client";
-import { Card } from "@/components/ui/card";
-import { Pagination, pageSlice } from "@/components/pagination";
+import { toast } from "@/components/toast";
+import { describeEvent, eventLabel } from "@/lib/events";
+import { pageSlice } from "@/components/pagination";
+import { DataTable } from "@/components/data-table";
 import { DashboardMain, useDashboardGuard } from "@/components/dashboard-shell";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -14,13 +16,12 @@ export default function AuditPage() {
   const { denied } = useDashboardGuard("/governance/audit", ["reviewer", "superadmin"]);
   const [events, setEvents] = useState<any[]>([]);
   const [page, setPage] = useState(1);
-  const [message, setMessage] = useState("");
 
   useEffect(() => {
     if (auth.user && ["reviewer", "superadmin"].includes(auth.user.role)) {
       api("/api/admin/events")
         .then((d) => setEvents(d.events))
-        .catch((e) => setMessage(e.message));
+        .catch((e) => toast.error(e.message));
     }
   }, []);
 
@@ -30,36 +31,43 @@ export default function AuditPage() {
       subtitle="Every governance action, retained as audit evidence."
       denied={denied}
     >
-      {message && <p className="text-sm font-semibold text-amber-600">{message}</p>}
-      <Card className="gap-3 p-6">
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[720px] text-sm">
-            <thead>
-              <tr className="text-left text-xs uppercase tracking-wide text-muted-foreground">
-                <th className="py-2">When</th>
-                <th>Event</th>
-                <th>Actor</th>
-                <th>Detail</th>
-              </tr>
-            </thead>
-            <tbody>
-              {pageSlice(events, page, PAGE).map((e) => (
-                <tr key={e.id} className="border-t border-border">
-                  <td className="whitespace-nowrap py-2 tabular-nums">
-                    {new Date(e.at).toLocaleString()}
-                  </td>
-                  <td>{e.type}</td>
-                  <td>{e.actor.name}</td>
-                  <td className="max-w-md truncate font-mono text-xs text-muted-foreground">
-                    {JSON.stringify(e.detail ?? {})}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-        <Pagination page={page} pageSize={PAGE} total={events.length} onPage={setPage} />
-      </Card>
+      <DataTable
+        columns={[
+          {
+            key: "when",
+            header: "When",
+            width: 200,
+            render: (e: any) =>
+              new Date(e.at).toLocaleString(undefined, {
+                year: "numeric",
+                month: "short",
+                day: "numeric",
+                hour: "2-digit",
+                minute: "2-digit",
+              }),
+            title: (e: any) => new Date(e.at).toLocaleString(),
+          },
+          // The stored event stays JSON; people read sentences. The raw
+          // payload remains one hover away.
+          {
+            key: "event",
+            header: "Event",
+            width: 200,
+            render: (e: any) => eventLabel(e.type),
+            title: (e: any) => e.type,
+          },
+          { key: "actor", header: "Actor", width: 180, render: (e: any) => e.actor.name },
+          {
+            key: "detail",
+            header: "Detail",
+            render: (e: any) => describeEvent(e.type, e.detail),
+            title: (e: any) => describeEvent(e.type, e.detail),
+          },
+        ]}
+        rows={pageSlice(events, page, PAGE)}
+        rowKey={(e: any) => e.id}
+        pagination={{ page, pageSize: PAGE, total: events.length, onPage: setPage }}
+      />
     </DashboardMain>
   );
 }

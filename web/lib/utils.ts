@@ -25,39 +25,17 @@ export function slugify(s: string): string {
   );
 }
 
-// Top-level route segments a provider slug must not shadow (the provider
-// discovery path lives at /<slug>/.well-known/skills/...).
+// Slugs that must stay usable as route segments and cannot be taken by an
+// organisation handle.
 export const RESERVED_SLUGS = new Set([
-  "a",
   "api",
-  "builder",
-  "developer",
   "fonts",
   "governance",
   "login",
+  "marketplace",
   "provider",
   "providers",
   "settings",
-  "showcase",
   "skill",
-  "usecase",
   "well-known",
 ]);
-
-// Flatten markdown to plain text for compact previews (list rows, cards, cells).
-export function stripMd(s?: string | null): string {
-  if (!s) return "";
-  return s
-    .replace(/`{1,3}([^`]*)`{1,3}/g, "$1")
-    .replace(/\*\*([^*]+)\*\*/g, "$1")
-    .replace(/\*([^*]+)\*/g, "$1")
-    .replace(/_([^_]+)_/g, "$1")
-    .replace(/~~([^~]+)~~/g, "$1")
-    .replace(/^#{1,6}\s+/gm, "")
-    .replace(/^\s*[-*+]\s+/gm, "")
-    .replace(/^\s*\d+\.\s+/gm, "")
-    .replace(/\[([^\]]+)\]\([^)]*\)/g, "$1")
-    .replace(/^>\s?/gm, "")
-    .replace(/\s+/g, " ")
-    .trim();
-}

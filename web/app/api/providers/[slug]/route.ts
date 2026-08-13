@@ -32,11 +32,11 @@ export const GET = route<{ slug: string }>(async ({ params }) => {
   const match = isUuid(key) ? sql`o.id = ${key}` : sql`o.slug = ${key}`;
   const [row] = await sql`
     SELECT o.id, o.name, o.slug, o.logo, o.website, o.description,
-           count(s.id) FILTER (WHERE s.type = 'skill' AND s.status = 'published') AS skill_count,
-           count(s.id) FILTER (WHERE s.type = 'usecase' AND s.status = 'published') AS usecase_count
+           count(s.id) FILTER (WHERE s.status = 'published') AS skill_count
     FROM orgs o
     LEFT JOIN skills s ON s.org_id = o.id
     WHERE ${match} AND o.status = 'approved'
+      AND EXISTS (SELECT 1 FROM skills p WHERE p.org_id = o.id AND p.status = 'published')
     GROUP BY o.id`;
   check(row, 404, "Provider not found");
   return NextResponse.json(providerView(row), { headers: { "Cache-Control": CACHE } });

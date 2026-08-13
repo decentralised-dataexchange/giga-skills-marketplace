@@ -1,7 +1,8 @@
 name: CI
 
 # Quality gates on every push and pull request:
-# oxlint + oxfmt (OXC) for lint/format, plus tsc + eslint on the web app.
+# Ruff + pytest for the marketplace API, OXC for repo lint/format, and
+# tsc + eslint for the web app.
 
 on:
   push:
@@ -12,6 +13,59 @@ permissions:
   contents: read
 
 jobs:
+  marketplace:
+    name: Lint and test (FastAPI)
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: govbuild
+          POSTGRES_USER: govbuild
+          POSTGRES_PASSWORD: govbuild-test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U govbuild -d govbuild"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      TEST_DATABASE_URL: postgresql://govbuild:govbuild-test@localhost:5432/govbuild
+    defaults:
+      run:
+        working-directory: services/marketplace
+    steps:
+      - uses: actions/checkout@v5
+      - name: Install uv
+        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
+        with:
+          version: "0.11.32"
+          enable-cache: true
+          cache-dependency-glob: services/marketplace/uv.lock
+      - name: Install dependencies
+        run: uv sync --locked
+      - name: Ruff
+        run: uv run ruff check . && uv run ruff format --check .
+      - name: Pytest
+        run: uv run pytest
+      - name: Build and smoke-test production image
+        run: |
+          docker build --tag giga-marketplace-ci .
+          docker run --detach --rm --network host \
+            --name giga-marketplace-ci \
+            --env DATABASE_URL="$TEST_DATABASE_URL" \
+            giga-marketplace-ci
+          trap 'docker stop giga-marketplace-ci' EXIT
+          for attempt in {1..30}; do
+            if curl --fail --silent http://localhost:4830/health; then
+              exit 0
+            fi
+            sleep 1
+          done
+          docker logs giga-marketplace-ci
+          exit 1
+
   oxc:
     name: Lint and format (OXC)
     runs-on: ubuntu-latest

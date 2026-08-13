@@ -3,10 +3,9 @@
 
 DB_URL         ?= postgresql://govbuild:govbuild-dev@localhost:5433/govbuild
 MARKETPLACE_URL ?= http://localhost:4830
-INTERNAL_TOKEN ?= local-marketplace-token
 
 .DEFAULT_GOAL := help
-.PHONY: help db db-stop db-reset install marketplace web lint fmt fmt-check check up down reset
+.PHONY: help db db-stop db-reset install marketplace marketplace-check web lint fmt fmt-check check up down reset
 
 help: ## List available targets
 	@grep -hE '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) | \
@@ -24,14 +23,19 @@ db-reset: ## Wipe and restart PostgreSQL (drops all data)
 
 install: ## Install dependencies (root OXC tooling, marketplace service, web app)
 	npm install
-	cd services/marketplace && npm install
+	cd services/marketplace && uv sync
 	cd web && npm install
 
 marketplace: ## Run the marketplace service on :4830 (needs `make db`)
-	cd services/marketplace && DATABASE_URL="$(DB_URL)" MARKETPLACE_INTERNAL_TOKEN="$(INTERNAL_TOKEN)" npm run dev
+	cd services/marketplace && DATABASE_URL="$(DB_URL)" uv run uvicorn marketplace.main:app --reload --host 0.0.0.0 --port 4830
+
+marketplace-check: ## Lint, format-check, and test the FastAPI service
+	cd services/marketplace && uv run ruff check .
+	cd services/marketplace && uv run ruff format --check .
+	cd services/marketplace && uv run pytest
 
 web: ## Run the web app on :4820 (needs `make db` and `make marketplace`)
-	cd web && DATABASE_URL="$(DB_URL)" MARKETPLACE_API_URL="$(MARKETPLACE_URL)" MARKETPLACE_INTERNAL_TOKEN="$(INTERNAL_TOKEN)" npm run dev -- -p 4820
+	cd web && DATABASE_URL="$(DB_URL)" MARKETPLACE_API_URL="$(MARKETPLACE_URL)" npm run dev -- -p 4820
 
 lint: ## Lint the repo with oxlint
 	npm run lint
@@ -42,9 +46,10 @@ fmt: ## Format the repo with oxfmt (writes changes)
 fmt-check: ## Check formatting with oxfmt (no writes)
 	npm run format:check
 
-check: ## Format-check, oxlint, then typecheck and eslint the web app
+check: ## Check the Python service and all root/web lint, format, type, and test gates
 	npm run format:check
 	npm run lint
+	$(MAKE) marketplace-check
 	cd web && npx tsc --noEmit && npx eslint app components lib
 
 up: ## Build and run the full stack in Docker (postgres + marketplace + web)

@@ -14,7 +14,7 @@ const TRAIL_TYPES = [
 
 export const GET = route<{ slug: string }>(async ({ params }) => {
   const [skill] = await sql`
-    SELECT id, slug, official, published_version_id FROM skills
+    SELECT id, slug, published_version_id FROM skills
     WHERE slug = ${params.slug} AND status = 'published'`;
   check(skill, 404, "Skill not found or not published");
 
@@ -48,7 +48,7 @@ export const GET = route<{ slug: string }>(async ({ params }) => {
   ].filter(Boolean);
 
   return {
-    skill: { slug: skill.slug, official: skill.official ?? false },
+    skill: { slug: skill.slug },
     version: {
       version: version.version,
       checks: version.checks,

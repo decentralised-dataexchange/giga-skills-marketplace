@@ -1,111 +1,75 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
-import { usePathname, useRouter } from "next/navigation";
-import { api, auth, useSession } from "@/lib/client";
-import { Button } from "@/components/ui/button";
-import { UserAvatar } from "@/components/user-avatar";
-import { Logo } from "@/components/logo";
-import { DASHBOARD_NAV } from "@/components/nav-links";
+import {
+  Activity,
+  BadgeCheck,
+  Building2,
+  Home,
+  KeyRound,
+  ScrollText,
+  Shield,
+  Upload,
+  Users,
+} from "@/components/icons";
+import { usePathname } from "next/navigation";
+import { useSession } from "@/lib/client";
+import { DASHBOARD_ITEMS } from "@/components/nav-links";
 import { cn } from "@/lib/utils";
 
-// Left navigation rail for the dashboard: grouped, admin-only sections.
-export function Sidebar({ className }: { className?: string }) {
-  const pathname = usePathname();
-  const router = useRouter();
-  const user = useSession();
+// The NXD trust-list rail icon set: 20px lucide glyphs in the muted ink tone.
+const ICONS: Record<string, React.ReactNode> = {
+  home: <Home className="size-5 shrink-0 text-[#48484d]" aria-hidden="true" />,
+  upload: <Upload className="size-5 shrink-0 text-[#48484d]" aria-hidden="true" />,
+  scroll: <ScrollText className="size-5 shrink-0 text-[#48484d]" aria-hidden="true" />,
+  approvals: <BadgeCheck className="size-5 shrink-0 text-[#48484d]" aria-hidden="true" />,
+  org: <Building2 className="size-5 shrink-0 text-[#48484d]" aria-hidden="true" />,
+  shield: <Shield className="size-5 shrink-0 text-[#48484d]" aria-hidden="true" />,
+  activity: <Activity className="size-5 shrink-0 text-[#48484d]" aria-hidden="true" />,
+  users: <Users className="size-5 shrink-0 text-[#48484d]" aria-hidden="true" />,
+  key: <KeyRound className="size-5 shrink-0 text-[#48484d]" aria-hidden="true" />,
+};
 
-  async function signOut() {
-    await api("/api/auth/logout", { method: "POST" }).catch(() => {});
-    auth.signOut();
-    router.push("/");
-  }
+// Left navigation rail for the dashboard, organised as in the NXD trust-list
+// backoffice: a light #fafafa rail of flat uppercase icon rows with plain
+// black-on-grey hover/active states. The user block lives in the navy topbar.
+export function Sidebar({
+  className,
+  collapsed = false,
+}: {
+  className?: string;
+  collapsed?: boolean;
+}) {
+  const pathname = usePathname();
+  const user = useSession();
 
   return (
     <aside
       className={cn(
-        "sticky top-0 h-screen w-60 shrink-0 flex-col border-r border-border bg-white",
+        "h-full w-[280px] shrink-0 flex-col overflow-x-hidden overflow-y-auto whitespace-nowrap border-r border-[#e0e0e0] bg-[#fafafa] pt-2 pb-10 transition-[width] duration-200",
+        collapsed && "md:w-0 md:border-r-0",
         className,
       )}
     >
-      <Link href="/" className="flex h-16 items-center px-5" aria-label="Giga home">
-        <Logo />
-      </Link>
-
-      <Link
-        href="/"
-        className="mx-3 mb-2 flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-ink"
-      >
-        <ArrowLeft className="size-4" aria-hidden="true" />
-        Marketplace
-      </Link>
-
-      <nav aria-label="Dashboard" className="flex-1 space-y-4 overflow-y-auto px-3 pb-3">
-        {DASHBOARD_NAV.map((group) => {
-          const items = group.items.filter((l) => l.show(user));
-          if (!items.length) return null;
+      <nav aria-label="Dashboard" className="flex-1">
+        {DASHBOARD_ITEMS.filter((l) => l.show(user)).map((l) => {
+          const active = pathname === l.href;
           return (
-            <div key={group.label}>
-              <p className="px-2 pb-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                {group.label}
-              </p>
-              <div className="space-y-0.5">
-                {items.map((l) => {
-                  const active = pathname === l.href;
-                  return (
-                    <Link
-                      key={l.href}
-                      href={l.href}
-                      aria-current={active ? "page" : undefined}
-                      className={cn(
-                        "block rounded-lg px-3 py-1.5 text-sm font-semibold transition-colors",
-                        active
-                          ? "bg-secondary text-ink"
-                          : "text-ink/70 hover:bg-secondary hover:text-ink",
-                      )}
-                    >
-                      {l.label}
-                    </Link>
-                  );
-                })}
-              </div>
-            </div>
+            <Link
+              key={l.href}
+              href={l.href}
+              aria-current={active ? "page" : undefined}
+              className={cn(
+                "my-1.5 flex items-center gap-1.5 px-3 py-2 text-[11px] font-bold uppercase tracking-[0.66px] text-[#58585d] no-underline transition-colors hover:bg-black/5 hover:text-black",
+                active && "bg-black/5 text-black",
+              )}
+            >
+              {ICONS[l.icon]}
+              {l.label}
+            </Link>
           );
         })}
       </nav>
-
-      <div className="border-t border-border p-3">
-        {user ? (
-          <>
-            <Link
-              href="/settings"
-              className={cn(
-                "flex items-center gap-2 rounded-lg p-2 transition-colors hover:bg-secondary",
-                pathname === "/settings" && "bg-secondary",
-              )}
-            >
-              <UserAvatar name={user.name} avatar={user.avatar} size="sm" decorative />
-              <span className="min-w-0 flex-1 truncate text-sm font-medium text-ink">
-                {user.name}
-              </span>
-            </Link>
-            <Button variant="secondary" size="sm" className="mt-1.5 w-full" onClick={signOut}>
-              Sign out
-            </Button>
-          </>
-        ) : (
-          <Button
-            variant="secondary"
-            size="sm"
-            className="w-full"
-            nativeButton={false}
-            render={<Link href="/login" />}
-          >
-            Sign in
-          </Button>
-        )}
-      </div>
     </aside>
   );
 }

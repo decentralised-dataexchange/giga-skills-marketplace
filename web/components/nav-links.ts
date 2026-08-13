@@ -1,5 +1,4 @@
 import type { SessionUser } from "@/lib/client";
-import { FEATURES } from "@/lib/features";
 
 export interface NavLink {
   href: string;
@@ -7,92 +6,38 @@ export interface NavLink {
   show: (u: SessionUser | null) => boolean;
 }
 
-// Public-facing browsing, shown in the top nav.
+// Public-facing browsing, shown in the top nav. The catalog lives on the
+// homepage; the Knowledgebase holds the documentation.
 export const PUBLIC_LINKS: NavLink[] = [
-  { href: "/", label: "Marketplace", show: () => true },
-  { href: "/showcase", label: "Showcase", show: () => FEATURES.showcase },
-];
-
-// Administrative / console features, shown only in the logged-in dashboard sidebar.
-export const CONSOLE_LINKS: NavLink[] = [
-  {
-    href: "/developer",
-    label: "Developer Console",
-    show: (u) => FEATURES.showcase && u != null && ["builder", "provider"].includes(u.role),
-  },
-  { href: "/provider", label: "Provider Console", show: (u) => u?.role === "provider" },
-  {
-    href: "/governance",
-    label: "Governance",
-    show: (u) => u != null && ["reviewer", "superadmin"].includes(u.role),
-  },
-  { href: "/settings", label: "Settings", show: (u) => u != null },
+  { href: "/", label: "Home", show: () => true },
+  { href: "/knowledgebase", label: "Knowledgebase", show: () => true },
 ];
 
 // The console a user lands on from the top-nav "Dashboard" entry point.
 export function primaryConsole(u: SessionUser | null): string {
   if (!u) return "/login";
-  if (["reviewer", "superadmin"].includes(u.role)) return "/governance";
+  if (["reviewer", "superadmin"].includes(u.role)) return "/governance/review";
   if (u.role === "provider") return "/provider";
-  if (u.role === "builder") return FEATURES.showcase ? "/developer" : "/settings";
   return "/settings";
 }
 
-// Grouped dashboard navigation: each console block is its own page.
+const provider = (u: SessionUser | null) => u?.role === "provider";
 const gov = (u: SessionUser | null) => u != null && ["reviewer", "superadmin"].includes(u.role);
 const superadmin = (u: SessionUser | null) => u?.role === "superadmin";
 
-export interface NavGroup {
-  label: string;
-  items: NavLink[];
+export interface DashboardItem extends NavLink {
+  /** Key into the sidebar icon set (the NXD trust-list rail treatment). */
+  icon: string;
 }
 
-export const DASHBOARD_NAV: NavGroup[] = [
-  {
-    label: "Developer",
-    items: [
-      {
-        href: "/developer",
-        label: "Developer Console",
-        show: (u) => FEATURES.showcase && u != null && ["builder", "provider"].includes(u.role),
-      },
-      {
-        href: "/builder",
-        label: "Integration Assistant",
-        show: (u) => FEATURES.assistant && u != null && ["builder", "provider"].includes(u.role),
-      },
-    ],
-  },
-  {
-    label: "Provider",
-    items: [
-      { href: "/provider", label: "Organisation", show: (u) => u?.role === "provider" },
-      { href: "/provider/submit", label: "Publish", show: (u) => u?.role === "provider" },
-      {
-        href: "/provider/submissions",
-        label: "My submissions",
-        show: (u) => u?.role === "provider",
-      },
-    ],
-  },
-  {
-    label: "Governance",
-    items: [
-      { href: "/governance", label: "Overview", show: gov },
-      { href: "/governance/review", label: "Review queue", show: gov },
-      {
-        href: "/governance/applications",
-        label: "Applications",
-        show: (u) => FEATURES.showcase && gov(u),
-      },
-      { href: "/governance/organisations", label: "Organisations", show: superadmin },
-      { href: "/governance/users", label: "Users & roles", show: superadmin },
-      { href: "/governance/published", label: "Published", show: superadmin },
-      { href: "/governance/audit", label: "Audit trail", show: gov },
-    ],
-  },
-  {
-    label: "Account",
-    items: [{ href: "/settings", label: "Settings", show: (u) => u != null }],
-  },
+// Flat dashboard rail, organised like the NXD trust-list backoffice: uppercase
+// icon rows, the console's own pages first and the account page last.
+export const DASHBOARD_ITEMS: DashboardItem[] = [
+  { href: "/provider", label: "Getting Started", icon: "home", show: provider },
+  { href: "/provider/submissions", label: "Skill Sources", icon: "upload", show: provider },
+  { href: "/governance/review", label: "Review queue", icon: "approvals", show: gov },
+  { href: "/governance/organisations", label: "Organisations", icon: "org", show: superadmin },
+  { href: "/governance/audit", label: "Audit trail", icon: "activity", show: gov },
+  { href: "/governance/users", label: "Users & roles", icon: "users", show: superadmin },
+  { href: "/settings", label: "Manage User", icon: "key", show: (u) => u != null },
 ];

@@ -1,10 +1,7 @@
 import { expect, test, type APIRequestContext } from "@playwright/test";
-import fs from "node:fs/promises";
-import AdmZip from "adm-zip";
 
 const PROVIDER = "igrant-io";
 const SKILL = "igrantio-issuer";
-const USECASE = "national-learner-registry";
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -16,96 +13,48 @@ async function signIn(request: APIRequestContext, email: string, password: strin
   return { authorization: `Bearer ${body.token}` };
 }
 
-test("catalog lists providers and use cases and links to provider-scoped pages", async ({
-  page,
-}) => {
-  await page.goto("/");
+test("marketplace lists providers and links to provider pages", async ({ page }) => {
+  await page.goto("/marketplace");
   await page
     .getByRole("link", { name: /iGrant\.io/ })
     .first()
     .click();
-  await expect(page).toHaveURL(new RegExp(`/providers/${PROVIDER}$`));
+  await expect(page).toHaveURL(new RegExp(`/marketplace/${PROVIDER}$`));
   await expect(page.getByRole("heading", { name: "iGrant.io", level: 1 })).toBeVisible();
-
-  await page.goto("/");
-  await page.getByRole("tab", { name: "Use cases" }).click();
-  await page
-    .getByRole("link", { name: new RegExp(USECASE) })
-    .first()
-    .click();
-  await expect(page).toHaveURL(`/providers/${PROVIDER}/usecases/${USECASE}`);
-  await expect(page.getByRole("heading", { name: "National Learner Registry" })).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Journeys" })).toBeVisible();
-  await expect(page.getByRole("tab")).toHaveCount(4);
 });
 
-test("provider page lists its skills and links into the provider-scoped detail page", async ({
-  page,
-}) => {
-  await page.goto(`/providers/${PROVIDER}`);
-  await expect(page.getByText(`/${PROVIDER}`, { exact: true })).toBeVisible();
+test("provider page lists sources that list its skills", async ({ page }) => {
+  await page.goto(`/marketplace/${PROVIDER}`);
+  await expect(page.getByRole("heading", { name: "iGrant.io", level: 1 })).toBeVisible();
+
+  // Sources group the provider's skills; the seeded fixtures sit in the
+  // "bundles" pseudo-source since they were published without a repository.
+  await page.getByRole("link", { name: /Marketplace bundles/ }).click();
+  await expect(page).toHaveURL(`/marketplace/${PROVIDER}/bundles`);
 
   await page
     .getByRole("link", { name: new RegExp(SKILL) })
     .first()
     .click();
-  await expect(page).toHaveURL(`/providers/${PROVIDER}/skills/${SKILL}`);
-  await expect(page.getByRole("heading", { level: 1 })).toContainText("iGrant.io");
-  await expect(page.getByRole("heading", { level: 1 })).toContainText(SKILL);
+  await expect(page).toHaveURL(`/marketplace/${PROVIDER}/bundles/${SKILL}`);
+  await expect(page.getByRole("heading", { level: 1 }).first()).toContainText(SKILL);
 });
 
-test("skill and use-case slugs redirect to their owning provider's path", async ({ page }) => {
+test("skill slugs redirect to their owning provider's path", async ({ page }) => {
   await page.goto(`/skill/${SKILL}`);
-  await expect(page).toHaveURL(`/providers/${PROVIDER}/skills/${SKILL}`);
-
-  await page.goto(`/usecase/${USECASE}`);
-  await expect(page).toHaveURL(`/providers/${PROVIDER}/usecases/${USECASE}`);
+  await expect(page).toHaveURL(`/marketplace/${PROVIDER}/bundles/${SKILL}`);
 
   await page.goto(`/skill/${SKILL}/review`);
-  await expect(page).toHaveURL(`/providers/${PROVIDER}/skills/${SKILL}/review`);
+  await expect(page).toHaveURL(`/marketplace/${PROVIDER}/bundles/${SKILL}/review`);
   await expect(page.getByRole("heading", { name: "Review trail" })).toBeVisible();
 });
 
 test("a skill addressed under the wrong provider moves to the canonical URL", async ({ page }) => {
-  await page.goto(`/providers/not-the-owner/skills/${SKILL}`);
-  await expect(page).toHaveURL(`/providers/${PROVIDER}/skills/${SKILL}`);
+  await page.goto(`/marketplace/not-the-owner/not-the-source/${SKILL}`);
+  await expect(page).toHaveURL(`/marketplace/${PROVIDER}/bundles/${SKILL}`);
 });
 
-test("use-case Markdown download contains the complete SKILL.md", async ({ page }) => {
-  await page.goto(`/providers/${PROVIDER}/usecases/${USECASE}`);
-  await expect(page.getByRole("button", { name: "Download as Markdown" })).toBeEnabled();
-
-  const downloadPromise = page.waitForEvent("download");
-  await page.getByRole("button", { name: "Download as Markdown" }).click();
-  const download = await downloadPromise;
-  expect(download.suggestedFilename()).toBe(`${USECASE}.md`);
-
-  const path = await download.path();
-  expect(path).not.toBeNull();
-  const markdown = await fs.readFile(path!, "utf8");
-  expect(markdown).toContain(`name: ${USECASE}`);
-  expect(markdown).toContain("journeys:");
-  expect(markdown).toContain("# National Learner Registry");
-});
-
-test("skill bundle route returns a valid, path-preserving zip", async ({ page }) => {
-  await page.goto(`/providers/${PROVIDER}/skills/${SKILL}`);
-
-  const downloadPromise = page.waitForEvent("download");
-  await page.getByRole("link", { name: "Download .zip" }).first().click();
-  const download = await downloadPromise;
-  expect(download.suggestedFilename()).toBe(`${SKILL}.zip`);
-
-  const path = await download.path();
-  expect(path).not.toBeNull();
-  const zip = new AdmZip(path!);
-  const names = zip.getEntries().map((entry) => entry.entryName);
-  expect(names).toContain(`${SKILL}/SKILL.md`);
-  expect(names).toContain(`${SKILL}/openapi/issuer.yaml`);
-  expect(zip.readAsText(`${SKILL}/SKILL.md`)).toContain(`name: ${SKILL}`);
-});
-
-test("disabled surfaces are unlinked and unreachable", async ({ page }) => {
+test("removed surfaces are unlinked and unreachable", async ({ page }) => {
   await page.goto("/");
   await expect(page.getByRole("link", { name: "Showcase" })).toHaveCount(0);
 
@@ -115,14 +64,31 @@ test("disabled surfaces are unlinked and unreachable", async ({ page }) => {
   }
 });
 
-test("the disabled Developer role cannot be claimed or assigned", async ({ page, request }) => {
+// The pages above were once switched off by a feature flag while their APIs
+// stayed live. Both are gone now, so the API paths are asserted too.
+test("removed surfaces leave no reachable API behind", async ({ request }) => {
+  const paths = [
+    "/api/applications",
+    "/api/applications/mine",
+    "/api/admin/applications",
+    "/api/assistant/models",
+    "/api/chats",
+    "/api/auth/settings",
+    "/a/any-share-id",
+    "/api/bundles/unzip",
+    "/api/bundles/unzip-multi",
+  ];
+  for (const path of paths) {
+    const response = await request.get(path);
+    expect(response.status(), path).toBe(404);
+  }
+});
+
+test("the Developer role cannot be claimed or assigned", async ({ page, request }) => {
   await page.goto("/login");
   await page.getByRole("button", { name: "Create account" }).click();
   await expect(page.getByRole("heading", { name: "Create an account" })).toBeVisible();
   await expect(page.getByRole("radio")).toHaveCount(0);
-
-  await page.getByRole("button", { name: "View demo accounts" }).click();
-  await expect(page.getByText("student@example.com")).toHaveCount(0);
 
   // Self-registration lands on the only role still on offer.
   const email = `e2e-role-${Date.now()}@example.test`;
@@ -143,7 +109,7 @@ test("the disabled Developer role cannot be claimed or assigned", async ({ page,
   expect(assigned.status()).toBe(400);
 });
 
-test("the signed-in dashboard drops the disabled surfaces", async ({ page, request }) => {
+test("the signed-in dashboard drops the removed surfaces", async ({ page, request }) => {
   // Sign in over the API and hand the session to the browser the way the app
   // does, so no credentials are typed into the page.
   const response = await request.post("/api/auth/login", {
@@ -159,8 +125,10 @@ test("the signed-in dashboard drops the disabled surfaces", async ({ page, reque
     [token, JSON.stringify(user)],
   );
 
+  // /governance opens on the review queue; the Overview page is merged in.
   await page.goto("/governance");
-  await expect(page.getByRole("heading", { name: "Overview" })).toBeVisible();
+  await expect(page).toHaveURL("/governance/review");
+  await expect(page.getByRole("heading", { name: "Review queue" })).toBeVisible();
   await expect(page.getByRole("link", { name: "Applications" })).toHaveCount(0);
   await expect(page.getByRole("link", { name: "Developer Console" })).toHaveCount(0);
   await expect(page.getByRole("link", { name: "Integration Assistant" })).toHaveCount(0);
@@ -169,20 +137,19 @@ test("the signed-in dashboard drops the disabled surfaces", async ({ page, reque
 
   await page.goto("/settings");
   await expect(page.getByRole("heading", { name: "Integration Assistant" })).toHaveCount(0);
-  await expect(page.getByRole("heading", { name: "Account details" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Manage User" })).toBeVisible();
 });
 
 test("moved bundle route and skill API siblings do not conflict", async ({ request }) => {
   const getChecks: [string, number][] = [
-    [`/api/bundles/${SKILL}`, 200],
-    ["/api/bundles/not-a-real-skill", 404],
+    [`/api/bundles/${SKILL}`, 404], // bundle hosting removed - GitHub serves skills
     ["/api/marketplace/not-a-real-skill", 404],
     ["/api/skills/mine", 401],
   ];
   for (const [path, status] of getChecks) {
     expect((await request.get(path)).status(), path).toBe(status);
   }
-  for (const path of ["/api/skills/1/delist", "/api/skills/1/official"]) {
+  for (const path of ["/api/skills/1/delist"]) {
     expect((await request.post(path)).status(), path).toBe(401);
   }
 });
@@ -202,7 +169,7 @@ test("ids are UUIDs and providers resolve by slug or UUID", async ({ request }) 
 
   // The catalog filter accepts either form and carries the owning provider.
   for (const key of [PROVIDER, provider.id]) {
-    const listed = await request.get(`/api/marketplace?type=skill&provider=${key}`);
+    const listed = await request.get(`/api/marketplace?provider=${key}`);
     expect(listed.status(), key).toBe(200);
     const body = await listed.json();
     expect(body.total, key).toBeGreaterThan(0);
@@ -218,14 +185,46 @@ test("ids are UUIDs and providers resolve by slug or UUID", async ({ request }) 
   expect(detailBody.org.slug).toBe(PROVIDER);
 });
 
+test("every knowledgebase page renders", async ({ request }) => {
+  const pages = [
+    "",
+    "/how-it-works",
+    "/providers",
+    "/skills",
+    "/sources",
+    "/onboarding",
+    "/authoring",
+    "/repository",
+    "/publishing",
+    "/review",
+    "/installing",
+    "/checks",
+    "/roles",
+  ];
+  for (const page of pages) {
+    const response = await request.get(`/knowledgebase${page}`);
+    expect(response.status(), `/knowledgebase${page}`).toBe(200);
+  }
+});
+
+test("organisations without published skills stay out of the public directory", async ({
+  request,
+}) => {
+  // EduChain Labs is seeded and registered but has published nothing.
+  const list = await request.get("/api/providers?page=1&pageSize=48");
+  expect(list.status()).toBe(200);
+  const slugs = (await list.json()).providers.map((p: { slug: string }) => p.slug);
+  expect(slugs).toContain(PROVIDER);
+  expect(slugs).not.toContain("educhain-labs");
+  expect((await request.get("/api/providers/educhain-labs")).status()).toBe(404);
+});
+
 test("malformed ids are rejected as not-found rather than erroring", async ({ request }) => {
   const admin = await signIn(request, "superadmin@govbuild.test", "super123");
   const checks: [path: string, body: object][] = [
-    ["/api/skills/not-a-uuid/official", { official: true }],
     ["/api/skills/not-a-uuid/delist", {}],
     ["/api/review/versions/not-a-uuid/claim", {}],
     ["/api/review/versions/not-a-uuid/decision", { decision: "approve" }],
-    ["/api/admin/orgs/not-a-uuid/decision", { decision: "approve" }],
   ];
   for (const [path, data] of checks) {
     const response = await request.post(path, { headers: admin, data });
@@ -236,14 +235,14 @@ test("malformed ids are rejected as not-found rather than erroring", async ({ re
 });
 
 test("public, provider, reviewer, and admin API smoke matrix", async ({ request }) => {
-  const list = await request.get("/api/marketplace?type=skill&page=1&pageSize=1");
+  const list = await request.get("/api/marketplace?page=1&pageSize=1");
   expect(list.status()).toBe(200);
   expect(list.headers()["cache-control"]).toContain("s-maxage=300");
   expect((await list.json()).skills).toHaveLength(1);
 
-  const detail = await request.get(`/api/marketplace/${USECASE}`);
+  const detail = await request.get(`/api/marketplace/${SKILL}`);
   expect(detail.status()).toBe(200);
-  expect((await detail.json()).skill.type).toBe("usecase");
+  expect((await detail.json()).skill.slug).toBe(SKILL);
 
   const provider = await signIn(request, "provider@igrant.io", "provider123");
   expect((await request.get("/api/orgs/mine", { headers: provider })).status()).toBe(200);

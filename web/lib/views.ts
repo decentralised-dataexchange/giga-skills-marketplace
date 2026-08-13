@@ -11,6 +11,7 @@ export const orgView = (r: any) => ({
   name: r.name,
   slug: r.slug ?? null,
   logo: r.logo ?? null,
+  cover: r.cover ?? null,
   website: r.website,
   description: r.description,
   contact: r.contact,
@@ -25,25 +26,9 @@ export const skillView = (r: any) => ({
   id: r.id,
   slug: r.slug,
   orgId: r.org_id,
-  type: r.type ?? "skill",
   status: r.status,
-  official: r.official ?? false,
   publishedVersionId: r.published_version_id,
-  installs: r.installs,
   createdAt: r.created_at,
-});
-
-export const applicationView = (r: any) => ({
-  id: r.id,
-  title: r.title,
-  description: r.description ?? "",
-  videoUrl: r.video_url ?? null,
-  repoUrl: r.repo_url ?? null,
-  skills: r.skills ?? [],
-  usecases: r.usecases ?? [],
-  status: r.status,
-  createdAt: r.created_at,
-  developer: { name: r.developer_name ?? "Developer" },
 });
 
 export function versionView(r: any, withFiles = false) {
@@ -60,6 +45,7 @@ export function versionView(r: any, withFiles = false) {
     reviewerId: r.reviewer_id,
     reviewNotes: r.review_notes,
     decidedAt: r.decided_at,
+    repo: r.repo ?? null,
     fileCount: files.length,
     filePaths: files.map((f) => f.path),
     ...(withFiles ? { files } : {}),
@@ -75,22 +61,6 @@ export const publicUser = (r: any) => ({
   avatar: r.settings?.avatar ?? null,
   createdAt: r.created_at ?? r.createdAt ?? null,
 });
-
-export function chatView(r: any, full = false) {
-  return {
-    id: r.id,
-    shareId: r.share_id,
-    appUrl: r.share_id && r.app_html ? `/a/${r.share_id}` : null,
-    title: r.title,
-    model: r.model,
-    skills: r.skills,
-    messageCount: (r.messages ?? []).length,
-    hasApp: r.app_html != null,
-    createdAt: r.created_at,
-    updatedAt: r.updated_at,
-    ...(full ? { messages: r.messages, appHtml: r.app_html } : {}),
-  };
-}
 
 // Protocols may be a top-level targets.protocols array (legacy) or a
 // comma-separated string under spec-conformant metadata.protocols.
@@ -109,26 +79,30 @@ export function providerView(r: any) {
     website: r.website,
     description: r.description ?? "",
     skillCount: Number(r.skill_count),
-    usecaseCount: Number(r.usecase_count),
   };
 }
 
 export function marketplaceEntry(r: any) {
   const manifest = r.manifest ?? {};
+  const repo = r.repo ?? null;
   return {
     id: r.id,
     slug: r.slug,
-    type: r.type ?? "skill",
     status: r.status,
-    official: r.official ?? false,
-    installs: r.installs,
+    repo: repo
+      ? {
+          url: repo.url,
+          owner: repo.owner,
+          repo: repo.repo,
+          dir: repo.dir ?? "",
+          stars: repo.stars ?? 0,
+        }
+      : null,
     org: { id: r.org_id, slug: r.org_slug ?? null, name: r.org_name, website: r.org_website },
     version: r.version,
     publishedAt: r.decided_at,
     description: manifest.description ?? "",
     license: manifest.license ?? "",
     protocols: manifestProtocols(manifest),
-    journeyCount: Array.isArray(manifest.journeys) ? manifest.journeys.length : 0,
-    usesSkills: manifest.uses_skills ?? [],
   };
 }

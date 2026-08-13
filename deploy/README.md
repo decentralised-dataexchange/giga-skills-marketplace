@@ -3,7 +3,7 @@
 Kubernetes deployment via the Helm chart in [`helm/giga`](helm/giga). It provisions:
 
 - **giga-web**: the Next.js marketplace/dashboard (Service on port 80 → 4820)
-- **giga-marketplace**: the internal Node API (Service on port 4830)
+- **giga-marketplace**: the internal FastAPI catalog API (Service on port 4830)
 - **giga-postgres**: PostgreSQL 16 with a PersistentVolumeClaim
 - **Ingress**: nginx + cert-manager TLS for your domain
 
@@ -15,11 +15,9 @@ Kubernetes deployment via the Helm chart in [`helm/giga`](helm/giga). It provisi
 
 ## Configure secrets
 
-`values.yaml` ships with the two secrets blank on purpose. Provide them at deploy time. Create a local, gitignored `values-secret.yaml`:
+`values.yaml` ships with the database password blank on purpose. Provide it at deploy time. Create a local, gitignored `values-secret.yaml`:
 
 ```yaml
-marketplace:
-  internalToken: <random-shared-token>
 postgres:
   password: <database-password>
 ```

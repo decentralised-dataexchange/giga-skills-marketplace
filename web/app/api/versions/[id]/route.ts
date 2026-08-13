@@ -8,7 +8,7 @@ export const GET = route<{ id: string }>(
   async ({ user, params }) => {
     check(isUuid(params.id), 404, "Version not found");
     const [row] = await sql`
-    SELECT v.*, s.slug, s.org_id, s.official, o.owner_id, o.name AS org_name, o.description AS org_description,
+    SELECT v.*, s.slug, s.org_id, o.owner_id, o.name AS org_name, o.description AS org_description,
            o.website AS org_website, o.status AS org_status
     FROM versions v JOIN skills s ON s.id = v.skill_id JOIN orgs o ON o.id = s.org_id
     WHERE v.id = ${params.id}`;
@@ -24,7 +24,6 @@ export const GET = route<{ id: string }>(
         id: row.skill_id,
         slug: row.slug,
         orgId: row.org_id,
-        official: row.official ?? false,
       },
       org: {
         id: row.org_id,

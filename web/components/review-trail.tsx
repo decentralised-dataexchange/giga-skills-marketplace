@@ -2,11 +2,10 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { ArrowLeft } from "lucide-react";
 import { api, fmtDate } from "@/lib/client";
+import { providerPath, skillPath, sourcePath } from "@/lib/routes";
 import { Card } from "@/components/ui/card";
 import { CheckList, type Check } from "@/components/check-list";
-import { OfficialBadge } from "@/components/official-badge";
 import { Markdown } from "@/components/markdown";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -35,9 +34,17 @@ function when(iso?: string | null) {
     : "-";
 }
 
-// The public assurance record for one published skill or use case. Rendered by
-// both /providers/<p>/skills/<s>/review and /providers/<p>/usecases/<u>/review.
-export function ReviewTrail({ slug, backHref }: { slug: string; backHref: string }) {
+// The public assurance record for one published skill. Rendered by
+// the /marketplace/<provider>/<source>/<skill>/review page.
+export function ReviewTrail({
+  provider,
+  source,
+  slug,
+}: {
+  provider: string;
+  source: string;
+  slug: string;
+}) {
   const [data, setData] = useState<any>(null);
   const [error, setError] = useState("");
 
@@ -49,13 +56,13 @@ export function ReviewTrail({ slug, backHref }: { slug: string; backHref: string
 
   if (error)
     return (
-      <main className="mx-auto max-w-[1536px] px-5 sm:px-6 lg:px-8 py-10 text-muted-foreground">
+      <main className="mx-auto max-w-6xl px-5 sm:px-6 lg:px-8 py-10 text-muted-foreground">
         {error}
       </main>
     );
   if (!data)
     return (
-      <main className="mx-auto max-w-[1536px] px-5 sm:px-6 lg:px-8 py-10 text-muted-foreground">
+      <main className="mx-auto max-w-6xl px-5 sm:px-6 lg:px-8 py-10 text-muted-foreground">
         Loading...
       </main>
     );
@@ -65,19 +72,42 @@ export function ReviewTrail({ slug, backHref }: { slug: string; backHref: string
   const passed = checks.filter((c) => c.status === "pass").length;
 
   return (
-    <main className="mx-auto w-full max-w-[1536px] px-5 sm:px-6 lg:px-8 pb-20 pt-8">
-      <Link
-        href={backHref}
-        className="inline-flex items-center gap-1.5 text-sm font-semibold text-brand hover:underline"
+    <main className="mx-auto w-full max-w-6xl px-5 sm:px-6 lg:px-8 pb-20 pt-8">
+      {/* Breadcrumb, as on the other catalog pages */}
+      <nav
+        aria-label="Breadcrumb"
+        className="mb-6 flex min-w-0 flex-wrap items-center gap-2 text-sm text-muted-foreground"
       >
-        <ArrowLeft className="size-4" aria-hidden="true" />
-        {slug}
-      </Link>
+        <Link href="/" className="shrink-0 hover:text-ink">
+          marketplace
+        </Link>
+        <span className="shrink-0" aria-hidden="true">
+          /
+        </span>
+        <Link href={providerPath(provider)} className="min-w-0 truncate hover:text-ink">
+          {provider}
+        </Link>
+        <span className="shrink-0" aria-hidden="true">
+          /
+        </span>
+        <Link href={sourcePath(provider, source)} className="min-w-0 truncate hover:text-ink">
+          {source}
+        </Link>
+        <span className="shrink-0" aria-hidden="true">
+          /
+        </span>
+        <Link href={skillPath(provider, source, slug)} className="min-w-0 truncate hover:text-ink">
+          {slug}
+        </Link>
+        <span className="shrink-0" aria-hidden="true">
+          /
+        </span>
+        <span className="min-w-0 truncate">review</span>
+      </nav>
 
       <div className="mt-3 border-b border-border pb-5">
         <div className="flex flex-wrap items-center gap-3">
           <h1 className="text-3xl font-bold tracking-tight text-ink">Review trail</h1>
-          <OfficialBadge official={!!data.skill.official} />
         </div>
         <p className="mt-2 max-w-3xl text-muted-foreground">
           The assurance record for <span className="font-semibold text-ink">{slug}</span>: automated

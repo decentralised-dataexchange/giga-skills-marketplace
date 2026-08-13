@@ -22,11 +22,12 @@ export const POST = route(
       while (RESERVED_SLUGS.has(orgSlug)) orgSlug = `${desired}-${++i}`;
     }
 
+    // Organisations register without an approval step; only skills are reviewed.
     const [org] = await sql`
-    INSERT INTO orgs (name, slug, website, description, contact, owner_id)
-    VALUES (${name.trim()}, ${orgSlug}, ${website?.trim() ?? ""}, ${description.trim()}, ${contact?.trim() || user!.email}, ${user!.id})
+    INSERT INTO orgs (name, slug, website, description, contact, owner_id, status, decided_at)
+    VALUES (${name.trim()}, ${orgSlug}, ${website?.trim() ?? ""}, ${description.trim()}, ${contact?.trim() || user!.email}, ${user!.id}, 'approved', now())
     RETURNING *`;
-    await logEvent("org.submitted", user!.id, { orgId: org.id }, { name: org.name });
+    await logEvent("org.registered", user!.id, { orgId: org.id }, { name: org.name });
     return { org: orgView(org) };
   },
   { roles: ["provider"] },

@@ -16,9 +16,6 @@ export interface User {
   status: string;
   createdAt: string;
   settings: {
-    openrouterKey?: string;
-    vercelKey?: string;
-    model?: string;
     avatar?: string | null;
   };
 }

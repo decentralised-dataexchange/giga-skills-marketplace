@@ -6,7 +6,9 @@ import { hasMarketplaceService, marketplaceRequest } from "@/lib/marketplace-cli
 
 const CACHE = "public, max-age=60, s-maxage=300, stale-while-revalidate=86400";
 
-// Public listing of approved providers (organisations) with published catalog counts.
+// Public listing of providers (organisations) with published catalog counts.
+// Organisations register without review, so only those with at least one
+// published skill are publicly visible.
 export const GET = route(async ({ req }) => {
   const u = new URL(req.url);
   const q = u.searchParams.get("q")?.toLowerCase().trim() ?? "";
@@ -22,18 +24,18 @@ export const GET = route(async ({ req }) => {
 
   const like = `%${q}%`;
   const qCond = q ? sql`AND lower(o.name) LIKE ${like}` : sql``;
+  const published = sql`EXISTS (SELECT 1 FROM skills p WHERE p.org_id = o.id AND p.status = 'published')`;
   const rows = await sql`
     SELECT o.id, o.name, o.slug, o.logo, o.website, o.description,
-           count(s.id) FILTER (WHERE s.type = 'skill' AND s.status = 'published') AS skill_count,
-           count(s.id) FILTER (WHERE s.type = 'usecase' AND s.status = 'published') AS usecase_count
+           count(s.id) FILTER (WHERE s.status = 'published') AS skill_count
     FROM orgs o
     LEFT JOIN skills s ON s.org_id = o.id
-    WHERE o.status = 'approved' ${qCond}
+    WHERE o.status = 'approved' AND ${published} ${qCond}
     GROUP BY o.id
     ORDER BY skill_count DESC, o.name ASC
     LIMIT ${pageSize} OFFSET ${(page - 1) * pageSize}`;
   const [{ n: total }] = await sql`
-    SELECT count(*)::int AS n FROM orgs o WHERE o.status = 'approved' ${qCond}`;
+    SELECT count(*)::int AS n FROM orgs o WHERE o.status = 'approved' AND ${published} ${qCond}`;
   return NextResponse.json(
     { providers: rows.map(providerView), total, page, pageSize },
     { headers: { "Cache-Control": CACHE } },

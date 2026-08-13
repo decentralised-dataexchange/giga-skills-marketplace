@@ -1,8 +1,11 @@
 import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
 import { JetBrains_Mono } from "next/font/google";
+// Geist Sans (vercel.com/font), self-hosted via the official package.
+import { GeistSans } from "geist/font/sans";
+import { AppRouterCacheProvider } from "@mui/material-nextjs/v15-appRouter";
 import { AppShell } from "@/components/app-shell";
-import { TooltipProvider } from "@/components/ui/tooltip";
+import { ToastHost } from "@/components/toast";
 import "./globals.css";
 
 export const viewport: Viewport = {
@@ -11,19 +14,23 @@ export const viewport: Viewport = {
   viewportFit: "cover",
 };
 
-// Giga typefaces (provided font files): Manrope for headings, Open Sans for body.
-const manrope = localFont({
-  variable: "--font-manrope",
+// Inter, self hosted (the iGrant.io site family). Two files rather than one
+// @font-face with unicode-range: next/font cannot express per-subset ranges,
+// so the browser falls through to the ext family only for glyphs latin lacks.
+const interLatin = localFont({
+  src: "./fonts/inter-latin.woff2",
+  weight: "100 900",
+  style: "normal",
   display: "swap",
-  src: [
-    { path: "./fonts/Manrope-Regular.ttf", weight: "400", style: "normal" },
-    { path: "./fonts/Manrope-Medium.ttf", weight: "500", style: "normal" },
-  ],
+  variable: "--font-inter-latin",
 });
-const openSans = localFont({
-  variable: "--font-open-sans",
+const interLatinExt = localFont({
+  src: "./fonts/inter-latin-ext.woff2",
+  weight: "100 900",
+  style: "normal",
   display: "swap",
-  src: [{ path: "./fonts/manrope-provided.woff2", weight: "300 800", style: "normal" }],
+  preload: false,
+  variable: "--font-inter-latin-ext",
 });
 const jetbrainsMono = JetBrains_Mono({ subsets: ["latin"], variable: "--font-jb-mono" });
 
@@ -37,15 +44,17 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
   return (
     <html
       lang="en"
-      className={`${manrope.variable} ${openSans.variable} ${jetbrainsMono.variable} h-full antialiased`}
+      className={`${GeistSans.variable} ${interLatin.variable} ${interLatinExt.variable} ${jetbrainsMono.variable} h-full antialiased`}
     >
       <body className="flex min-h-full flex-col bg-background font-sans text-foreground">
-        <TooltipProvider delay={150}>
+        {/* Server-renders the MUI icon styles, so icons never flash unsized. */}
+        <AppRouterCacheProvider>
           <a href="#main-content" className="skip-link">
             Skip to main content
           </a>
           <AppShell>{children}</AppShell>
-        </TooltipProvider>
+          <ToastHost />
+        </AppRouterCacheProvider>
       </body>
     </html>
   );

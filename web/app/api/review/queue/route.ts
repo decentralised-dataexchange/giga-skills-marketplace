@@ -6,7 +6,7 @@ import { versionView } from "@/lib/views";
 export const GET = route(
   async () => {
     const rows = await sql`
-    SELECT v.*, s.slug, s.type, o.name AS org_name, ru.name AS reviewer_name
+    SELECT v.*, s.slug, o.name AS org_name, ru.name AS reviewer_name
     FROM versions v
     JOIN skills s ON s.id = v.skill_id
     JOIN orgs o ON o.id = s.org_id
@@ -16,7 +16,6 @@ export const GET = route(
       queue: rows.map((r) => ({
         ...versionView(r),
         slug: r.slug,
-        type: r.type,
         orgName: r.org_name,
         reviewerName: r.reviewer_name,
       })),

@@ -1,11 +1,16 @@
 # Default values for the Giga Skills Marketplace chart.
-# Secrets (postgres.password, marketplace.internalToken) are intentionally blank
-# here so this file is safe to commit. Supply them at deploy time via either:
+# The postgres.password secret is intentionally blank here so this file is safe
+# to commit. Supply it at deploy time via either:
 #   helm upgrade ... -f values-secret.yaml            (gitignored local file)
-#   helm upgrade ... --set postgres.password=... --set marketplace.internalToken=...
+#   helm upgrade ... --set postgres.password=...
 # External operators should also override `domain` and `image.registry`.
 
 domain: giga-staging.igrant.io
+
+# Optional GitHub token for repository submissions; raises GitHub's API rate
+# limit (60/hour per IP unauthenticated). Supply it like the database password,
+# via values-secret.yaml or --set githubToken=... - never commit it here.
+githubToken: ""
 
 image:
   # Registry hosting giga-web / giga-marketplace images. Override for your own registry.
@@ -34,7 +39,6 @@ marketplace:
     minReplicas: 2
     maxReplicas: 4
     targetCPUUtilizationPercentage: 70
-  internalToken: ""   # REQUIRED: shared secret between web and marketplace services
 
 postgres:
   # The bundled single-node database is convenient for demos. For production,

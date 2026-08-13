@@ -3,8 +3,14 @@
 // when the database is already in the target shape.
 import { sql } from "./db";
 
-/** Tables whose integer primary key becomes a UUID. */
-const PK_TABLES = ["users", "orgs", "skills", "versions", "chats", "events", "applications"];
+// A database that predates the removal of the Integration Assistant and the
+// developer showcase may still carry their `chats` and `applications` tables.
+// Their rows are retained (dropping them is an operator decision, not a
+// boot-time one), so the migration converts their keys too - otherwise the
+// retained rows would keep integer owner ids that no longer resolve.
+
+/** Tables whose integer primary key becomes a UUID (when present). */
+const PK_TABLES = ["users", "orgs", "skills", "versions", "events", "chats", "applications"];
 
 /** child table -> [old integer column, parent table] for every foreign key. */
 const FK_COLUMNS: [table: string, column: string, parent: string][] = [
@@ -16,8 +22,8 @@ const FK_COLUMNS: [table: string, column: string, parent: string][] = [
   ["versions", "skill_id", "skills"],
   ["versions", "submitted_by", "users"],
   ["versions", "reviewer_id", "users"],
-  ["chats", "user_id", "users"],
   ["events", "actor_id", "users"],
+  ["chats", "user_id", "users"],
   ["applications", "developer_id", "users"],
 ];
 
@@ -27,6 +33,7 @@ const SUBJECT_KEYS: [key: string, parent: string][] = [
   ["orgId", "orgs"],
   ["skillId", "skills"],
   ["versionId", "versions"],
+  ["chatId", "chats"],
   ["applicationId", "applications"],
 ];
 

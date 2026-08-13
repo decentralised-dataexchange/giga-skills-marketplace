@@ -28,15 +28,17 @@ spec:
                 secretKeyRef:
                   name: giga-secrets
                   key: DATABASE_URL
-            - name: MARKETPLACE_INTERNAL_TOKEN
-              valueFrom:
-                secretKeyRef:
-                  name: giga-secrets
-                  key: MARKETPLACE_INTERNAL_TOKEN
             - name: MARKETPLACE_API_URL
               value: "http://{{ .Values.marketplace.name }}:{{ .Values.marketplace.port }}"
             - name: DB_MAX_CONNECTIONS
               value: {{ .Values.web.dbMaxConnections | quote }}
+            {{- if .Values.githubToken }}
+            - name: GITHUB_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: giga-secrets
+                  key: GITHUB_TOKEN
+            {{- end }}
           readinessProbe:
             httpGet:
               path: /

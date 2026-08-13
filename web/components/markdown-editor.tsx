@@ -1,8 +1,10 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { Streamdown } from "streamdown";
-import { Bold, Code, Heading, Italic, Link2, List, type LucideIcon } from "lucide-react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import { Bold, Code, Heading, Italic, Link2, List, type LucideIcon } from "@/components/icons";
+import { Tip } from "@/components/tip";
 import { cn } from "@/lib/utils";
 
 function ToolBtn({
@@ -15,16 +17,17 @@ function ToolBtn({
   onClick: () => void;
 }) {
   return (
-    <button
-      type="button"
-      title={label}
-      aria-label={label}
-      onMouseDown={(e) => e.preventDefault()}
-      onClick={onClick}
-      className="grid size-7 place-items-center rounded text-muted-foreground hover:bg-secondary hover:text-ink"
-    >
-      <Icon className="size-3.5" />
-    </button>
+    <Tip content={label}>
+      <button
+        type="button"
+        aria-label={label}
+        onMouseDown={(e) => e.preventDefault()}
+        onClick={onClick}
+        className="grid size-7 place-items-center rounded text-muted-foreground hover:bg-secondary hover:text-ink"
+      >
+        <Icon className="size-3.5" />
+      </button>
+    </Tip>
   );
 }
 
@@ -121,7 +124,7 @@ export function MarkdownEditor({
       ) : (
         <div className={cn("markdown overflow-auto px-3 py-2 text-sm", minHeightClass)}>
           {value.trim() ? (
-            <Streamdown>{value}</Streamdown>
+            <ReactMarkdown remarkPlugins={[remarkGfm]}>{value}</ReactMarkdown>
           ) : (
             <p className="text-muted-foreground">Nothing to preview.</p>
           )}

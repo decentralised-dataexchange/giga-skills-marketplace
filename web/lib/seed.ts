@@ -59,16 +59,14 @@ async function addSkill(
   submitterId: string,
   publish: boolean,
   reviewerId?: string,
-  official = false,
 ) {
   const files = readBundle(bundle);
   const { checks, passed, manifest } = runChecks(files);
   if (!manifest?.name) throw new Error(`Seed bundle ${bundle} has no manifest name`);
-  const type = manifest.type === "usecase" ? "usecase" : "skill";
   const [skill] = await sql`
-    INSERT INTO skills (slug, org_id, type, official)
-    VALUES (${manifest.name}, ${orgId}, ${type}, ${official && publish}) RETURNING id`;
-  const status = publish && passed ? "published" : passed ? "submitted" : "checks_failed";
+    INSERT INTO skills (slug, org_id)
+    VALUES (${manifest.name}, ${orgId}) RETURNING id`;
+  const status = publish && passed ? "published" : "submitted";
   const notes = publish
     ? "Automated checks pass; manifest, OpenAPI surface, schemas and rulebooks reviewed against marketplace guidelines."
     : null;
@@ -84,7 +82,7 @@ async function addSkill(
       "review.approve",
       reviewerId ?? submitterId,
       { skillId: skill.id, versionId: version.id },
-      { slug: manifest.name, notes, official: official && publish },
+      { slug: manifest.name, notes },
     );
   }
 }
@@ -128,19 +126,16 @@ export async function seedIfEmpty(): Promise<boolean> {
     name: "EduChain Labs",
     website: "https://educhain.example",
     description:
-      "Startup building credential analytics tooling; applying to publish a transcript-analytics skill.",
+      "Startup building credential analytics tooling; preparing a transcript-analytics skill.",
     contact: "labs@educhain.test",
     ownerId: educhain,
-    status: "pending",
+    status: "approved",
   });
 
   // All catalog skills are published by iGrant.io (LCubed AB).
   await addSkill(orgIgrant, "igrantio-education-issuer", igrant, true, reviewer);
-  await addSkill(orgIgrant, "igrantio-consent-bb", igrant, true, reviewer, true); // official
+  await addSkill(orgIgrant, "igrantio-consent-bb", igrant, true, reviewer);
   await addSkill(orgIgrant, "igrantio-education-verifier", igrant, false); // sits in the review queue
-
-  // A use-case template (journey-tagged prompt chain) composing the skills above.
-  await addSkill(orgIgrant, "national-learner-registry", igrant, true, reviewer, true);
 
   await logEvent("seed.completed", superadmin, null, { note: "Demo data seeded" });
   return true;

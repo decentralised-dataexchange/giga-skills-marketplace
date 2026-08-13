@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils";
-import { AGENT_LABELS } from "@/lib/agents";
+import { AGENTS as AGENT_DEFS } from "@/lib/agents";
 
 // Official brand marks for the AI coding agents a skill file installs into,
 // served from /public/agents. Some logos ship their own dark tile (opencode,
@@ -66,7 +66,7 @@ export function AgentLogo({ name, className }: { name: string; className?: strin
 
 // The AI coding agents a skill file installs into. Order is shared across the
 // hero strip and each skill's install section so the set reads consistently.
-export const AGENTS = AGENT_LABELS;
+export const AGENTS = AGENT_DEFS.map((a) => a.label);
 
 export function AgentsStrip({ label, className }: { label?: string; className?: string }) {
   return (

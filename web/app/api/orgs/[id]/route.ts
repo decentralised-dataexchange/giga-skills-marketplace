@@ -4,10 +4,11 @@ import { isUuid } from "@/lib/utils";
 import { orgView } from "@/lib/views";
 
 const MAX_LOGO = 512 * 1024; // ~512 KB data: URL
+const MAX_COVER = 1024 * 1024; // ~1 MB data: URL for the profile banner
 const LOGO_RE = /^data:image\/(png|jpeg|jpg|gif|webp|svg\+xml);base64,/;
 
-// A provider updates their own organisation (name, website, description, logo).
-// A super admin may update any organisation.
+// A provider updates their own organisation (name, website, description, logo,
+// cover banner). A super admin may update any organisation.
 export const PATCH = route<{ id: string }>(
   async ({ user, params, body }) => {
     const b = await body<{
@@ -15,6 +16,7 @@ export const PATCH = route<{ id: string }>(
       website?: string;
       description?: string;
       logo?: string | null;
+      cover?: string | null;
     }>();
     check(isUuid(params.id), 404, "Organisation not found");
     const [org] = await sql`SELECT * FROM orgs WHERE id = ${params.id}`;
@@ -43,8 +45,23 @@ export const PATCH = route<{ id: string }>(
       }
     }
 
+    let cover = org.cover;
+    if (b.cover !== undefined) {
+      if (!b.cover) cover = null;
+      else {
+        check(
+          LOGO_RE.test(b.cover),
+          400,
+          "Cover must be a data: image URL (png, jpeg, gif, webp, svg)",
+        );
+        check(b.cover.length <= MAX_COVER, 400, "Cover is too large (max ~1 MB)");
+        cover = b.cover;
+      }
+    }
+
     const [updated] = await sql`
-    UPDATE orgs SET name = ${name}, website = ${website}, description = ${description}, logo = ${logo}
+    UPDATE orgs SET name = ${name}, website = ${website}, description = ${description},
+                    logo = ${logo}, cover = ${cover}
     WHERE id = ${org.id} RETURNING *`;
     await logEvent("org.updated", user!.id, { orgId: org.id }, { name });
     return { org: orgView(updated) };

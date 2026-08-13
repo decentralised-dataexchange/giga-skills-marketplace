@@ -83,9 +83,7 @@ jobs:
             --namespace "$NAMESPACE" --create-namespace \
             --set image.tag=${{ steps.vars.outputs.tag }} \
             --set postgres.password="$POSTGRES_PASSWORD" \
-            --set marketplace.internalToken="$MARKETPLACE_INTERNAL_TOKEN" \
             --wait --timeout 6m
           kubectl -n "$NAMESPACE" rollout status deploy/giga-web --timeout=5m
         env:
           POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
-          MARKETPLACE_INTERNAL_TOKEN: ${{ secrets.MARKETPLACE_INTERNAL_TOKEN }}

@@ -1,16 +1,14 @@
 "use client";
 
-import Link from "next/link";
-import { ArrowRight } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import { api, auth, fmtDate, useSession } from "@/lib/client";
-import { Badge } from "@/components/ui/badge";
+import { api, auth, useSession } from "@/lib/client";
+import { toast } from "@/components/toast";
 import { Button } from "@/components/ui/button";
+import { Tip } from "@/components/tip";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { StatusBadge } from "@/components/status-badge";
 import { UserAvatar } from "@/components/user-avatar";
-import { FEATURES } from "@/lib/features";
+import { DashboardMain, useDashboardGuard } from "@/components/dashboard-shell";
 
 const MAX_AVATAR_BYTES = 256 * 1024;
 
@@ -24,203 +22,61 @@ interface Profile {
   createdAt: string | null;
 }
 
-const SECTIONS = [
-  { id: "profile", label: "Profile" },
-  { id: "assistant", label: "Assistant" },
-  { id: "security", label: "Security" },
-] as const;
-
-type SectionId = (typeof SECTIONS)[number]["id"];
-
-// Small inline banner used by every section for success/error feedback. It is an
-// aria-live region so screen readers announce the result of an action.
-function Notice({ text, tone }: { text: string; tone: "ok" | "error" }) {
-  if (!text) return null;
+// Grey uppercase card heading, as on the iGrant.io Manage User page.
+function CardHeading({ children }: { children: React.ReactNode }) {
   return (
-    <p
-      role="status"
-      className={
-        tone === "error"
-          ? "text-sm font-medium text-destructive"
-          : "text-sm font-medium text-emerald-700"
-      }
-    >
-      {text}
-    </p>
+    <h2 className="text-xs font-semibold uppercase tracking-[0.66px] text-[#86868b]">{children}</h2>
   );
 }
 
-export default function SettingsPage() {
+// Link-style action in the card's bottom corner ("Edit", "Change Password").
+function CardAction(props: React.ButtonHTMLAttributes<HTMLButtonElement>) {
+  return (
+    <button
+      {...props}
+      className="cursor-pointer border-none bg-transparent p-0 text-sm font-semibold text-brand hover:underline disabled:opacity-50"
+    />
+  );
+}
+
+export default function ManageUserPage() {
+  const { denied } = useDashboardGuard("/settings");
   const session = useSession();
-  const [section, setSection] = useState<SectionId>("profile");
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loadError, setLoadError] = useState("");
 
   useEffect(() => {
-    if (typeof window !== "undefined" && !auth.user) {
-      location.href = "/login?next=/settings";
-      return;
-    }
+    if (typeof window !== "undefined" && !auth.user) return;
     api("/api/auth/me")
       .then((d) => setProfile(d.user))
       .catch((e) => setLoadError(e.message));
   }, []);
 
-  if (loadError)
-    return (
-      <main className="mx-auto max-w-none px-6 lg:px-8 py-10 text-muted-foreground">
-        {loadError}
-      </main>
-    );
-  if (!profile)
-    return (
-      <main className="mx-auto max-w-none px-6 lg:px-8 py-10 text-muted-foreground">Loading…</main>
-    );
-
   return (
-    <main className="mx-auto w-full max-w-none px-6 lg:px-8 py-10">
-      <h1 className="text-3xl font-bold tracking-tight text-ink">Settings</h1>
-      <p className="mt-2 text-sm text-muted-foreground">
-        Manage your account, security, and agent preferences.
-      </p>
-
-      <div className="mt-8 grid gap-8 md:grid-cols-[190px_1fr]">
-        <nav aria-label="Settings sections" className="flex gap-1 md:flex-col">
-          {SECTIONS.map((s) => (
-            <button
-              key={s.id}
-              type="button"
-              aria-current={section === s.id ? "true" : undefined}
-              onClick={() => setSection(s.id)}
-              className={
-                "rounded-lg px-3.5 py-2 text-left text-sm font-semibold transition-colors " +
-                (section === s.id
-                  ? "bg-secondary text-ink"
-                  : "text-muted-foreground hover:bg-secondary/60 hover:text-ink")
-              }
-            >
-              {s.label}
-            </button>
-          ))}
-        </nav>
-
-        <div>
-          {section === "profile" && (
-            <ProfileSection
-              profile={profile}
-              onChange={setProfile}
-              sessionName={session?.name ?? profile.name}
-            />
-          )}
-          {section === "assistant" && <AssistantSection />}
-          {section === "security" && <SecuritySection />}
+    <DashboardMain
+      title="Manage User"
+      subtitle="View and update your profile, and change your password."
+      denied={denied}
+    >
+      {loadError && <p className="text-sm font-semibold text-amber-600">{loadError}</p>}
+      {profile && (
+        // Default grid stretch keeps both cards the same height per row.
+        <div className="grid gap-4 xl:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
+          <UserSettingsCard
+            profile={profile}
+            onChange={setProfile}
+            sessionName={session?.name ?? profile.name}
+          />
+          <UserCredentialsCard />
         </div>
-      </div>
-    </main>
-  );
-}
-
-function AssistantSection() {
-  const [hasKey, setHasKey] = useState(false);
-  const [masked, setMasked] = useState<string | null>(null);
-  const [key, setKey] = useState("");
-  const [msg, setMsg] = useState("");
-  const [err, setErr] = useState("");
-
-  useEffect(() => {
-    api("/api/auth/settings")
-      .then((d) => {
-        setHasKey(d.settings.hasVercelKey);
-        setMasked(d.settings.vercelKeyMasked);
-      })
-      .catch((e) => setErr(e.message));
-  }, []);
-
-  async function persist(json: Record<string, unknown>, ok: string) {
-    setErr("");
-    setMsg("");
-    try {
-      const { settings } = await api("/api/auth/settings", { method: "PUT", json });
-      setHasKey(settings.hasVercelKey);
-      setMasked(settings.vercelKeyMasked);
-      setKey("");
-      setMsg(ok);
-    } catch (e) {
-      setErr(e instanceof Error ? e.message : String(e));
-    }
-  }
-
-  return (
-    <div className="space-y-4">
-      {FEATURES.assistant && (
-        <Card className="gap-4 p-6">
-          <div>
-            <h2 className="text-lg font-bold text-ink">Integration Assistant</h2>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Add your Vercel API key to power the Integration Assistant. Models run through the
-              Vercel AI Gateway, and the same key can run builds in Vercel Sandbox. Stored on your
-              account and used server-side only.
-            </p>
-          </div>
-          <Notice text={err} tone="error" />
-          <Notice text={msg} tone="ok" />
-          {hasKey && (
-            <p className="text-sm text-muted-foreground">
-              Current key: <code className="font-mono">{masked}</code>
-            </p>
-          )}
-          <form
-            className="space-y-3"
-            onSubmit={(e) => {
-              e.preventDefault();
-              if (key.trim()) persist({ vercelKey: key.trim() }, "Vercel API key saved.");
-            }}
-          >
-            <div className="space-y-1.5">
-              <label htmlFor="vercel-key" className="text-sm font-medium text-ink">
-                Vercel API key
-              </label>
-              <Input
-                id="vercel-key"
-                type="password"
-                placeholder="vck_..."
-                autoComplete="off"
-                value={key}
-                onChange={(e) => setKey(e.target.value)}
-              />
-              <p className="text-xs text-muted-foreground">
-                Create a token with AI Gateway access at vercel.com/account/tokens.
-              </p>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              <Button type="submit" disabled={!key.trim()}>
-                Save key
-              </Button>
-              {hasKey && (
-                <Button
-                  type="button"
-                  variant="secondary"
-                  onClick={() => persist({ clearVercelKey: true }, "Vercel API key removed.")}
-                >
-                  Remove
-                </Button>
-              )}
-              <Link
-                href="/builder"
-                className="inline-flex items-center gap-1.5 rounded-md border border-border px-3 py-2 text-sm font-semibold text-ink transition-colors hover:bg-accent"
-              >
-                Open assistant
-                <ArrowRight className="size-4" aria-hidden="true" />
-              </Link>
-            </div>
-          </form>
-        </Card>
       )}
-    </div>
+    </DashboardMain>
   );
 }
 
-function ProfileSection({
+// The profile card: avatar beside Name / Email / User ID rows, with an Edit
+// action that flips the card into a small form (name, email, photo).
+function UserSettingsCard({
   profile,
   onChange,
   sessionName,
@@ -229,22 +85,19 @@ function ProfileSection({
   onChange: (p: Profile) => void;
   sessionName: string;
 }) {
+  const [editing, setEditing] = useState(false);
   const [name, setName] = useState(profile.name);
   const [email, setEmail] = useState(profile.email);
-  const [msg, setMsg] = useState("");
-  const [err, setErr] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
 
   async function saveAvatar(avatar: string | null) {
-    setErr("");
-    setMsg("");
     try {
       const { user } = await api("/api/auth/me", { method: "PATCH", json: { avatar } });
       onChange(user);
       auth.update({ avatar: user.avatar });
-      setMsg(avatar ? "Photo updated." : "Photo removed.");
+      toast.success(avatar ? "Photo updated." : "Photo removed.");
     } catch (e) {
-      setErr(e instanceof Error ? e.message : String(e));
+      toast.error(e instanceof Error ? e.message : String(e));
     }
   }
 
@@ -253,7 +106,7 @@ function ProfileSection({
     e.target.value = "";
     if (!file) return;
     if (file.size > MAX_AVATAR_BYTES) {
-      setErr("Image must be under 256 KB.");
+      toast.error("Image must be under 256 KB.");
       return;
     }
     const reader = new FileReader();
@@ -263,37 +116,58 @@ function ProfileSection({
 
   async function saveProfile(e: React.FormEvent) {
     e.preventDefault();
-    setErr("");
-    setMsg("");
     try {
       const { user } = await api("/api/auth/me", { method: "PATCH", json: { name, email } });
       onChange(user);
       auth.update({ name: user.name, email: user.email });
-      setMsg("Profile saved.");
+      toast.success("Profile saved.");
+      setEditing(false);
     } catch (e) {
-      setErr(e instanceof Error ? e.message : String(e));
+      toast.error(e instanceof Error ? e.message : String(e));
     }
   }
 
+  function cancelEdit() {
+    setEditing(false);
+    setName(profile.name);
+    setEmail(profile.email);
+  }
+
+  // One layout for both modes: the rows stay in place and the editable values
+  // swap to inputs inline, as on the iGrant.io Manage User card.
   return (
-    <div className="space-y-4">
-      <Card className="gap-5 p-6">
-        <h2 className="text-lg font-bold text-ink">Profile picture</h2>
-        <div className="flex flex-wrap items-center gap-5">
-          <UserAvatar name={sessionName} avatar={profile.avatar} size="lg" />
-          <div className="space-y-2">
-            <div className="flex gap-2">
-              <Button type="button" onClick={() => fileRef.current?.click()}>
-                Upload photo
-              </Button>
+    <Card className="gap-5 p-6">
+      <CardHeading>User settings</CardHeading>
+      <form className="contents" onSubmit={saveProfile}>
+        <div className="flex flex-wrap items-center gap-8 max-[480px]:gap-5">
+          {editing ? (
+            <div className="grid shrink-0 justify-items-center gap-1.5">
+              <Tip content="Change photo (PNG, JPEG, GIF, or WebP, up to 256 KB)">
+                <button
+                  type="button"
+                  aria-label="Change photo (up to 256 KB)"
+                  onClick={() => fileRef.current?.click()}
+                  className="group relative cursor-pointer rounded-full border-none bg-transparent p-0"
+                >
+                  <UserAvatar name={sessionName} avatar={profile.avatar} size="lg" decorative />
+                  <span className="absolute inset-0 grid place-items-center rounded-full bg-black/45 text-[10px] font-bold uppercase tracking-wide text-white opacity-90 transition-opacity group-hover:opacity-100">
+                    Change
+                  </span>
+                </button>
+              </Tip>
               {profile.avatar && (
-                <Button type="button" variant="secondary" onClick={() => saveAvatar(null)}>
-                  Remove
-                </Button>
+                <button
+                  type="button"
+                  onClick={() => saveAvatar(null)}
+                  className="cursor-pointer border-none bg-transparent p-0 text-xs text-muted-foreground underline underline-offset-2 hover:text-ink"
+                >
+                  Remove photo
+                </button>
               )}
             </div>
-            <p className="text-xs text-muted-foreground">PNG, JPEG, GIF, or WebP, up to 256 KB.</p>
-          </div>
+          ) : (
+            <UserAvatar name={sessionName} avatar={profile.avatar} size="lg" />
+          )}
           <input
             ref={fileRef}
             type="file"
@@ -301,86 +175,77 @@ function ProfileSection({
             hidden
             onChange={onFile}
           />
+          <dl className="grid min-w-0 flex-1 grid-cols-[max-content_minmax(0,1fr)] items-center gap-x-8 gap-y-3 text-sm max-[480px]:gap-x-4">
+            <dt className="text-muted-foreground">
+              <label htmlFor="acct-name">Name:</label>
+            </dt>
+            <dd>
+              {editing ? (
+                <Input
+                  id="acct-name"
+                  className="max-w-sm"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  required
+                  minLength={2}
+                />
+              ) : (
+                <span className="font-medium text-ink">{profile.name}</span>
+              )}
+            </dd>
+            <dt className="text-muted-foreground">
+              <label htmlFor="acct-email">Email:</label>
+            </dt>
+            <dd className="break-all text-ink">
+              {editing ? (
+                <Input
+                  id="acct-email"
+                  type="email"
+                  className="max-w-sm"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                />
+              ) : (
+                profile.email
+              )}
+            </dd>
+            <dt className="text-muted-foreground">User ID:</dt>
+            <dd className="break-all text-xs text-ink">{profile.id}</dd>
+          </dl>
         </div>
-      </Card>
-
-      <Card className="gap-4 p-6">
-        <h2 className="text-lg font-bold text-ink">Account details</h2>
-        <form className="space-y-4" onSubmit={saveProfile}>
-          <div className="space-y-1.5">
-            <label htmlFor="acct-name" className="text-sm font-medium text-ink">
-              Full name
-            </label>
-            <Input
-              id="acct-name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              required
-              minLength={2}
-            />
+        {editing ? (
+          <div className="mt-auto flex justify-end gap-2">
+            <Button type="button" variant="outline" onClick={cancelEdit}>
+              Cancel
+            </Button>
+            <Button type="submit" variant="outline">
+              Save
+            </Button>
           </div>
-          <div className="space-y-1.5">
-            <label htmlFor="acct-email" className="text-sm font-medium text-ink">
-              Email address
-            </label>
-            <Input
-              id="acct-email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
+        ) : (
+          <div className="mt-auto flex justify-end">
+            <CardAction type="button" onClick={() => setEditing(true)}>
+              Edit
+            </CardAction>
           </div>
-          <Notice text={err} tone="error" />
-          <Notice text={msg} tone="ok" />
-          <Button type="submit">Save changes</Button>
-        </form>
-      </Card>
-
-      <Card className="gap-3 p-6">
-        <h2 className="text-lg font-bold text-ink">Account</h2>
-        <dl className="grid gap-3 text-sm sm:grid-cols-2">
-          <div>
-            <dt className="text-muted-foreground">Role</dt>
-            <dd className="mt-1">
-              <Badge variant="secondary" className="capitalize">
-                {profile.role === "builder" ? "Developer" : profile.role}
-              </Badge>
-            </dd>
-          </div>
-          <div>
-            <dt className="text-muted-foreground">Status</dt>
-            <dd className="mt-1">
-              <StatusBadge status={profile.status} />
-            </dd>
-          </div>
-          <div>
-            <dt className="text-muted-foreground">Member since</dt>
-            <dd className="mt-1 text-ink">{fmtDate(profile.createdAt)}</dd>
-          </div>
-          <div>
-            <dt className="text-muted-foreground">Account ID</dt>
-            <dd className="mt-1 tabular-nums text-ink">#{profile.id}</dd>
-          </div>
-        </dl>
-      </Card>
-    </div>
+        )}
+      </form>
+    </Card>
   );
 }
 
-function SecuritySection() {
+// The password card: labelled rows with placeholder inputs and a
+// "Change Password" action in the corner.
+function UserCredentialsCard() {
   const [current, setCurrent] = useState("");
   const [next, setNext] = useState("");
   const [confirm, setConfirm] = useState("");
-  const [msg, setMsg] = useState("");
-  const [err, setErr] = useState("");
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
-    setErr("");
-    setMsg("");
     if (next !== confirm) {
-      setErr("New passwords do not match.");
+      toast.error("New passwords do not match.");
       return;
     }
     try {
@@ -388,69 +253,70 @@ function SecuritySection() {
         method: "POST",
         json: { currentPassword: current, newPassword: next },
       });
-      setMsg("Password updated. Other sessions were signed out.");
+      toast.success("Password updated. Other sessions were signed out.");
       setCurrent("");
       setNext("");
       setConfirm("");
     } catch (e) {
-      setErr(e instanceof Error ? e.message : String(e));
+      toast.error(e instanceof Error ? e.message : String(e));
     }
   }
 
+  const label = "text-sm text-ink whitespace-nowrap";
+
   return (
-    <Card className="gap-4 p-6">
-      <div>
-        <h2 className="text-lg font-bold text-ink">Change password</h2>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Updating your password signs out every other session on your account.
-        </p>
-      </div>
-      <form className="space-y-4" onSubmit={submit}>
-        <div className="space-y-1.5">
-          <label htmlFor="pw-current" className="text-sm font-medium text-ink">
-            Current password
+    <Card className="gap-5 p-6">
+      <CardHeading>User credentials</CardHeading>
+      {/* One grid for all rows: every label shares the same column, so every
+          input starts at the same edge and gets the same width. The action
+          pins to the card's bottom so both cards close at the same height. */}
+      <form className="flex min-h-0 flex-1 flex-col gap-4" onSubmit={submit}>
+        <div className="grid grid-cols-1 items-center gap-x-4 gap-y-2 sm:grid-cols-[max-content_1fr] sm:gap-y-4">
+          <label htmlFor="pw-current" className={label}>
+            Current Password:
           </label>
           <Input
             id="pw-current"
             type="password"
             autoComplete="current-password"
+            placeholder="Enter Current Password"
             value={current}
             onChange={(e) => setCurrent(e.target.value)}
             required
           />
-        </div>
-        <div className="space-y-1.5">
-          <label htmlFor="pw-new" className="text-sm font-medium text-ink">
-            New password
+          <label htmlFor="pw-new" className={label}>
+            New Password:
           </label>
           <Input
             id="pw-new"
             type="password"
             autoComplete="new-password"
+            placeholder="Enter New Password"
             value={next}
             onChange={(e) => setNext(e.target.value)}
             required
             minLength={6}
           />
-          <p className="text-xs text-muted-foreground">At least 6 characters.</p>
-        </div>
-        <div className="space-y-1.5">
-          <label htmlFor="pw-confirm" className="text-sm font-medium text-ink">
-            Confirm new password
+          <label htmlFor="pw-confirm" className={label}>
+            Confirm New Password:
           </label>
           <Input
             id="pw-confirm"
             type="password"
             autoComplete="new-password"
+            placeholder="Confirm New Password"
             value={confirm}
             onChange={(e) => setConfirm(e.target.value)}
             required
             minLength={6}
           />
         </div>
-        <Notice text={err} tone="error" />
-        <Notice text={msg} tone="ok" />
-        <Button type="submit">Update password</Button>
+        <p className="text-xs text-muted-foreground">
+          At least 6 characters. Changing your password signs out every other session.
+        </p>
+        <div className="mt-auto flex justify-end">
+          <CardAction type="submit">Change Password</CardAction>
+        </div>
       </form>
     </Card>
   );

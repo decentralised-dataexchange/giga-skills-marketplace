@@ -12,23 +12,24 @@ const STATUS = {
 
 export const POST = route<{ id: string }>(
   async ({ user, params, body }) => {
-    const { decision, notes, official } = await body<{
+    const { decision, notes } = await body<{
       decision: keyof typeof STATUS;
       notes?: string;
-      official?: boolean;
     }>();
     check(decision in STATUS, 400, "decision must be approve, reject or request_changes");
     check(isUuid(params.id), 404, "Version not found");
     const [current] = await sql`SELECT * FROM versions WHERE id = ${params.id}`;
     check(current, 404, "Version not found");
     check(["submitted", "in_review"].includes(current.status), 409, `Version is ${current.status}`);
-    // A reviewer may only decide reviews they claimed; super admin can decide any.
+    // A reviewer decides only submissions they have claimed; a super admin may
+    // decide any submission directly.
     check(
       user!.role === "superadmin" ||
-        current.status !== "in_review" ||
-        current.reviewer_id === user!.id,
+        (current.status === "in_review" && current.reviewer_id === user!.id),
       403,
-      "This review is claimed by another reviewer",
+      current.status === "submitted"
+        ? "Claim the submission before deciding it"
+        : "This review is claimed by another reviewer",
     );
 
     const [skill] = await sql`SELECT * FROM skills WHERE id = ${current.skill_id}`;
@@ -42,7 +43,7 @@ export const POST = route<{ id: string }>(
         await sql`UPDATE versions SET status = 'superseded' WHERE id = ${skill.published_version_id}`;
       }
       await sql`
-      UPDATE skills SET status = 'published', published_version_id = ${current.id}, official = ${!!official}
+      UPDATE skills SET status = 'published', published_version_id = ${current.id}
       WHERE id = ${skill.id}`;
     } else if (!skill.published_version_id) {
       await sql`UPDATE skills SET status = ${STATUS[decision]} WHERE id = ${skill.id}`;
@@ -54,7 +55,6 @@ export const POST = route<{ id: string }>(
       {
         slug: skill.slug,
         notes: version.review_notes,
-        ...(decision === "approve" ? { official: !!official } : {}),
       },
     );
     const [updated] = await sql`SELECT * FROM skills WHERE id = ${skill.id}`;

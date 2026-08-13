@@ -24,7 +24,7 @@ CREATE TABLE IF NOT EXISTS users (
   id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   email         TEXT UNIQUE NOT NULL,
   name          TEXT NOT NULL,
-  role          TEXT NOT NULL CHECK (role IN ('builder','provider','reviewer','superadmin')),
+  role          TEXT NOT NULL CHECK (role IN ('provider','reviewer','superadmin')),
   status        TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active','suspended')),
   password_hash TEXT NOT NULL,
   settings      JSONB NOT NULL DEFAULT '{}',
@@ -42,7 +42,7 @@ CREATE TABLE IF NOT EXISTS orgs (
   description    TEXT,
   contact        TEXT,
   owner_id       UUID NOT NULL REFERENCES users(id),
-  status         TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending','approved','rejected')),
+  status         TEXT NOT NULL DEFAULT 'approved' CHECK (status IN ('pending','approved','rejected')),
   created_at     TIMESTAMPTZ NOT NULL DEFAULT now(),
   decided_at     TIMESTAMPTZ,
   decided_by     UUID REFERENCES users(id),
@@ -52,11 +52,9 @@ CREATE TABLE IF NOT EXISTS skills (
   id                   UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   slug                 TEXT UNIQUE NOT NULL,
   org_id               UUID NOT NULL REFERENCES orgs(id),
-  type                 TEXT NOT NULL DEFAULT 'skill' CHECK (type IN ('skill','usecase')),
   status               TEXT NOT NULL DEFAULT 'in_submission',
   official             BOOLEAN NOT NULL DEFAULT false,
   published_version_id UUID,
-  installs             INT NOT NULL DEFAULT 0,
   created_at           TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 CREATE TABLE IF NOT EXISTS versions (
@@ -73,18 +71,6 @@ CREATE TABLE IF NOT EXISTS versions (
   review_notes TEXT,
   decided_at   TIMESTAMPTZ
 );
-CREATE TABLE IF NOT EXISTS chats (
-  id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  share_id   TEXT UNIQUE,
-  user_id    UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  title      TEXT NOT NULL DEFAULT 'Untitled app',
-  model      TEXT,
-  skills     JSONB NOT NULL DEFAULT '[]',
-  messages   JSONB NOT NULL DEFAULT '[]',
-  app_html   TEXT,
-  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
-);
 CREATE TABLE IF NOT EXISTS events (
   id       UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   type     TEXT NOT NULL,
@@ -93,31 +79,36 @@ CREATE TABLE IF NOT EXISTS events (
   detail   JSONB,
   at       TIMESTAMPTZ NOT NULL DEFAULT now()
 );
-CREATE TABLE IF NOT EXISTS applications (
-  id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  developer_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  title        TEXT NOT NULL,
-  description  TEXT,
-  video_url    TEXT,
-  repo_url     TEXT,
-  skills       JSONB NOT NULL DEFAULT '[]',
-  usecases     JSONB NOT NULL DEFAULT '[]',
-  status       TEXT NOT NULL DEFAULT 'published' CHECK (status IN ('published','delisted')),
-  created_at   TIMESTAMPTZ NOT NULL DEFAULT now()
-);
-ALTER TABLE chats ADD COLUMN IF NOT EXISTS share_id TEXT UNIQUE;
 ALTER TABLE skills ADD COLUMN IF NOT EXISTS official BOOLEAN NOT NULL DEFAULT false;
-ALTER TABLE skills ADD COLUMN IF NOT EXISTS type TEXT NOT NULL DEFAULT 'skill';
 ALTER TABLE orgs ADD COLUMN IF NOT EXISTS slug TEXT;
 ALTER TABLE orgs ADD COLUMN IF NOT EXISTS logo TEXT;
+ALTER TABLE orgs ADD COLUMN IF NOT EXISTS cover TEXT;
+ALTER TABLE versions ADD COLUMN IF NOT EXISTS repo JSONB;
+-- Organisation approval is gone (only skills are reviewed); registrations from
+-- before that change stop waiting.
+UPDATE orgs SET status = 'approved', decided_at = COALESCE(decided_at, now()) WHERE status = 'pending';
+-- The builder (Developer) role is removed; accounts that still carry it from
+-- an older database become providers, the only self-service role.
+UPDATE users SET role = 'provider' WHERE role = 'builder';
+-- Automated checks no longer gate review (the report is reviewer evidence);
+-- submissions that were parked as checks_failed join the queue.
+UPDATE versions SET status = 'submitted' WHERE status = 'checks_failed';
+-- Use cases are removed as a catalog surface. An older database carries them
+-- as skills rows with type='usecase'; delist them so they stay stored but
+-- never resurface in the public catalog.
+DO $$ BEGIN
+  IF EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_schema = current_schema() AND table_name = 'skills' AND column_name = 'type'
+  ) THEN
+    UPDATE skills SET status = 'delisted' WHERE type = 'usecase' AND status <> 'delisted';
+  END IF;
+END $$;
 CREATE UNIQUE INDEX IF NOT EXISTS idx_orgs_slug ON orgs(slug);
 CREATE INDEX IF NOT EXISTS idx_tokens_user ON tokens(user_id);
 CREATE INDEX IF NOT EXISTS idx_orgs_owner ON orgs(owner_id, created_at);
 CREATE INDEX IF NOT EXISTS idx_skills_org ON skills(org_id, created_at DESC);
-CREATE INDEX IF NOT EXISTS idx_skills_type ON skills(type, status);
-CREATE INDEX IF NOT EXISTS idx_applications_status ON applications(status, created_at DESC);
-CREATE INDEX IF NOT EXISTS idx_applications_developer ON applications(developer_id, created_at DESC);
-CREATE INDEX IF NOT EXISTS idx_chats_user ON chats(user_id, updated_at DESC);
+CREATE INDEX IF NOT EXISTS idx_skills_status ON skills(status);
 CREATE INDEX IF NOT EXISTS idx_versions_skill ON versions(skill_id, submitted_at DESC);
 CREATE INDEX IF NOT EXISTS idx_versions_status_submitted ON versions(status, submitted_at);
 CREATE INDEX IF NOT EXISTS idx_events_at ON events(at DESC);

@@ -3,14 +3,16 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
-import { Menu, X } from "lucide-react";
+import { Menu, X } from "@/components/icons";
 import { api, auth, useSession } from "@/lib/client";
-import { Button } from "@/components/ui/button";
-import { UserAvatar } from "@/components/user-avatar";
 import { Logo } from "@/components/logo";
+import { AccountMenu } from "@/components/account-menu";
 import { PUBLIC_LINKS, primaryConsole } from "@/components/nav-links";
 import { cn } from "@/lib/utils";
 
+// Public masthead in the same subtle-grey treatment as the dashboard topbar;
+// the only difference is that there is no sidebar collapse hamburger. The
+// small-screen trigger on the right only opens the public menu.
 export function Nav({ className }: { className?: string }) {
   const pathname = usePathname();
   const router = useRouter();
@@ -29,73 +31,60 @@ export function Nav({ className }: { className?: string }) {
   return (
     <header
       className={cn(
-        "sticky top-0 z-20 border-b border-border bg-white/90 backdrop-blur-md",
+        "sticky top-0 z-20 border-b border-[#e0e0e0] bg-[#f5f5f7] text-ink shadow-sm",
         className,
       )}
     >
-      <div className="mx-auto flex h-16 max-w-[1536px] items-center gap-1 px-5 sm:px-6 lg:px-8">
-        <Link href="/" className="mr-5 flex items-center" aria-label="Giga home">
-          <Logo />
+      <div className="flex min-h-16 items-center gap-3 px-4 md:min-h-20 md:px-8">
+        <Link href="/" className="flex items-center gap-3" aria-label="Giga home">
+          <Logo className="h-11 md:h-12" />
+          <span className="hidden font-heading text-[clamp(1rem,2vw,1.4rem)] font-semibold tracking-tight sm:inline">
+            Skills <span className="text-muted-foreground">Marketplace</span>
+          </span>
         </Link>
 
-        {/* Desktop nav */}
-        <nav aria-label="Primary" className="hidden flex-1 gap-1 md:flex">
+        {/* Desktop nav, beside the wordmark */}
+        <nav aria-label="Primary" className="ml-4 hidden gap-1 md:flex">
           {links.map((l) => (
             <Link
               key={l.href}
               href={l.href}
               aria-current={pathname === l.href ? "page" : undefined}
               className={cn(
-                "rounded-full px-3.5 py-1.5 text-sm font-semibold text-ink/70 transition-colors hover:bg-secondary hover:text-ink",
-                pathname === l.href && "bg-secondary text-ink",
+                "rounded-md px-3.5 py-1.5 text-sm font-medium text-ink/70 transition-colors hover:text-ink",
+                pathname === l.href && "text-brand",
               )}
             >
               {l.label}
             </Link>
           ))}
         </nav>
+
+        <div className="flex-1" />
+
         <div className="hidden items-center gap-1 md:flex">
           {user ? (
-            <>
-              <Button
-                variant="ghost"
-                size="sm"
-                nativeButton={false}
-                render={<Link href={primaryConsole(user)} />}
-              >
-                Dashboard
-              </Button>
-              <Link
-                href="/settings"
-                className="flex items-center gap-2 rounded-full py-1 pl-1 pr-3 text-sm font-medium text-ink transition-colors hover:bg-secondary"
-              >
-                <UserAvatar name={user.name} avatar={user.avatar} size="sm" decorative />
-                <span className="hidden lg:inline">{user.name}</span>
-              </Link>
-              <Button variant="secondary" size="sm" onClick={signOut}>
-                Sign out
-              </Button>
-            </>
+            <AccountMenu user={user} />
           ) : (
-            <Button
-              variant="secondary"
-              size="sm"
-              nativeButton={false}
-              render={<Link href="/login" />}
+            // A plain nav item, not a call-to-action button: the login page
+            // forwards to the dashboard once signed in.
+            <Link
+              href="/login"
+              className="rounded-md px-3.5 py-1.5 text-sm font-medium text-ink/70 transition-colors hover:text-ink"
             >
-              Sign in
-            </Button>
+              Dashboard
+            </Link>
           )}
         </div>
 
         {/* Mobile trigger */}
-        <div className="flex flex-1 justify-end md:hidden">
+        <div className="flex justify-end md:hidden">
           <button
             type="button"
             aria-label={open ? "Close menu" : "Open menu"}
             aria-expanded={open}
             onClick={() => setOpen((v) => !v)}
-            className="grid size-9 place-items-center rounded-lg text-ink hover:bg-secondary"
+            className="grid size-9 place-items-center rounded-lg text-ink hover:bg-black/5"
           >
             {open ? <X className="size-5" /> : <Menu className="size-5" />}
           </button>
@@ -104,7 +93,10 @@ export function Nav({ className }: { className?: string }) {
 
       {/* Mobile menu */}
       {open && (
-        <nav aria-label="Primary" className="space-y-1 border-t border-border px-4 py-3 md:hidden">
+        <nav
+          aria-label="Primary"
+          className="space-y-1 border-t border-[#e0e0e0] bg-white px-4 py-3 md:hidden"
+        >
           {links.map((l) => (
             <Link
               key={l.href}
@@ -112,10 +104,8 @@ export function Nav({ className }: { className?: string }) {
               onClick={() => setOpen(false)}
               aria-current={pathname === l.href ? "page" : undefined}
               className={cn(
-                "block rounded-lg px-3 py-2 text-sm font-semibold",
-                pathname === l.href
-                  ? "bg-secondary text-ink"
-                  : "text-ink/70 hover:bg-secondary hover:text-ink",
+                "block rounded-lg px-3 py-2 text-sm font-medium",
+                pathname === l.href ? "text-brand" : "text-ink/70 hover:bg-accent hover:text-ink",
               )}
             >
               {l.label}
@@ -127,22 +117,21 @@ export function Nav({ className }: { className?: string }) {
                 <Link
                   href={primaryConsole(user)}
                   onClick={() => setOpen(false)}
-                  className="block rounded-lg px-3 py-2 text-sm font-semibold text-ink/70 hover:bg-secondary hover:text-ink"
+                  className="block rounded-lg px-3 py-2 text-sm font-medium text-ink/70 hover:bg-accent hover:text-ink"
                 >
                   Dashboard
                 </Link>
                 <Link
                   href="/settings"
                   onClick={() => setOpen(false)}
-                  className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold text-ink/70 hover:bg-secondary hover:text-ink"
+                  className="block rounded-lg px-3 py-2 text-sm font-medium text-ink/70 hover:bg-accent hover:text-ink"
                 >
-                  <UserAvatar name={user.name} avatar={user.avatar} size="sm" decorative />{" "}
-                  {user.name}
+                  Manage User
                 </Link>
                 <button
                   type="button"
                   onClick={signOut}
-                  className="block w-full rounded-lg px-3 py-2 text-left text-sm font-semibold text-ink/70 hover:bg-secondary hover:text-ink"
+                  className="block w-full rounded-lg px-3 py-2 text-left text-sm font-medium text-ink/70 hover:bg-accent hover:text-ink"
                 >
                   Sign out
                 </button>
@@ -151,9 +140,9 @@ export function Nav({ className }: { className?: string }) {
               <Link
                 href="/login"
                 onClick={() => setOpen(false)}
-                className="block rounded-lg px-3 py-2 text-sm font-semibold text-brand hover:bg-secondary"
+                className="block rounded-lg px-3 py-2 text-sm font-medium text-ink/70 hover:bg-accent hover:text-ink"
               >
-                Sign in
+                Dashboard
               </Link>
             )}
           </div>

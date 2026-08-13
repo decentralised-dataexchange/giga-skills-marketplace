@@ -30,16 +30,13 @@ spec:
                 secretKeyRef:
                   name: giga-secrets
                   key: DATABASE_URL
-            - name: MARKETPLACE_INTERNAL_TOKEN
-              valueFrom:
-                secretKeyRef:
-                  name: giga-secrets
-                  key: MARKETPLACE_INTERNAL_TOKEN
             - name: DB_MAX_CONNECTIONS
               value: {{ .Values.marketplace.dbMaxConnections | quote }}
           readinessProbe:
+            # /ready also requires the catalog schema (bootstrapped by the web
+            # app), so the service takes no traffic before it can answer.
             httpGet:
-              path: /health
+              path: /ready
               port: {{ .Values.marketplace.port }}
             initialDelaySeconds: 5
             periodSeconds: 10

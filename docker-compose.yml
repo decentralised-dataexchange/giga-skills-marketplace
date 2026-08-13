@@ -20,7 +20,6 @@ services:
     environment:
       PORT: 4830
       DATABASE_URL: postgresql://govbuild:govbuild-dev@postgres:5432/govbuild
-      MARKETPLACE_INTERNAL_TOKEN: local-marketplace-token
     depends_on:
       postgres:
         condition: service_healthy
@@ -32,8 +31,8 @@ services:
     environment:
       DATABASE_URL: postgresql://govbuild:govbuild-dev@postgres:5432/govbuild
       MARKETPLACE_API_URL: http://marketplace:4830
-      MARKETPLACE_INTERNAL_TOKEN: local-marketplace-token
-      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
+      # Optional: raises GitHub's API limit for repository submissions
+      GITHUB_TOKEN: ${GITHUB_TOKEN:-}
     depends_on:
       postgres:
         condition: service_healthy

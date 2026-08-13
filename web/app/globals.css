@@ -2,28 +2,24 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
-/*
- * Streamdown (used by the AI Elements MessageResponse renderer) ships no CSS of
- * its own -- it emits Tailwind utility class NAMES and relies on the host app's
- * Tailwind build to generate them. Tailwind v4 does not scan node_modules by
- * default, so utilities that ONLY Streamdown uses (e.g. `pointer-events-auto` on
- * the code-block copy/download toolbar, and various border/background classes)
- * were never generated -- leaving the toolbar unclickable and some chrome
- * unstyled. Scanning Streamdown's dist fixes that. Required by AI Elements setup.
- */
-@source "../node_modules/streamdown/dist/**/*.js";
-
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-open-sans);
+  /* Geist Sans everywhere (vercel.com/font); Inter remains the fallback. */
+  --font-sans:
+    var(--font-geist-sans), var(--font-inter-latin), var(--font-inter-latin-ext), ui-sans-serif,
+    system-ui, sans-serif;
   --font-mono: var(--font-jb-mono);
-  --font-heading: var(--font-manrope);
+  --font-heading:
+    var(--font-geist-sans), var(--font-inter-latin), ui-sans-serif, system-ui, sans-serif;
   /* Giga (giga.global) brand tokens: Giga blue on white, near-black ink. */
-  --color-brand: #006aff;
-  --color-brand-dark: #0050d6;
+  --color-brand: #0050d6;
+  --color-brand-dark: #003ea6;
+  /* iGrant.io support-portal panel shading (docs.igrant.io "Build with AI" banner). */
+  --color-panel: #f5f5f7;
+  --color-panel-border: #e8e8ed;
   --color-cyan: #277aff;
   --color-cyan-tint: #eaf2ff;
   --color-ink: #0a0a0a;
@@ -75,7 +71,7 @@
   --card-foreground: #0a0a0a;
   --popover: #ffffff;
   --popover-foreground: #0a0a0a;
-  --primary: #006aff;
+  --primary: #0050d6;
   --primary-foreground: #ffffff;
   --secondary: #eef2f7;
   --secondary-foreground: #0f2a53;
@@ -86,8 +82,8 @@
   --destructive: #d21c1c;
   --border: #e6e9ee;
   --input: #cbd5e1;
-  --ring: #006aff;
-  --chart-1: #006aff;
+  --ring: #0050d6;
+  --chart-1: #0050d6;
   --chart-2: #277aff;
   --chart-3: #0050d6;
   --chart-4: #4c8bff;
@@ -95,12 +91,12 @@
   --radius: 0.625rem;
   --sidebar: #ffffff;
   --sidebar-foreground: #0a0a0a;
-  --sidebar-primary: #006aff;
+  --sidebar-primary: #0050d6;
   --sidebar-primary-foreground: #ffffff;
   --sidebar-accent: #eef2f7;
   --sidebar-accent-foreground: #0f2a53;
   --sidebar-border: #e6e9ee;
-  --sidebar-ring: #006aff;
+  --sidebar-ring: #0050d6;
 }
 
 .dark {
@@ -146,15 +142,44 @@
   }
   html {
     @apply font-sans;
+    /* Reserve the scrollbar gutter so pages with and without a scrollbar
+       share the same width - no sideways jump when switching pages. */
+    scrollbar-gutter: stable;
   }
-  /* Giga type: Manrope for headings, Open Sans (font-sans) for body. */
+  /* No rubber-band bounce when a page scrolls past its edge. */
+  html,
+  body {
+    overscroll-behavior: none;
+  }
+  /* Tailwind v4's preflight leaves buttons on cursor: default; anything
+     clickable shows a pointer, and anything disabled shows it is inert. */
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]),
+  input[type="button"]:not(:disabled),
+  input[type="submit"]:not(:disabled),
+  input[type="checkbox"]:not(:disabled),
+  input[type="radio"]:not(:disabled),
+  select:not(:disabled),
+  summary,
+  label[for],
+  label:has(input[type="checkbox"]:not(:disabled)),
+  label:has(input[type="radio"]:not(:disabled)) {
+    cursor: pointer;
+  }
+  button:disabled,
+  [role="button"][aria-disabled="true"],
+  input:disabled {
+    cursor: not-allowed;
+  }
+  /* Geist Sans (vercel.com/font) throughout; headings tighten slightly. */
   h1,
   h2,
   h3,
   h4,
   h5,
   h6 {
-    font-family: var(--font-manrope), var(--font-open-sans), sans-serif;
+    font-family: var(--font-heading);
+    letter-spacing: -0.01em;
   }
   /* WCAG 2.4.7: a clearly visible keyboard focus indicator on interactive
      elements that do not already draw their own focus ring. */
@@ -262,6 +287,171 @@
   font-weight: 700;
 }
 
+/*
+ * Knowledgebase article typography, in the docs.igrant.io treatment: generous
+ * heading rhythm, relaxed body copy, bordered tables, and shaded code.
+ */
+.docs-prose {
+  color: var(--foreground);
+  line-height: 1.65;
+  font-size: 15px;
+  /* Long identifiers and URLs wrap instead of widening the page on phones. */
+  overflow-wrap: break-word;
+}
+.docs-prose > :first-child {
+  margin-top: 0;
+}
+.docs-prose h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  margin: 0 0 0.75rem;
+}
+.docs-prose .docs-lead {
+  font-size: 1.05rem;
+  color: #374151;
+  margin: 0 0 1.5rem;
+}
+.docs-prose h2 {
+  font-size: 1.35rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  margin: 2.25rem 0 0.6rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--color-panel-border);
+  /* Anchor jumps land below the sticky masthead. */
+  scroll-margin-top: 6.5rem;
+}
+.docs-prose h3 {
+  font-size: 1.05rem;
+  font-weight: 700;
+  margin: 1.5rem 0 0.4rem;
+}
+.docs-prose p {
+  margin: 0.6rem 0;
+}
+.docs-prose a {
+  color: var(--color-brand);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.docs-prose ul,
+.docs-prose ol {
+  margin: 0.6rem 0;
+  padding-left: 1.5rem;
+}
+.docs-prose ul {
+  list-style: disc;
+}
+.docs-prose ol {
+  list-style: decimal;
+}
+.docs-prose li {
+  margin: 0.3rem 0;
+}
+.docs-prose li > p {
+  margin: 0.2rem 0;
+}
+.docs-prose code {
+  font-family: var(--font-mono), monospace;
+  font-size: 0.85em;
+  background: var(--color-panel);
+  border: 1px solid var(--color-panel-border);
+  padding: 0.1em 0.35em;
+  border-radius: 4px;
+}
+.docs-prose pre {
+  background: var(--color-panel);
+  border: 1px solid var(--color-panel-border);
+  padding: 0.9em 1em;
+  border-radius: 8px;
+  overflow-x: auto;
+  margin: 0.8rem 0;
+}
+.docs-prose pre code {
+  background: transparent;
+  border: none;
+  padding: 0;
+  font-size: 0.85rem;
+}
+/* Tables scroll sideways on narrow screens instead of breaking the layout
+   (the Docusaurus markdown-table treatment). */
+.docs-prose table {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  border-collapse: collapse;
+  margin: 0.8rem 0;
+  font-size: 0.9rem;
+}
+.docs-prose th,
+.docs-prose td {
+  border: 1px solid var(--color-panel-border);
+  padding: 0.5em 0.75em;
+  text-align: left;
+  vertical-align: top;
+}
+.docs-prose th {
+  background: var(--color-panel);
+  font-weight: 700;
+}
+.docs-prose hr {
+  border: none;
+  border-top: 1px solid var(--color-panel-border);
+  margin: 1.5rem 0;
+}
+/* Callout, as the docs.igrant.io "recommended starting point" box. */
+.docs-callout {
+  border: 1px solid var(--color-panel-border);
+  border-left: 3px solid var(--color-brand);
+  background: var(--color-cyan-tint);
+  border-radius: 8px;
+  padding: 0.85rem 1rem;
+  margin: 1rem 0;
+}
+.docs-callout p {
+  margin: 0;
+}
+
+/* Side drawers ease in from the right; the scrim fades with them. */
+@keyframes drawer-slide-in {
+  from {
+    transform: translateX(24px);
+    opacity: 0.5;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+@keyframes drawer-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.drawer-panel {
+  animation: drawer-slide-in 0.2s ease-out;
+}
+.drawer-scrim {
+  animation: drawer-fade-in 0.2s ease-out;
+}
+.toast-item {
+  animation: drawer-slide-in 0.2s ease-out;
+}
+@media (prefers-reduced-motion: reduce) {
+  .drawer-panel,
+  .drawer-scrim,
+  .toast-item {
+    animation: none;
+  }
+}
+
 /* WCAG 2.4.1: skip-to-content link, visually hidden until focused. */
 .skip-link {
   position: fixed;
@@ -281,42 +471,54 @@
 }
 
 /*
- * Assistant code blocks (AI Elements MessageResponse -> Streamdown code plugin).
- * Streamdown wraps each fence in an outer card (border + bg-sidebar + padding)
- * plus an inner `code-block-body` that is itself a bordered box, and reserves a
- * 32px header row for the language label even when there is no language. That
- * yields a double-box with an empty gap on top. Collapse it to a single tidy
- * box: drop the inner box chrome, hide the empty language header, and let the
- * copy/download toolbar overlap the code (top-right). Do NOT set overflow:hidden
- * on the wrapper -- it clips the sticky, negatively-margined toolbar and kills
- * its clicks (the toolbar pill is pointer-events:auto and must stay reachable).
- * Scoped to .is-assistant so only rendered chat replies are affected.
+ * Dashboard-scoped styling, matching the iGrant.io backoffice (trust-list)
+ * component treatment: 5px cards with a soft shadow, a grey table header band
+ * with a full cell grid, and uppercase 13px buttons.
  */
-.is-assistant :is(div):has(> [data-streamdown="code-block-body"]) {
-  margin: 0.75rem 0;
-  gap: 0;
-  padding: 0;
-  border: 1px solid var(--border);
-  border-radius: 0.6rem;
-  background: var(--muted);
+.dashboard [data-slot="card"] {
+  border-radius: 5px;
+  border-color: #e0e0e0;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
 }
-.is-assistant [data-streamdown="code-block-header"][data-language=""] {
-  display: none;
+.dashboard table {
+  background: #fff;
 }
-.is-assistant [data-streamdown="code-block-body"] {
-  border: 0;
-  background: transparent;
-  border-radius: 0.6rem;
-  padding: 0.75rem 0.9rem;
+.dashboard thead tr {
+  background: #e5e4e4;
 }
-.is-assistant [data-streamdown="code-block-body"] pre {
-  margin: 0;
+.dashboard thead th {
+  border-right: 1px solid #d7d6d6;
+  border-bottom: 1px solid #d7d6d6;
+  padding: 0.625rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 700;
+  letter-spacing: normal;
+  text-transform: none;
+  color: rgb(0 0 0 / 0.87);
 }
-/* With the empty header removed, re-seat the copy/download toolbar so it sits at
-   the top-right and the code slides up beneath it. */
-.is-assistant [data-streamdown="code-block-header"][data-language=""] + div {
-  margin-top: 0;
-  margin-bottom: -2rem;
-  top: 0.35rem;
-  padding-right: 0.4rem;
+.dashboard thead th:last-child {
+  border-right: 0;
+}
+.dashboard tbody td {
+  border-right: 1px solid #d7d6d6;
+  border-bottom: 1px solid #d7d6d6;
+  padding: 0.75rem 1rem;
+  color: rgb(0 0 0 / 0.87);
+}
+.dashboard tbody td:last-child {
+  border-right: 0;
+}
+.dashboard tbody tr {
+  transition: background-color 150ms;
+}
+.dashboard tbody tr:hover {
+  background: rgb(0 0 0 / 0.04);
+}
+.dashboard tbody tr:last-child td {
+  border-bottom: 0;
+}
+.dashboard [data-slot="button"] {
+  text-transform: uppercase;
+  font-size: 13px;
+  letter-spacing: 0.025em;
 }
