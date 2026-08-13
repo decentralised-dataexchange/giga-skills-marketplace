@@ -6,18 +6,47 @@ import './landing.css';
 
 /**
  * The showcase landing page. This is the only screen that admits to being a
- * demo: it explains the journey, states what is real and what is sandboxed,
- * and links to the five portals. Each portal then presents itself as its own
- * product.
+ * demo: prerequisites, the portals, and step-by-step instructions to try
+ * the whole journey. Each portal then presents itself as its own product.
  */
 
-const JOURNEY = [
-  { step: '1', title: 'Set policy', where: 'Registrar Back Office', time: '1 min' },
-  { step: '2', title: 'Register with your PID', where: 'National Education Portal', time: '3 min' },
-  { step: '3', title: 'Review and approve', where: 'Riverside Admissions + Registrar', time: '3 min' },
-  { step: '4', title: 'Diploma with TS12 payment', where: 'Registrar + Education Portal', time: '3 min' },
-  { step: '5', title: 'Employer verification', where: 'CivicWorks Talent', time: '2 min' },
-  { step: '6', title: 'Revocation proof', where: 'Registrar + CivicWorks', time: '2 min' },
+const STEPS = [
+  {
+    title: 'Turn on the payment rule',
+    text: 'Open the Registrar Back Office, go to Policy settings, and turn on "payment confirmation required for diploma issuance". The sign-in form is prefilled.',
+    href: '/moe/policy',
+    linkText: 'Registrar Back Office',
+  },
+  {
+    title: 'Register as a learner',
+    text: 'Open the National Education Portal and sign in with your wallet: scan the code with your EUDI Wallet and share your PID. Then complete and submit the registration form.',
+    href: '/education',
+    linkText: 'National Education Portal',
+  },
+  {
+    title: 'Review and approve the enrolment',
+    text: 'In Riverside Admissions, validate the documents. Then approve the application in the Registrar Back Office. Back in the Education Portal, scan the Student ID offer and type the transaction code shown under the QR.',
+    href: '/school/queue',
+    linkText: 'Riverside Admissions',
+  },
+  {
+    title: 'Graduate and pay the diploma fee',
+    text: 'In Riverside Admissions, submit the graduation decision. Validate it in the Registrar Back Office. In the Education Portal, confirm the payment by presenting your payment credential, then scan the diploma offer.',
+    href: '/school/graduation',
+    linkText: 'Graduation decisions',
+  },
+  {
+    title: 'Apply for a job with your diploma',
+    text: 'Open CivicWorks Careers, pick a role and apply with your wallet. Share the five requested fields; your application is verified in seconds.',
+    href: '/civicworks',
+    linkText: 'CivicWorks Careers',
+  },
+  {
+    title: 'Revoke and see trust in action',
+    text: 'In the Registrar Back Office, revoke the diploma permanently. Apply again at CivicWorks: the application must now be rejected. Close on the audit timeline, which recorded every step.',
+    href: '/moe/issuance',
+    linkText: 'Diploma issuance',
+  },
 ];
 
 export default function Landing() {
@@ -29,9 +58,8 @@ export default function Landing() {
         <p className="landing-lede">
           One demonstration, five portals. A learner registers with a PID from
           an EUDI wallet, receives a Student ID and a diploma as verifiable
-          credentials, confirms payment with a TS12 payment credential, and an
-          employer verifies the diploma with selective disclosure. Revocation
-          closes the loop.
+          credentials, confirms payment with a payment credential, and applies
+          for a job with selective disclosure. Revocation closes the loop.
         </p>
       </header>
 
@@ -41,9 +69,8 @@ export default function Landing() {
           {Object.values(PORTALS).map((portal) => (
             <Link
               key={portal.id}
-              href={portal.id === 'education' ? '/education' : portal.loginPath}
+              href={portal.id === 'education' ? '/education' : portal.homePath}
               className="landing-card"
-              style={{ borderColor: portal.brand.brand }}
             >
               <span className="landing-card-org">{portal.organisation}</span>
               <span className="landing-card-name">{portal.name}</span>
@@ -53,57 +80,65 @@ export default function Landing() {
         </div>
       </section>
 
+      <section className="landing-prereqs">
+        <h2>Prerequisites</h2>
+        <p className="landing-section-lede">
+          Load these two credentials into the same EUDI Wallet on your phone
+          before you start.
+        </p>
+        <div className="landing-grid landing-grid-two">
+          <a
+            className="landing-card"
+            href="https://igrant.io/demo/pid.html"
+            target="_blank"
+            rel="noreferrer"
+          >
+            <span className="landing-card-org">1 · Identity</span>
+            <span className="landing-card-name">Get a PID credential</span>
+            <span className="landing-card-tagline">
+              Issue a person identification credential to your wallet at
+              igrant.io/demo/pid.html. It signs you in as the learner.
+            </span>
+          </a>
+          <a
+            className="landing-card"
+            href="https://igrant.io/demo/ts12-payment-credential-issuance.html"
+            target="_blank"
+            rel="noreferrer"
+          >
+            <span className="landing-card-org">2 · Payment</span>
+            <span className="landing-card-name">Get a payment credential</span>
+            <span className="landing-card-tagline">
+              Issue a TS12 payment account credential to the same wallet. It
+              confirms the diploma fee.
+            </span>
+          </a>
+        </div>
+      </section>
+
       <section className="landing-journey">
-        <h2>The 12 to 15 minute journey</h2>
+        <h2>Try it out</h2>
+        <p className="landing-section-lede">
+          The whole journey takes 12 to 15 minutes. Follow the steps in order;
+          every sign-in form is prefilled with its demo account.
+        </p>
         <ol className="landing-steps">
-          {JOURNEY.map((item) => (
-            <li key={item.step}>
-              <span className="landing-step-n">{item.step}</span>
-              <span className="landing-step-title">{item.title}</span>
-              <span className="landing-step-where">{item.where}</span>
-              <span className="landing-step-time">{item.time}</span>
+          {STEPS.map((step, index) => (
+            <li key={step.title}>
+              <span className="landing-step-n">{index + 1}</span>
+              <span className="landing-step-body">
+                <span className="landing-step-title">{step.title}</span>
+                <span className="landing-step-text">
+                  {step.text}{' '}
+                  <Link href={step.href}>{step.linkText} →</Link>
+                </span>
+              </span>
             </li>
           ))}
         </ol>
-      </section>
-
-      <section className="landing-real">
-        <h2>What is real, what is sandboxed</h2>
-        <div className="landing-real-cols">
-          <div>
-            <h3>
-              <span className="integration-badge real">Real</span>
-            </h3>
-            <ul>
-              <li>PID wallet presentation (OpenID4VP)</li>
-              <li>TS12 payment account presentation</li>
-              <li>Credential issuance (OpenID4VCI, SD-JWT)</li>
-              <li>Selective disclosure and revocation</li>
-              <li>Consent Building Block agreements</li>
-            </ul>
-          </div>
-          <div>
-            <h3>
-              <span className="integration-badge sandbox">Sandbox</span>
-            </h3>
-            <ul>
-              <li>Civil registry and document validation</li>
-              <li>Payment ledger (funds movement)</li>
-              <li>Institution signature / trust service</li>
-              <li>Education Service Registry</li>
-              <li>Notifications and analytics</li>
-            </ul>
-          </div>
-        </div>
-        <p className="landing-prereq">
-          Before the demo, load a PID from{' '}
-          <a href="https://igrant.io/demo/pid.html">igrant.io/demo/pid.html</a>{' '}
-          and a payment credential from{' '}
-          <a href="https://igrant.io/demo/ts12-payment-credential-issuance.html">
-            igrant.io/demo/ts12-payment-credential-issuance.html
-          </a>{' '}
-          into the same wallet. Every person, institution and identifier in
-          this showcase is fictional.
+        <p className="landing-fineprint">
+          Every person, institution and identifier in this showcase is
+          fictional.
         </p>
       </section>
     </main>
