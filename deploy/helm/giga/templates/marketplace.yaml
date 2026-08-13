@@ -8,6 +8,12 @@ spec:
   {{- if not .Values.marketplace.autoscaling.enabled }}
   replicas: {{ .Values.marketplace.replicas }}
   {{- end }}
+  # Replace pods in place: the cluster is CPU-packed, so a surge pod would
+  # sit Pending forever and stall the rollout.
+  strategy:
+    rollingUpdate:
+      maxSurge: 0
+      maxUnavailable: 1
   selector:
     matchLabels:
       app: {{ .Values.marketplace.name }}
