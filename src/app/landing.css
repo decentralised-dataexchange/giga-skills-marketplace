@@ -147,3 +147,17 @@
   font-size: 0.8rem;
   color: #5a6070;
 }
+
+.landing-reset-button {
+  border: 1px solid #b3261e;
+  background: transparent;
+  color: #b3261e;
+  border-radius: 8px;
+  padding: 0.6rem 1.3rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.landing-reset-button:hover {
+  background: #fbebea;
+}

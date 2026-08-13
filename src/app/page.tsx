@@ -2,6 +2,8 @@ import Link from 'next/link';
 
 import { PORTALS } from '@/lib/portals';
 
+import { resetDemo } from './reset-action';
+
 import './landing.css';
 
 /**
@@ -140,6 +142,23 @@ export default function Landing() {
           Every person, institution and identifier in this showcase is
           fictional.
         </p>
+      </section>
+
+      <section className="landing-reset">
+        <h2>Start over</h2>
+        <p className="landing-section-lede">
+          Reset the demo before a new run: this deletes the learner, the
+          application, all exchange records, the consent records and the
+          audit log, and puts the payment policy back to off. Staff accounts
+          stay. Credentials already in a wallet are not touched; revoke a
+          diploma in the Registrar Back Office first if you want a clean
+          wallet story.
+        </p>
+        <form action={resetDemo}>
+          <button type="submit" className="landing-reset-button">
+            Reset demo data
+          </button>
+        </form>
       </section>
     </main>
   );
