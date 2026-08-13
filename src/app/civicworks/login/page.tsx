@@ -1,4 +1,5 @@
 import { PORTALS } from '@/lib/portals';
+import { DEMO_ACCOUNTS } from '@/lib/demo-accounts';
 import { StaffLoginForm } from '@/components/StaffLoginForm';
 
 export default function CivicworksLogin() {
@@ -18,7 +19,11 @@ export default function CivicworksLogin() {
         <div className="cw-login-form-inner">
           <h2>Sign in</h2>
           <p>HR verification workspace</p>
-          <StaffLoginForm homePath={portal.homePath} buttonLabel="Sign in" />
+          <StaffLoginForm
+            homePath={portal.homePath}
+            buttonLabel="Sign in"
+            demoAccount={DEMO_ACCOUNTS.civicworks}
+          />
         </div>
       </div>
     </div>

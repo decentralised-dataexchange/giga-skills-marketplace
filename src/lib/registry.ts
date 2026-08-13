@@ -1,6 +1,6 @@
 import 'server-only';
 
-import { createHash } from 'crypto';
+import { createHash, randomInt } from 'crypto';
 
 import { getDb } from '@/lib/db';
 import { newId, newUlid } from '@/lib/ids';
@@ -191,6 +191,9 @@ export async function registrarApprove(
   });
 
   const form = JSON.parse(app.form) as Record<string, unknown>;
+  // Pre-authorised code flow with a transaction code: the learner types this
+  // PIN in the wallet when accepting the offer.
+  const studentIdPin = String(randomInt(1000, 10000));
   const answer = await ows(
     'moe',
     'POST',
@@ -199,7 +202,7 @@ export async function registrarApprove(
       issuanceMode: 'InTime',
       credentialDefinitionId: requiredEnv('STUDENT_ID_CREDENTIAL_ID', 'Student ID issuance'),
       urlScheme: 'openid-credential-offer://',
-      userPin: '',
+      userPin: studentIdPin,
       credential: {
         vct: 'VerifiableStudentID',
         claims: {
@@ -250,7 +253,12 @@ export async function registrarApprove(
   db.prepare(
     'UPDATE "applications" SET "form" = ?, "updatedAt" = ? WHERE "id" = ?'
   ).run(
-    JSON.stringify({ ...form, studentIdOffer: offer, studentIdExchangeId: exchangeId }),
+    JSON.stringify({
+      ...form,
+      studentIdOffer: offer,
+      studentIdExchangeId: exchangeId,
+      studentIdPin,
+    }),
     now,
     appId
   );
@@ -381,6 +389,8 @@ export async function startPaymentConfirmation(
         'PAYMENT_PRESENTATION_DEFINITION_ID',
         'Payment confirmation'
       ),
+      // By reference: the QR carries a request_uri, not the whole request.
+      requestByReference: true,
       transactionData: {
         transaction_id: appId.slice(0, 36),
         payee: { name: 'Ministry of Education', id: 'ESR-MOE-0001' },
@@ -482,6 +492,8 @@ export async function issueDiploma(
     throw new Error('The application is not ready for issuance.');
   }
 
+  // Pre-authorised code flow with a transaction code, as for the Student ID.
+  const diplomaPin = String(randomInt(1000, 10000));
   const answer = await ows(
     'moe',
     'POST',
@@ -490,7 +502,7 @@ export async function issueDiploma(
       issuanceMode: 'InTime',
       credentialDefinitionId: requiredEnv('DIPLOMA_CREDENTIAL_ID', 'Diploma issuance'),
       urlScheme: 'openid-credential-offer://',
-      userPin: '',
+      userPin: diplomaPin,
       credential: {
         vct: 'urn:education:diploma:1',
         claims: {
@@ -533,7 +545,12 @@ export async function issueDiploma(
     `UPDATE "applications" SET "form" = ?, "status" = 'issued', "updatedAt" = ?
      WHERE "id" = ?`
   ).run(
-    JSON.stringify({ ...form, diplomaOffer: offer, diplomaExchangeId: exchangeId }),
+    JSON.stringify({
+      ...form,
+      diplomaOffer: offer,
+      diplomaExchangeId: exchangeId,
+      diplomaPin,
+    }),
     now,
     appId
   );

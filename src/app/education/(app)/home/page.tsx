@@ -56,11 +56,17 @@ export default async function EducationHome() {
           </h2>
           <p>
             Scan with your wallet to receive your selectively disclosable
-            Student ID.
+            Student ID. The wallet will ask for the transaction code below.
           </p>
+          {typeof form.studentIdPin === 'string' ? (
+            <p className="edu-pin">
+              Transaction code: <strong>{form.studentIdPin}</strong>
+            </p>
+          ) : null}
           <ExchangeQr
             exchangeId={String(form.studentIdExchangeId)}
             qrUri={form.studentIdOffer}
+            logo="/portals/moe/logo.svg"
             waitingText="Waiting for your wallet to accept the Student ID…"
           />
         </div>
@@ -91,10 +97,17 @@ export default async function EducationHome() {
           <p>
             Congratulations. Scan with your wallet to receive your diploma
             {app.paymentLedgerRef ? ` (payment reference ${app.paymentLedgerRef})` : ''}.
+            The wallet will ask for the transaction code below.
           </p>
+          {typeof form.diplomaPin === 'string' ? (
+            <p className="edu-pin">
+              Transaction code: <strong>{form.diplomaPin}</strong>
+            </p>
+          ) : null}
           <ExchangeQr
             exchangeId={String(form.diplomaExchangeId)}
             qrUri={form.diplomaOffer}
+            logo="/portals/moe/logo.svg"
             waitingText="Waiting for your wallet to accept the diploma…"
           />
         </div>

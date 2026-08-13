@@ -1,4 +1,5 @@
 import { PORTALS } from '@/lib/portals';
+import { DEMO_ACCOUNTS } from '@/lib/demo-accounts';
 import { StaffLoginForm } from '@/components/StaffLoginForm';
 
 export default function DpaLogin() {
@@ -11,7 +12,11 @@ export default function DpaLogin() {
         Consent oversight sign-in. Access is limited to authorised supervisory
         staff and is recorded.
       </p>
-      <StaffLoginForm homePath={portal.homePath} buttonLabel="Sign in" />
+      <StaffLoginForm
+        homePath={portal.homePath}
+        buttonLabel="Sign in"
+        demoAccount={DEMO_ACCOUNTS.dpa}
+      />
     </div>
   );
 }

@@ -22,7 +22,8 @@ export async function startPidLogin(): Promise<{
     'moe',
     'POST',
     '/v3/config/digital-wallet/openid/sdjwt/verification/send',
-    { presentationDefinitionId }
+    // By reference: the QR carries a request_uri, not the whole request.
+    { presentationDefinitionId, requestByReference: true }
   );
 
   const history = answer?.verificationHistory ?? answer;

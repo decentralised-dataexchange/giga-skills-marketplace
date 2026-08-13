@@ -2,17 +2,17 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { QRCodeSVG } from 'qrcode.react';
 
+import { WalletInvite } from '@/components/WalletInvite';
 import { useExchangeStatus } from '@/components/useExchangeStatus';
 import { startPidLogin } from '@/app/education/login/actions';
 
 type Phase = 'starting' | 'waiting' | 'signing-in' | 'rejected' | 'error';
 
 /**
- * The learner QR sign-in. Starts the OpenID4VP request, renders the QR,
- * listens for the verified event, then exchanges the one-time login token for
- * a session cookie on this device.
+ * The learner sign-in. Starts the OpenID4VP request, hands the invite to the
+ * wallet (QR on desktop, deep link on the phone), listens for the verified
+ * event, then exchanges the one-time login token for a session cookie.
  */
 export function WalletLogin() {
   const router = useRouter();
@@ -20,22 +20,21 @@ export function WalletLogin() {
   const [exchangeId, setExchangeId] = useState<string | null>(null);
   const [qrUri, setQrUri] = useState<string | null>(null);
 
-  useEffect(() => {
-    let cancelled = false;
+  const start = useCallback(() => {
+    setPhase('starting');
+    setQrUri(null);
     startPidLogin()
       .then((result) => {
-        if (cancelled) return;
         setExchangeId(result.exchangeId);
         setQrUri(result.qrUri);
         setPhase('waiting');
       })
-      .catch(() => {
-        if (!cancelled) setPhase('error');
-      });
-    return () => {
-      cancelled = true;
-    };
+      .catch(() => setPhase('error'));
   }, []);
+
+  useEffect(() => {
+    start();
+  }, [start]);
 
   const onEvent = useCallback(
     async (payload: Record<string, unknown>) => {
@@ -67,44 +66,42 @@ export function WalletLogin() {
     <div className="edu-card">
       <h1>Sign in with your wallet</h1>
       <p>
-        Open the wallet on your phone and scan the code to present your person
-        identification data (PID). We use it to confirm who you are; the
-        registry keeps no copy of your identity attributes.
+        Present your person identification data (PID) from the wallet on your
+        phone. We use it to confirm who you are; the registry keeps no copy of
+        your identity attributes.
       </p>
-      <div className="edu-qr-frame">
-        {phase === 'starting' ? (
-          <span style={{ color: 'var(--muted)', fontSize: '0.85rem' }}>
-            Preparing your sign-in…
-          </span>
-        ) : null}
+      <div style={{ margin: '1.5rem 0 1rem' }}>
+        {phase === 'starting' ? <p className="qr-hint">Preparing your sign-in…</p> : null}
         {phase === 'waiting' && qrUri ? (
-          <QRCodeSVG value={qrUri} size={216} marginSize={2} />
+          <WalletInvite
+            uri={qrUri}
+            logo="/portals/education/logo.svg"
+            hint="Scan this with the EUDI Wallet on your phone and share your PID."
+            onRefresh={start}
+          />
         ) : null}
         {phase === 'signing-in' ? (
-          <span style={{ color: 'var(--muted)', fontSize: '0.85rem' }}>
-            Presentation received. Signing you in…
-          </span>
+          <p className="qr-hint">Presentation received. Signing you in…</p>
         ) : null}
         {phase === 'rejected' ? (
-          <span style={{ color: 'var(--bad)', fontSize: '0.85rem' }}>
+          <p className="qr-hint" style={{ color: 'var(--bad)', opacity: 1 }}>
             The presentation could not be verified.
-          </span>
+          </p>
         ) : null}
         {phase === 'error' ? (
-          <span style={{ color: 'var(--bad)', fontSize: '0.85rem' }}>
-            Something went wrong. Refresh the page to try again.
-          </span>
+          <p className="qr-hint" style={{ color: 'var(--bad)', opacity: 1 }}>
+            Something went wrong.{' '}
+            <button
+              type="button"
+              className="qr-refresh"
+              onClick={start}
+              style={{ display: 'inline' }}
+            >
+              Try again
+            </button>
+          </p>
         ) : null}
       </div>
-      {phase === 'waiting' && qrUri ? (
-        <p>
-          On this phone?{' '}
-          <a href={qrUri} style={{ color: 'var(--brand)' }}>
-            Open your wallet directly
-          </a>
-          .
-        </p>
-      ) : null}
       <span className="integration-badge real">Real wallet flow</span>
     </div>
   );

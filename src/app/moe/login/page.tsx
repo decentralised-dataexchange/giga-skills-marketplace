@@ -1,4 +1,5 @@
 import { PORTALS } from '@/lib/portals';
+import { DEMO_ACCOUNTS } from '@/lib/demo-accounts';
 import { StaffLoginForm } from '@/components/StaffLoginForm';
 
 export default function MoeLogin() {
@@ -11,7 +12,11 @@ export default function MoeLogin() {
         <img src={portal.logo} alt="" />
         <h1>{portal.organisation}</h1>
         <p>Registrar Back Office. Authorised personnel only.</p>
-        <StaffLoginForm homePath={portal.homePath} buttonLabel="Enter back office" />
+        <StaffLoginForm
+          homePath={portal.homePath}
+          buttonLabel="Enter back office"
+          demoAccount={DEMO_ACCOUNTS.moe}
+        />
       </div>
     </div>
   );

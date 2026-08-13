@@ -22,6 +22,14 @@ export const auth = betterAuth({
   emailAndPassword: {
     enabled: true,
   },
+  // The app is reached both on localhost and through the public tunnel
+  // domain; both must pass Better Auth's origin check.
+  trustedOrigins: [
+    process.env.PUBLIC_BASE_URL ?? '',
+    process.env.BETTER_AUTH_URL ?? '',
+    'http://localhost:3000',
+    'http://localhost:3299',
+  ].filter(Boolean),
   plugins: [admin(), walletSignIn(), nextCookies()],
 });
 

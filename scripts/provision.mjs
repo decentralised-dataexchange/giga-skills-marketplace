@@ -233,6 +233,10 @@ async function main() {
     version: 'version_01',
     responseType: 'vp_token',
     responseMode: 'direct_post',
+    // x509: the request is signed with the organisation certificate chain,
+    // which is granted on the NXD WRPAC trust list, so wallets trust it.
+    clientIdScheme: 'x509_hash',
+    trustAnchor: 'x509',
     dcqlQuery: {
       credentials: [
         {
@@ -255,6 +259,8 @@ async function main() {
     version: 'version_01',
     responseType: 'vp_token',
     responseMode: 'direct_post',
+    clientIdScheme: 'x509_hash',
+    trustAnchor: 'x509',
     // TS12 payment confirmation. At send time the request must carry
     // transactionData with transaction_id, payee{name,id}, currency, amount.
     transactionDataDefinitionType: 'payment',
@@ -285,6 +291,9 @@ async function main() {
   const studentIdDef = await ensureCredentialDefinition(moeKey, {
     label: 'Verifiable Student ID',
     version: 'version_01',
+    // x509: credentials are signed with the organisation certificate chain,
+    // granted on the NXD Pub-EAA trust list.
+    trustAnchor: 'x509',
     display: {
       name: 'Student ID',
       description: 'National Learner Registry student identity',
@@ -307,6 +316,7 @@ async function main() {
   const diplomaDef = await ensureCredentialDefinition(moeKey, {
     label: 'National Diploma',
     version: 'version_01',
+    trustAnchor: 'x509',
     display: {
       name: 'Diploma',
       description: 'Ministry of Education diploma credential',
@@ -332,6 +342,8 @@ async function main() {
     version: 'version_01',
     responseType: 'vp_token',
     responseMode: 'direct_post',
+    clientIdScheme: 'x509_hash',
+    trustAnchor: 'x509',
     dcqlQuery: {
       credentials: [
         {

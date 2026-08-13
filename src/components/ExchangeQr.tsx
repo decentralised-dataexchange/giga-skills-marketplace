@@ -2,35 +2,43 @@
 
 import { useCallback, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { QRCodeSVG } from 'qrcode.react';
 
+import { WalletInvite } from '@/components/WalletInvite';
 import { useExchangeStatus } from '@/components/useExchangeStatus';
 
+const SCANNED_TOPICS = [
+  'openid.credential.offer_received',
+  'openid.credential.token_issued',
+];
+
+const DONE_TOPICS = [
+  'openid.credential.credential_accepted',
+  'openid.credential.credential_acked',
+  'digitalwallet.presentation.verified',
+  'openid.presentation.presentation_acked.v3',
+];
+
 /**
- * A wallet interaction QR: renders the URI, listens on the exchange over
- * SSE (with polling fallback), and refreshes the page when a terminal
- * event arrives, so the server-rendered status moves forward.
+ * A wallet interaction with live status: renders the invite (QR or deep
+ * link), listens on the exchange over SSE with polling fallback, switches
+ * to a "scanned" state as soon as the wallet picks the offer up (the
+ * demonstrators' pattern), and refreshes the page on the terminal event.
  */
 export function ExchangeQr({
   exchangeId,
   qrUri,
   waitingText,
-  doneTopics = [
-    'openid.credential.credential_accepted',
-    'openid.credential.credential_acked',
-    'digitalwallet.presentation.verified',
-    'openid.presentation.presentation_acked.v3',
-  ],
-  size = 200,
+  logo,
+  doneTopics = DONE_TOPICS,
 }: {
   exchangeId: string;
   qrUri: string;
   waitingText: string;
+  logo?: string;
   doneTopics?: string[];
-  size?: number;
 }) {
   const router = useRouter();
-  const [done, setDone] = useState(false);
+  const [state, setState] = useState<'waiting' | 'scanned' | 'done'>('waiting');
 
   const onEvent = useCallback(
     (payload: Record<string, unknown>) => {
@@ -40,34 +48,31 @@ export function ExchangeQr({
         payload.status === 'paid' ||
         payload.status === 'verified'
       ) {
-        setDone(true);
+        setState('done');
         router.refresh();
+        return;
+      }
+      if (SCANNED_TOPICS.includes(topic)) {
+        setState('scanned');
       }
     },
     [doneTopics, router]
   );
 
-  useExchangeStatus(done ? null : exchangeId, onEvent);
+  useExchangeStatus(state === 'done' ? null : exchangeId, onEvent);
 
-  return (
-    <div style={{ textAlign: 'center' }}>
-      <div
-        style={{
-          display: 'inline-block',
-          background: '#ffffff',
-          padding: '0.75rem',
-          borderRadius: 8,
-          border: '1px solid rgba(0,0,0,0.12)',
-        }}
-      >
-        <QRCodeSVG value={qrUri} size={size} marginSize={1} />
+  if (state !== 'waiting') {
+    return (
+      <div className="qr-wrap">
+        <div className="spinner" aria-hidden />
+        <p className="qr-hint">
+          {state === 'done'
+            ? 'Done. Updating…'
+            : 'Scanned. Continue in the wallet on your phone…'}
+        </p>
       </div>
-      <p style={{ marginTop: '0.6rem', fontSize: '0.85rem', opacity: 0.75 }}>
-        {done ? 'Done. Updating…' : waitingText}
-      </p>
-      <p style={{ fontSize: '0.8rem' }}>
-        On this phone? <a href={qrUri}>Open your wallet directly</a>.
-      </p>
-    </div>
-  );
+    );
+  }
+
+  return <WalletInvite uri={qrUri} logo={logo} hint={waitingText} />;
 }

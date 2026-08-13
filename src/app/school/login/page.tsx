@@ -1,4 +1,5 @@
 import { PORTALS } from '@/lib/portals';
+import { DEMO_ACCOUNTS } from '@/lib/demo-accounts';
 import { StaffLoginForm } from '@/components/StaffLoginForm';
 
 export default function SchoolLogin() {
@@ -11,7 +12,11 @@ export default function SchoolLogin() {
         <img src={portal.logo} alt="" />
         <h1>{portal.organisation}</h1>
         <p>Admissions office staff sign-in</p>
-        <StaffLoginForm homePath={portal.homePath} buttonLabel="Open workbench" />
+        <StaffLoginForm
+          homePath={portal.homePath}
+          buttonLabel="Open workbench"
+          demoAccount={DEMO_ACCOUNTS.school}
+        />
       </div>
     </div>
   );

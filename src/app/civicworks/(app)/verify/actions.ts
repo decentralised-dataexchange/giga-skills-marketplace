@@ -25,6 +25,8 @@ export async function startDiplomaVerification(): Promise<{
         'DIPLOMA_PRESENTATION_DEFINITION_ID',
         'Diploma verification'
       ),
+      // By reference: the QR carries a request_uri, not the whole request.
+      requestByReference: true,
     }
   );
 

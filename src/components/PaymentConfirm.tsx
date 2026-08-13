@@ -32,6 +32,7 @@ export function PaymentConfirm() {
       <ExchangeQr
         exchangeId={request.exchangeId}
         qrUri={request.qrUri}
+        logo="/portals/moe/logo.svg"
         waitingText="Scan with your wallet and approve the payment of EUR 50 to the Ministry of Education."
       />
     );

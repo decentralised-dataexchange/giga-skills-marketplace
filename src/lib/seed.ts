@@ -4,6 +4,7 @@ import { auth } from '@/lib/auth';
 import { getDb } from '@/lib/db';
 import { newId } from '@/lib/ids';
 import { PAYMENT_REQUIRED_KEY, getPolicy, setPolicy } from '@/lib/policy';
+import { DEMO_ACCOUNTS } from '@/lib/demo-accounts';
 
 /**
  * Idempotent demo seed: the four staff accounts, the fictional institutions
@@ -12,28 +13,7 @@ import { PAYMENT_REQUIRED_KEY, getPolicy, setPolicy } from '@/lib/policy';
  * hot-reloads never duplicate data.
  */
 
-const STAFF = [
-  {
-    email: 'officer@riverside.school',
-    name: 'Amina Osei',
-    role: 'school_officer' as const,
-  },
-  {
-    email: 'registrar@moe.gov',
-    name: 'Daniel Mensah',
-    role: 'registrar' as const,
-  },
-  {
-    email: 'oversight@dpa.gov',
-    name: 'Leena Virtanen',
-    role: 'dpa_admin' as const,
-  },
-  {
-    email: 'hr@civicworks.example',
-    name: 'Sofia Lindqvist',
-    role: 'employer_verifier' as const,
-  },
-];
+const STAFF = Object.values(DEMO_ACCOUNTS);
 
 const INSTITUTIONS = [
   { name: 'Riverside Secondary School', kind: 'school', esrRef: 'ESR-SCH-0042' },
@@ -43,7 +23,6 @@ const INSTITUTIONS = [
 
 async function seed(): Promise<void> {
   const db = getDb();
-  const password = process.env.DEMO_STAFF_PASSWORD || 'Showcase2026!';
 
   for (const staff of STAFF) {
     const existing = db
@@ -54,7 +33,7 @@ async function seed(): Promise<void> {
     await auth.api.createUser({
       body: {
         email: staff.email,
-        password,
+        password: staff.password,
         name: staff.name,
         role: staff.role as 'user',
       },

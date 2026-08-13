@@ -201,6 +201,24 @@
   border-radius: 10px;
 }
 
+/* The pre-authorised code shown next to a credential offer. */
+.edu-pin {
+  display: inline-block;
+  margin: 0.25rem 0 0.9rem;
+  padding: 0.45rem 0.9rem;
+  background: var(--brand-soft);
+  border: 1px dashed var(--brand);
+  border-radius: 8px;
+  font-size: 0.95rem;
+}
+
+.edu-pin strong {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 1.15rem;
+  letter-spacing: 0.2em;
+  color: var(--brand-dark);
+}
+
 .edu-footer {
   background: var(--brand-dark);
   color: rgba(255, 255, 255, 0.85);

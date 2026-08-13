@@ -2,8 +2,7 @@
 
 import { useCallback, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { QRCodeSVG } from 'qrcode.react';
-
+import { WalletInvite } from '@/components/WalletInvite';
 import { useExchangeStatus } from '@/components/useExchangeStatus';
 import { startDiplomaVerification } from '@/app/civicworks/(app)/verify/actions';
 
@@ -57,25 +56,11 @@ export function VerifyFlow() {
   }
 
   return (
-    <div style={{ textAlign: 'center' }}>
-      <div
-        style={{
-          display: 'inline-block',
-          background: '#ffffff',
-          padding: '0.75rem',
-          borderRadius: 16,
-          border: '1px solid var(--line)',
-        }}
-      >
-        <QRCodeSVG value={request.qrUri} size={200} marginSize={1} />
-      </div>
-      <p style={{ marginTop: '0.6rem', fontSize: '0.85rem', color: 'var(--muted)' }}>
-        Ask the candidate to scan this code and approve sharing the five
-        requested fields.
-      </p>
-      <p style={{ fontSize: '0.8rem' }}>
-        On this phone? <a href={request.qrUri}>Open the wallet directly</a>.
-      </p>
-    </div>
+    <WalletInvite
+      uri={request.qrUri}
+      logo="/portals/civicworks/logo.svg"
+      hint="Ask the candidate to scan this code and approve sharing the five requested fields."
+      onRefresh={begin}
+    />
   );
 }
