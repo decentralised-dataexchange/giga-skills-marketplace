@@ -3,6 +3,7 @@ import { verifySignature } from '@/lib/webhook/verify';
 import { extractExchangeId, isSupportedTopic } from '@/lib/webhook/topics';
 import { storeEvent } from '@/lib/webhook/store';
 import { completePidLogin } from '@/lib/wallet-login';
+import { completePayment } from '@/lib/registry';
 
 // Unauthenticated POST from iGrant.io; HMAC is the authentication.
 export const runtime = 'nodejs';
@@ -78,6 +79,16 @@ export async function POST(
   const isPresentationDone =
     topic === 'digitalwallet.presentation.verified' ||
     topic === 'openid.presentation.presentation_acked.v3';
+
+  if (exchange?.credentialType === 'payment' && isPresentationDone) {
+    try {
+      const paid = await completePayment(exchangeId);
+      payload.status = paid ? 'paid' : 'rejected';
+    } catch (error) {
+      console.error('[Webhook] payment completion failed:', error);
+      payload.status = 'error';
+    }
+  }
 
   if (exchange?.credentialType === 'pid-login' && isPresentationDone) {
     try {

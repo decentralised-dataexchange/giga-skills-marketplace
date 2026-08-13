@@ -1,0 +1,549 @@
+import 'server-only';
+
+import { createHash } from 'crypto';
+
+import { getDb } from '@/lib/db';
+import { newId, newUlid } from '@/lib/ids';
+import { audit } from '@/lib/audit';
+import { ows, requiredEnv } from '@/lib/ows';
+import { PAYMENT_REQUIRED_KEY, getPolicy } from '@/lib/policy';
+
+/**
+ * The National Learner Registry domain: applications, approvals, ULID
+ * generation, credential issuance and the TS12 payment gate. Every state
+ * change writes an audit event. All functions run server-side only and are
+ * called from role-guarded server actions or the webhook handler.
+ *
+ * Application states:
+ *   draft → submitted → school_validated → approved →
+ *   graduation_submitted → payment_pending → issued
+ */
+
+export type Application = {
+  id: string;
+  learnerId: string;
+  institutionId: string;
+  status: string;
+  form: string;
+  documents: string;
+  programme: string | null;
+  qualificationCode: string | null;
+  result: string | null;
+  graduationDocHash: string | null;
+  paymentExchangeId: string | null;
+  paymentLedgerRef: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type Learner = {
+  id: string;
+  userId: string;
+  pseudonym: string;
+  displayName: string;
+  ulid: string | null;
+};
+
+export function getLearnerByUserId(userId: string): Learner | undefined {
+  return getDb()
+    .prepare('SELECT * FROM "learners" WHERE "userId" = ?')
+    .get(userId) as Learner | undefined;
+}
+
+export function getInstitutions(kind?: string) {
+  const db = getDb();
+  return (
+    kind
+      ? db.prepare('SELECT * FROM "institutions" WHERE "kind" = ?').all(kind)
+      : db.prepare('SELECT * FROM "institutions"').all()
+  ) as Array<{ id: string; name: string; kind: string; esrRef: string }>;
+}
+
+export function listApplications(statuses: string[]): Array<Application & { learnerName: string; institutionName: string }> {
+  const marks = statuses.map(() => '?').join(',');
+  return getDb()
+    .prepare(
+      `SELECT a.*, l."displayName" AS "learnerName", i."name" AS "institutionName"
+       FROM "applications" a
+       JOIN "learners" l ON l."id" = a."learnerId"
+       JOIN "institutions" i ON i."id" = a."institutionId"
+       WHERE a."status" IN (${marks})
+       ORDER BY a."updatedAt" DESC`
+    )
+    .all(...statuses) as Array<Application & { learnerName: string; institutionName: string }>;
+}
+
+export function getApplication(id: string) {
+  return getDb()
+    .prepare(
+      `SELECT a.*, l."displayName" AS "learnerName", l."ulid" AS "learnerUlid",
+              l."id" AS "learnerRowId", i."name" AS "institutionName", i."esrRef"
+       FROM "applications" a
+       JOIN "learners" l ON l."id" = a."learnerId"
+       JOIN "institutions" i ON i."id" = a."institutionId"
+       WHERE a."id" = ?`
+    )
+    .get(id) as
+    | (Application & {
+        learnerName: string;
+        learnerUlid: string | null;
+        learnerRowId: string;
+        institutionName: string;
+        esrRef: string;
+      })
+    | undefined;
+}
+
+export function getApplicationForLearner(learnerId: string) {
+  return getDb()
+    .prepare(
+      'SELECT * FROM "applications" WHERE "learnerId" = ? ORDER BY "createdAt" DESC LIMIT 1'
+    )
+    .get(learnerId) as Application | undefined;
+}
+
+export function submitApplication(entry: {
+  learner: Learner;
+  institutionId: string;
+  form: Record<string, unknown>;
+  documents: string[];
+}): string {
+  const db = getDb();
+  const now = new Date().toISOString();
+  const id = newId('app');
+  db.prepare(
+    `INSERT INTO "applications"
+       ("id", "learnerId", "institutionId", "status", "form", "documents",
+        "createdAt", "updatedAt")
+     VALUES (?, ?, ?, 'submitted', ?, ?, ?, ?)`
+  ).run(
+    id,
+    entry.learner.id,
+    entry.institutionId,
+    JSON.stringify(entry.form),
+    JSON.stringify(entry.documents),
+    now,
+    now
+  );
+  audit({
+    actorUserId: entry.learner.userId,
+    actorRole: 'learner',
+    action: 'application.submitted',
+    subjectType: 'application',
+    subjectId: id,
+  });
+  return id;
+}
+
+function setStatus(id: string, status: string) {
+  getDb()
+    .prepare('UPDATE "applications" SET "status" = ?, "updatedAt" = ? WHERE "id" = ?')
+    .run(status, new Date().toISOString(), id);
+}
+
+/** The RFQ-required manual document review by the school officer. */
+export function schoolValidate(appId: string, actor: { userId: string }) {
+  const app = getApplication(appId);
+  if (!app || app.status !== 'submitted') {
+    throw new Error('The application is not awaiting review.');
+  }
+  setStatus(appId, 'school_validated');
+  audit({
+    actorUserId: actor.userId,
+    actorRole: 'school_officer',
+    action: 'application.documents_validated',
+    subjectType: 'application',
+    subjectId: appId,
+    payload: { civilRegistryCheck: 'sandbox:passed' },
+  });
+}
+
+/**
+ * The registrar approval: generates the ULID, creates the authoritative
+ * learner profile, and issues the Verifiable Student ID to the wallet.
+ * Returns the credential offer URI for the learner's QR.
+ */
+export async function registrarApprove(
+  appId: string,
+  actor: { userId: string }
+): Promise<void> {
+  const app = getApplication(appId);
+  if (!app || app.status !== 'school_validated') {
+    throw new Error('The application is not awaiting a registrar decision.');
+  }
+
+  const db = getDb();
+  const now = new Date().toISOString();
+  const ulid = newUlid();
+
+  db.prepare(
+    'UPDATE "learners" SET "ulid" = ?, "updatedAt" = ? WHERE "id" = ?'
+  ).run(ulid, now, app.learnerRowId);
+  setStatus(appId, 'approved');
+
+  audit({
+    actorUserId: actor.userId,
+    actorRole: 'registrar',
+    action: 'application.approved',
+    subjectType: 'application',
+    subjectId: appId,
+    payload: { ulid },
+  });
+
+  const form = JSON.parse(app.form) as Record<string, unknown>;
+  const answer = await ows(
+    'moe',
+    'POST',
+    '/v2/config/digital-wallet/openid/sdjwt/credential/issue',
+    {
+      issuanceMode: 'InTime',
+      credentialDefinitionId: requiredEnv('STUDENT_ID_CREDENTIAL_ID', 'Student ID issuance'),
+      urlScheme: 'openid-credential-offer://',
+      userPin: '',
+      credential: {
+        vct: 'VerifiableStudentID',
+        claims: {
+          id: ulid,
+          identifier: ulid,
+          firstName: String(form.firstName ?? app.learnerName.split(' ')[0] ?? ''),
+          familyName: String(
+            form.familyName ?? app.learnerName.split(' ').slice(1).join(' ') ?? ''
+          ),
+          commonName: app.learnerName,
+          displayName: app.learnerName,
+          dateOfBirth: String(form.dateOfBirth ?? ''),
+          mail: String(form.email ?? ''),
+          eduPersonPrincipalName: `${ulid.toLowerCase()}@nlr.gov.example`,
+          eduPersonPrimaryAffiliation: 'student',
+          eduPersonAffiliation: ['student', 'member'],
+          eduPersonScopedAffiliation: ['student@riverside.school.example'],
+          eduPersonAssurance: ['https://refeds.org/assurance/IAP/medium'],
+          schacHomeOrganization: 'riverside.school.example',
+          schacPersonalUniqueID: `urn:schac:personalUniqueID:example:ULID:${ulid}`,
+          schacPersonalUniqueCode: [
+            `urn:schac:personalUniqueCode:example:nlr:${ulid}`,
+          ],
+        },
+      },
+    }
+  );
+
+  const history = Array.isArray(answer?.credentialHistory)
+    ? answer.credentialHistory[0]
+    : answer?.credentialHistory;
+  const exchangeId: string | undefined =
+    history?.credentialExchangeId ?? history?.CredentialExchangeId;
+  const offer: string | undefined = history?.credentialOffer;
+  if (!exchangeId || !offer) {
+    throw new Error('The wallet service did not return a credential offer.');
+  }
+
+  db.prepare(
+    `INSERT INTO "credential_exchanges"
+       ("id", "owsExchangeId", "direction", "credentialType", "learnerId",
+        "applicationId", "status", "createdAt", "updatedAt")
+     VALUES (?, ?, 'issuance', 'student-id', ?, ?, 'offer_sent', ?, ?)
+     ON CONFLICT("owsExchangeId") DO NOTHING`
+  ).run(newId('exc'), exchangeId, app.learnerRowId, appId, now, now);
+
+  // The learner portal renders the offer as a QR until the wallet accepts it.
+  db.prepare(
+    'UPDATE "applications" SET "form" = ?, "updatedAt" = ? WHERE "id" = ?'
+  ).run(
+    JSON.stringify({ ...form, studentIdOffer: offer, studentIdExchangeId: exchangeId }),
+    now,
+    appId
+  );
+
+  audit({
+    actorUserId: actor.userId,
+    actorRole: 'registrar',
+    action: 'credential.student_id_offered',
+    subjectType: 'exchange',
+    subjectId: exchangeId,
+    payload: { applicationId: appId },
+  });
+}
+
+/** The school submits the signed graduation decision reference. */
+export function submitGraduation(
+  appId: string,
+  decision: {
+    programme: string;
+    qualificationCode: string;
+    result: string;
+    decisionText: string;
+  },
+  actor: { userId: string }
+) {
+  const app = getApplication(appId);
+  if (!app || app.status !== 'approved') {
+    throw new Error('The application is not ready for a graduation decision.');
+  }
+  const docHash = createHash('sha256')
+    .update(decision.decisionText)
+    .digest('hex');
+  const now = new Date().toISOString();
+  getDb()
+    .prepare(
+      `UPDATE "applications" SET
+         "programme" = ?, "qualificationCode" = ?, "result" = ?,
+         "graduationDocHash" = ?, "status" = 'graduation_submitted',
+         "updatedAt" = ?
+       WHERE "id" = ?`
+    )
+    .run(
+      decision.programme,
+      decision.qualificationCode,
+      decision.result,
+      docHash,
+      now,
+      appId
+    );
+  audit({
+    actorUserId: actor.userId,
+    actorRole: 'school_officer',
+    action: 'graduation.submitted',
+    subjectType: 'application',
+    subjectId: appId,
+    payload: {
+      programme: decision.programme,
+      qualificationCode: decision.qualificationCode,
+      documentHash: docHash,
+      institutionSignature: 'sandbox:tsp-signed',
+    },
+  });
+}
+
+/**
+ * The Ministry processes a graduation decision: validates the institution
+ * against the sandbox Education Service Registry, then either requires
+ * payment (policy) or issues the diploma at once.
+ */
+export async function moeProcessGraduation(
+  appId: string,
+  actor: { userId: string }
+): Promise<'payment_pending' | 'issued'> {
+  const app = getApplication(appId);
+  if (!app || app.status !== 'graduation_submitted') {
+    throw new Error('The application has no pending graduation decision.');
+  }
+
+  // Sandbox Education Service Registry check.
+  if (!app.esrRef || !app.esrRef.startsWith('ESR-')) {
+    throw new Error('The institution is not authorised in the Education Service Registry.');
+  }
+  audit({
+    actorUserId: actor.userId,
+    actorRole: 'registrar',
+    action: 'graduation.institution_validated',
+    subjectType: 'application',
+    subjectId: appId,
+    payload: { esrRef: app.esrRef, registry: 'sandbox' },
+  });
+
+  const paymentRequired = getPolicy(PAYMENT_REQUIRED_KEY, 'false') === 'true';
+  if (paymentRequired) {
+    setStatus(appId, 'payment_pending');
+    audit({
+      actorUserId: actor.userId,
+      actorRole: 'registrar',
+      action: 'graduation.payment_required',
+      subjectType: 'application',
+      subjectId: appId,
+    });
+    return 'payment_pending';
+  }
+
+  await issueDiploma(appId, { userId: actor.userId, role: 'registrar' });
+  return 'issued';
+}
+
+/**
+ * Start the TS12 payment confirmation: an OpenID4VP request for the Payment
+ * Account Credential with the diploma-fee transaction data. Returns the QR.
+ */
+export async function startPaymentConfirmation(
+  appId: string,
+  actor: { userId: string }
+): Promise<{ exchangeId: string; qrUri: string }> {
+  const app = getApplication(appId);
+  if (!app || app.status !== 'payment_pending') {
+    throw new Error('No payment is due for this application.');
+  }
+
+  const answer = await ows(
+    'moe',
+    'POST',
+    '/v3/config/digital-wallet/openid/sdjwt/verification/send',
+    {
+      presentationDefinitionId: requiredEnv(
+        'PAYMENT_PRESENTATION_DEFINITION_ID',
+        'Payment confirmation'
+      ),
+      transactionData: {
+        transaction_id: appId.slice(0, 36),
+        payee: { name: 'Ministry of Education', id: 'ESR-MOE-0001' },
+        currency: 'EUR',
+        amount: 50,
+      },
+    }
+  );
+
+  const history = answer?.verificationHistory ?? answer;
+  const exchangeId: string | undefined = history?.presentationExchangeId;
+  const qrUri: string | undefined = history?.vpTokenQrCode;
+  if (!exchangeId || !qrUri) {
+    throw new Error('The wallet service could not start the payment confirmation.');
+  }
+
+  const now = new Date().toISOString();
+  getDb()
+    .prepare(
+      `INSERT INTO "credential_exchanges"
+         ("id", "owsExchangeId", "direction", "credentialType", "learnerId",
+          "applicationId", "status", "createdAt", "updatedAt")
+       VALUES (?, ?, 'presentation', 'payment', ?, ?, 'request_sent', ?, ?)
+       ON CONFLICT("owsExchangeId") DO NOTHING`
+    )
+    .run(newId('exc'), exchangeId, app.learnerRowId, appId, now, now);
+
+  audit({
+    actorUserId: actor.userId,
+    actorRole: 'learner',
+    action: 'payment.confirmation_requested',
+    subjectType: 'exchange',
+    subjectId: exchangeId,
+    payload: { applicationId: appId, amount: 50, currency: 'EUR' },
+  });
+
+  return { exchangeId, qrUri };
+}
+
+/**
+ * Webhook completion for a payment presentation: check the OWS record,
+ * record the simulated ledger entry, and let the confirmed payment trigger
+ * the diploma issuance (the RFQ's automatic trigger).
+ */
+export async function completePayment(
+  presentationExchangeId: string
+): Promise<boolean> {
+  const db = getDb();
+  const exchange = db
+    .prepare(
+      'SELECT "applicationId" FROM "credential_exchanges" WHERE "owsExchangeId" = ?'
+    )
+    .get(presentationExchangeId) as { applicationId: string } | undefined;
+  if (!exchange?.applicationId) return false;
+
+  const app = getApplication(exchange.applicationId);
+  if (!app || app.status !== 'payment_pending') return false;
+
+  const record = await ows(
+    'moe',
+    'GET',
+    `/v3/config/digital-wallet/openid/sdjwt/verification/history/${presentationExchangeId}`
+  );
+  const history = record?.verificationHistory ?? record;
+  if (history?.verified !== true) return false;
+
+  const now = new Date().toISOString();
+  const ledgerRef = `LEDGER-${newId('pay').slice(4, 16)}`;
+  db.prepare(
+    `UPDATE "applications" SET "paymentExchangeId" = ?, "paymentLedgerRef" = ?,
+       "updatedAt" = ? WHERE "id" = ?`
+  ).run(presentationExchangeId, ledgerRef, now, exchange.applicationId);
+
+  audit({
+    actorUserId: null,
+    actorRole: 'system',
+    action: 'payment.confirmed',
+    subjectType: 'application',
+    subjectId: exchange.applicationId,
+    payload: {
+      presentationExchangeId,
+      ledgerRef,
+      ledger: 'sandbox',
+    },
+  });
+
+  await issueDiploma(exchange.applicationId, { userId: null, role: 'system' });
+  return true;
+}
+
+/** Issue the revocable diploma credential over OpenID4VCI. */
+export async function issueDiploma(
+  appId: string,
+  actor: { userId: string | null; role: string }
+): Promise<void> {
+  const app = getApplication(appId);
+  if (!app) throw new Error('Unknown application.');
+  if (app.status !== 'payment_pending' && app.status !== 'graduation_submitted') {
+    throw new Error('The application is not ready for issuance.');
+  }
+
+  const answer = await ows(
+    'moe',
+    'POST',
+    '/v2/config/digital-wallet/openid/sdjwt/credential/issue',
+    {
+      issuanceMode: 'InTime',
+      credentialDefinitionId: requiredEnv('DIPLOMA_CREDENTIAL_ID', 'Diploma issuance'),
+      urlScheme: 'openid-credential-offer://',
+      userPin: '',
+      credential: {
+        vct: 'urn:education:diploma:1',
+        claims: {
+          learnerName: app.learnerName,
+          qualificationName: app.programme ?? '',
+          qualificationCode: app.qualificationCode ?? '',
+          awardingInstitution: app.institutionName,
+          awardDate: new Date().toISOString().slice(0, 10),
+          programme: app.programme ?? '',
+          result: app.result ?? '',
+          ulid: app.learnerUlid ?? '',
+          graduationDecisionHash: app.graduationDocHash ?? '',
+        },
+      },
+    }
+  );
+
+  const history = Array.isArray(answer?.credentialHistory)
+    ? answer.credentialHistory[0]
+    : answer?.credentialHistory;
+  const exchangeId: string | undefined =
+    history?.credentialExchangeId ?? history?.CredentialExchangeId;
+  const offer: string | undefined = history?.credentialOffer;
+  if (!exchangeId || !offer) {
+    throw new Error('The wallet service did not return a diploma offer.');
+  }
+
+  const db = getDb();
+  const now = new Date().toISOString();
+  db.prepare(
+    `INSERT INTO "credential_exchanges"
+       ("id", "owsExchangeId", "direction", "credentialType", "learnerId",
+        "applicationId", "status", "createdAt", "updatedAt")
+     VALUES (?, ?, 'issuance', 'diploma', ?, ?, 'offer_sent', ?, ?)
+     ON CONFLICT("owsExchangeId") DO NOTHING`
+  ).run(newId('exc'), exchangeId, app.learnerRowId, appId, now, now);
+
+  const form = JSON.parse(app.form) as Record<string, unknown>;
+  db.prepare(
+    `UPDATE "applications" SET "form" = ?, "status" = 'issued', "updatedAt" = ?
+     WHERE "id" = ?`
+  ).run(
+    JSON.stringify({ ...form, diplomaOffer: offer, diplomaExchangeId: exchangeId }),
+    now,
+    appId
+  );
+
+  audit({
+    actorUserId: actor.userId,
+    actorRole: actor.role,
+    action: 'credential.diploma_offered',
+    subjectType: 'exchange',
+    subjectId: exchangeId,
+    payload: { applicationId: appId },
+  });
+}

@@ -1,8 +1,16 @@
 import { MoeShell } from '@/components/MoeShell';
 import { getSession } from '@/lib/guards';
+import { listApplications } from '@/lib/registry';
+import { PAYMENT_REQUIRED_KEY, getPolicy } from '@/lib/policy';
+
+import { processGraduation } from './actions';
 
 export default async function MoeIssuance() {
   const session = await getSession();
+  const pending = listApplications(['graduation_submitted']);
+  const awaitingPayment = listApplications(['payment_pending']);
+  const issued = listApplications(['issued']);
+  const paymentRequired = getPolicy(PAYMENT_REQUIRED_KEY, 'false') === 'true';
 
   return (
     <MoeShell
@@ -12,17 +20,107 @@ export default async function MoeIssuance() {
     >
       <h1>Diploma issuance</h1>
       <p className="moe-page-intro">
-        Graduation decisions submitted by institutions are validated against
-        the Education Service Registry{' '}
-        <span className="integration-badge sandbox">Sandbox</span> and, when
-        policy requires it, held until payment is confirmed. Issued diplomas
-        are revocable credentials{' '}
+        Graduation decisions are validated against the Education Service
+        Registry <span className="integration-badge sandbox">Sandbox</span>.
+        Payment confirmation is currently{' '}
+        <strong>{paymentRequired ? 'required' : 'not required'}</strong> by
+        policy. Issued diplomas are revocable credentials{' '}
         <span className="integration-badge real">Real</span>.
       </p>
+
       <div className="moe-panel">
-        <h2>Pending issuance</h2>
-        <p className="moe-empty">No graduation decisions are pending.</p>
+        <h2>Pending validation</h2>
+        {pending.length === 0 ? (
+          <p className="moe-empty">No graduation decisions are pending.</p>
+        ) : (
+          <table>
+            <thead>
+              <tr>
+                <th>Learner</th>
+                <th>Programme</th>
+                <th>Code</th>
+                <th>Decision hash</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {pending.map((app) => (
+                <tr key={app.id}>
+                  <td>{app.learnerName}</td>
+                  <td>{app.programme}</td>
+                  <td>{app.qualificationCode}</td>
+                  <td>
+                    <code style={{ fontSize: '0.7rem' }}>
+                      {app.graduationDocHash?.slice(0, 16)}…
+                    </code>
+                  </td>
+                  <td>
+                    <form action={processGraduation}>
+                      <input type="hidden" name="applicationId" value={app.id} />
+                      <button className="moe-action" type="submit">
+                        Validate{paymentRequired ? ' (payment will be required)' : ' and issue'}
+                      </button>
+                    </form>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
       </div>
+
+      {awaitingPayment.length > 0 ? (
+        <div className="moe-panel">
+          <h2>Awaiting payment confirmation</h2>
+          <table>
+            <thead>
+              <tr>
+                <th>Learner</th>
+                <th>Programme</th>
+                <th>State</th>
+              </tr>
+            </thead>
+            <tbody>
+              {awaitingPayment.map((app) => (
+                <tr key={app.id}>
+                  <td>{app.learnerName}</td>
+                  <td>{app.programme}</td>
+                  <td>
+                    Blocked until the learner presents the TS12 payment
+                    credential. Issuance follows automatically.
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      ) : null}
+
+      {issued.length > 0 ? (
+        <div className="moe-panel">
+          <h2>Issued</h2>
+          <table>
+            <thead>
+              <tr>
+                <th>Learner</th>
+                <th>Programme</th>
+                <th>Payment</th>
+                <th>Issued</th>
+              </tr>
+            </thead>
+            <tbody>
+              {issued.map((app) => (
+                <tr key={app.id}>
+                  <td>{app.learnerName}</td>
+                  <td>{app.programme}</td>
+                  <td>{app.paymentLedgerRef ?? 'not required'}</td>
+                  <td>{app.updatedAt.slice(0, 10)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      ) : null}
     </MoeShell>
   );
 }

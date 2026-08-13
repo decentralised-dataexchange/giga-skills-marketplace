@@ -101,6 +101,76 @@ async function ensurePresentationDefinition(key, definition) {
   return id;
 }
 
+async function findCredentialDefinition(key, label) {
+  const list = await ows(
+    key,
+    'GET',
+    `/v2/config/digital-wallet/openid/sdjwt/credential-definitions?search=${encodeURIComponent(label)}&limit=50`
+  );
+  const items =
+    list?.credentialDefinition ?? list?.credentialDefinitions ?? [];
+  return items.find((item) => item.label === label);
+}
+
+async function ensureCredentialDefinition(key, definition) {
+  const existing = await findCredentialDefinition(key, definition.label);
+  if (existing) {
+    const id = existing.credentialDefinitionId ?? existing.id;
+    console.log(`= credential definition "${definition.label}" exists: ${id}`);
+    return id;
+  }
+  const created = await ows(
+    key,
+    'POST',
+    '/v2/config/digital-wallet/openid/sdjwt/credential-definition',
+    definition
+  );
+  const record = created?.credentialDefinition ?? created;
+  const id = record?.credentialDefinitionId ?? record?.id;
+  console.log(`+ credential definition "${definition.label}" created: ${id}`);
+  return id;
+}
+
+/** Claim path pointer entry: mandatory + selectively disclosable. */
+function sd(path) {
+  return { path, mandatory: true, limitDisclosure: true };
+}
+
+// The registry claim path pointers for VerifiableStudentID (2025.7.1).
+const STUDENT_ID_CLAIMS = [
+  ['commonName'],
+  ['dateOfBirth'],
+  ['displayName'],
+  ['eduPersonAffiliation', null],
+  ['eduPersonAssurance', null],
+  ['eduPersonPrimaryAffiliation'],
+  ['eduPersonPrincipalName'],
+  ['eduPersonScopedAffiliation', null],
+  ['familyName'],
+  ['firstName'],
+  ['id'],
+  ['identifier'],
+  ['mail'],
+  ['schacHomeOrganization'],
+  ['schacPersonalUniqueCode', null],
+  ['schacPersonalUniqueID'],
+].map(sd);
+
+// The diploma models W3C VC 2.0 / Open Badges education fields semantically,
+// carried as an OWS dc+sd-jwt credential for selective disclosure.
+export const DIPLOMA_VCT = 'urn:education:diploma:1';
+const DIPLOMA_CLAIMS = [
+  ['learnerName'],
+  ['qualificationName'],
+  ['qualificationCode'],
+  ['awardingInstitution'],
+  ['awardDate'],
+  ['programme'],
+  ['result'],
+  ['ulid'],
+  ['graduationDecisionHash'],
+].map(sd);
+
 const ISSUER_TOPICS = [
   'openid.credential.offer_received',
   'openid.credential.token_issued',
@@ -211,6 +281,75 @@ async function main() {
     },
   });
   if (paymentId) saveEnvValue('PAYMENT_PRESENTATION_DEFINITION_ID', paymentId);
+
+  const studentIdDef = await ensureCredentialDefinition(moeKey, {
+    label: 'Verifiable Student ID',
+    version: 'version_01',
+    display: {
+      name: 'Student ID',
+      description: 'National Learner Registry student identity',
+      backgroundColor: '#232f56',
+      textColor: '#ffffff',
+    },
+    credentialDefinitions: [
+      {
+        credentialFormat: 'dc+sd-jwt',
+        vct: 'VerifiableStudentID',
+        validationPath: '$',
+        claims: { claims: STUDENT_ID_CLAIMS },
+        supportRevocation: true,
+        expirationInDays: 1825,
+      },
+    ],
+  });
+  if (studentIdDef) saveEnvValue('STUDENT_ID_CREDENTIAL_ID', studentIdDef);
+
+  const diplomaDef = await ensureCredentialDefinition(moeKey, {
+    label: 'National Diploma',
+    version: 'version_01',
+    display: {
+      name: 'Diploma',
+      description: 'Ministry of Education diploma credential',
+      backgroundColor: '#1d4e89',
+      textColor: '#ffffff',
+    },
+    credentialDefinitions: [
+      {
+        credentialFormat: 'dc+sd-jwt',
+        vct: DIPLOMA_VCT,
+        validationPath: '$',
+        claims: { claims: DIPLOMA_CLAIMS },
+        supportRevocation: true,
+        expirationInDays: 3650,
+      },
+    ],
+  });
+  if (diplomaDef) saveEnvValue('DIPLOMA_CREDENTIAL_ID', diplomaDef);
+
+  // CivicWorks asks for five claims only: privacy by default.
+  const diplomaVerifyId = await ensurePresentationDefinition(cwKey, {
+    label: 'Diploma qualification check',
+    version: 'version_01',
+    responseType: 'vp_token',
+    responseMode: 'direct_post',
+    dcqlQuery: {
+      credentials: [
+        {
+          id: 'diploma',
+          format: 'dc+sd-jwt',
+          meta: { vct_values: [DIPLOMA_VCT] },
+          claims: [
+            { path: ['learnerName'] },
+            { path: ['qualificationName'] },
+            { path: ['qualificationCode'] },
+            { path: ['awardingInstitution'] },
+            { path: ['awardDate'] },
+          ],
+        },
+      ],
+    },
+  });
+  if (diplomaVerifyId) saveEnvValue('DIPLOMA_PRESENTATION_DEFINITION_ID', diplomaVerifyId);
 
   if (publicBase && !publicBase.includes('localhost')) {
     await ensureWebhook(
