@@ -23,19 +23,23 @@ export interface InstallSource {
   skillId: string;
 }
 
+/** `<owner>/<repo>` shorthand of a GitHub repository URL. */
+function repoShorthand(repoUrl: string): string {
+  return repoUrl.replace(/^https?:\/\/(www\.)?github\.com\//i, "").replace(/\/+$/, "");
+}
+
 /**
  * `npx skills add` command for one skill from its source repository, e.g.
- * `npx skills add https://github.com/l3-iGrant/skills --skill igrantio-qr-code`.
+ * `npx skills add l3-iGrant/skills --skill igrantio-qr-code`.
  * The marketplace only accepts public GitHub repositories, so a published
  * skill always has one; without it no valid install command exists.
  */
 export function installCommand({ repoUrl, skillId }: InstallSource): string {
   if (!repoUrl) return "";
-  return `npx skills add ${repoUrl} --skill ${skillId}`;
+  return `npx skills add ${repoShorthand(repoUrl)} --skill ${skillId}`;
 }
 
 /** `npx skills add` command for every skill in a repository. */
 export function installRepoCommand(repoUrl: string): string {
-  const short = repoUrl.replace(/^https?:\/\/(www\.)?github\.com\//i, "").replace(/\/+$/, "");
-  return `npx skills add ${short}`;
+  return `npx skills add ${repoShorthand(repoUrl)}`;
 }

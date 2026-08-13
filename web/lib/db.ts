@@ -42,7 +42,7 @@ CREATE TABLE IF NOT EXISTS orgs (
   description    TEXT,
   contact        TEXT,
   owner_id       UUID NOT NULL REFERENCES users(id),
-  status         TEXT NOT NULL DEFAULT 'approved' CHECK (status IN ('pending','approved','rejected')),
+  status         TEXT NOT NULL DEFAULT 'approved' CHECK (status IN ('pending','approved','rejected','suspended')),
   created_at     TIMESTAMPTZ NOT NULL DEFAULT now(),
   decided_at     TIMESTAMPTZ,
   decided_by     UUID REFERENCES users(id),
@@ -84,6 +84,11 @@ ALTER TABLE orgs ADD COLUMN IF NOT EXISTS slug TEXT;
 ALTER TABLE orgs ADD COLUMN IF NOT EXISTS logo TEXT;
 ALTER TABLE orgs ADD COLUMN IF NOT EXISTS cover TEXT;
 ALTER TABLE versions ADD COLUMN IF NOT EXISTS repo JSONB;
+-- A superadmin can suspend an organisation; a database from before that
+-- change carries a status constraint without the 'suspended' value.
+ALTER TABLE orgs DROP CONSTRAINT IF EXISTS orgs_status_check;
+ALTER TABLE orgs ADD CONSTRAINT orgs_status_check
+  CHECK (status IN ('pending','approved','rejected','suspended'));
 -- Organisation approval is gone (only skills are reviewed); registrations from
 -- before that change stop waiting.
 UPDATE orgs SET status = 'approved', decided_at = COALESCE(decided_at, now()) WHERE status = 'pending';

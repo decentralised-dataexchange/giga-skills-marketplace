@@ -25,9 +25,7 @@ export default function InstallingPage() {
       </pre>
       <p>Install one skill from a repository:</p>
       <pre>
-        <code>
-          npx skills add https://github.com/&lt;owner&gt;/&lt;repo&gt; --skill &lt;name&gt;
-        </code>
+        <code>npx skills add &lt;owner&gt;/&lt;repo&gt; --skill &lt;name&gt;</code>
       </pre>
       <p>
         Every skill detail page and provider page shows its exact install command, ready to copy.

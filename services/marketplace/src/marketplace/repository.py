@@ -140,7 +140,8 @@ class PostgresCatalogRepository:
         page: int,
         page_size: int,
     ) -> dict[str, Any]:
-        conditions = ["s.status = 'published'"]
+        # A suspended or rejected organisation takes its skills off the catalog.
+        conditions = ["s.status = 'published'", "o.status = 'approved'"]
         params: list[Any] = []
         if provider:
             if UUID_RE.fullmatch(provider):
@@ -257,6 +258,7 @@ class PostgresCatalogRepository:
                     FROM skills s
                     JOIN orgs o ON o.id = s.org_id
                     WHERE s.slug = %s AND s.status = 'published'
+                      AND o.status = 'approved'
                     """,
                     (slug,),
                 )

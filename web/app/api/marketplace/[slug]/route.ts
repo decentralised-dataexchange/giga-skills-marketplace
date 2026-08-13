@@ -16,7 +16,7 @@ export const GET = route<{ slug: string }>(async ({ params }) => {
     SELECT s.*, o.name AS org_name, o.slug AS org_slug, o.logo AS org_logo, o.website AS org_website,
            o.description AS org_description, o.status AS org_status, o.contact AS org_contact
     FROM skills s JOIN orgs o ON o.id = s.org_id
-    WHERE s.slug = ${params.slug} AND s.status = 'published'`;
+    WHERE s.slug = ${params.slug} AND s.status = 'published' AND o.status = 'approved'`;
   check(skill, 404, "Skill not found or not published");
   const [version] = await sql`SELECT * FROM versions WHERE id = ${skill.published_version_id}`;
   const history = await sql`

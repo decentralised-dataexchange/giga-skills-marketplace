@@ -8,6 +8,7 @@ type Detail = Record<string, any> | null | undefined;
 // Friendly column label per event type; unknown types are prettified.
 const LABELS: Record<string, string> = {
   "user.registered": "Account created",
+  "user.created": "User added",
   "user.profile_updated": "Profile updated",
   "user.password_changed": "Password changed",
   "user.suspended": "Account suspended",
@@ -48,6 +49,8 @@ export function describeEvent(type: string, detail: Detail): string {
   switch (type) {
     case "user.registered":
       return `Created an account with the ${d.role ?? "provider"} role.`;
+    case "user.created":
+      return `Added the user ${q(d.email)} with the ${d.role} role.`;
     case "user.profile_updated": {
       const changed = [
         d.nameChanged && "name",

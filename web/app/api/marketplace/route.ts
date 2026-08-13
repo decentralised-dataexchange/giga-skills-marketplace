@@ -44,7 +44,7 @@ export const GET = route(async ({ req }) => {
     FROM skills s
     JOIN orgs o ON o.id = s.org_id
     JOIN versions v ON v.id = s.published_version_id
-    WHERE s.status = 'published' ${provCond} ${qCond}
+    WHERE s.status = 'published' AND o.status = 'approved' ${provCond} ${qCond}
     ORDER BY v.decided_at DESC NULLS LAST, s.created_at DESC
     LIMIT ${pageSize} OFFSET ${(page - 1) * pageSize}`;
   const [{ n: total }] = await sql`
@@ -52,7 +52,7 @@ export const GET = route(async ({ req }) => {
     FROM skills s
     JOIN orgs o ON o.id = s.org_id
     JOIN versions v ON v.id = s.published_version_id
-    WHERE s.status = 'published' ${provCond} ${qCond}`;
+    WHERE s.status = 'published' AND o.status = 'approved' ${provCond} ${qCond}`;
   return NextResponse.json(
     { skills: rows.map(marketplaceEntry), total, page, pageSize },
     {

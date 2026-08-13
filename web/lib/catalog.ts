@@ -37,7 +37,7 @@ async function publishedHome(slug: string): Promise<{ provider: string; source: 
     FROM skills s
     JOIN orgs o ON o.id = s.org_id
     LEFT JOIN versions v ON v.id = s.published_version_id
-    WHERE s.slug = ${slug} AND s.status = 'published'`;
+    WHERE s.slug = ${slug} AND s.status = 'published' AND o.status = 'approved'`;
   if (!row?.provider) return null;
   return { provider: row.provider as string, source: (row.repo as any)?.repo ?? "bundles" };
 }

@@ -3,8 +3,10 @@ import { check, route } from "@/lib/handler";
 import { orgView } from "@/lib/views";
 import { isUuid, slugify, RESERVED_SLUGS } from "@/lib/utils";
 
-// Superadmin edit of an organisation: rename, change its slug, or set status
-// (e.g. reject an already-approved provider to remove it from the directory).
+// Superadmin edit of an organisation: rename, change its slug, or set status.
+// A suspended (or rejected) organisation leaves the public catalog together
+// with its published skills, and it cannot publish new skills; "approved"
+// reinstates it.
 export const PATCH = route<{ id: string }>(
   async ({ user, params, body }) => {
     const b = await body<{ name?: string; slug?: string; status?: string }>();
@@ -28,7 +30,9 @@ export const PATCH = route<{ id: string }>(
     }
 
     const status =
-      b.status && ["approved", "rejected"].includes(b.status) ? b.status : current.status;
+      b.status && ["approved", "rejected", "suspended"].includes(b.status)
+        ? b.status
+        : current.status;
 
     const [org] = await sql`
     UPDATE orgs SET name = ${name}, slug = ${slug}, status = ${status}

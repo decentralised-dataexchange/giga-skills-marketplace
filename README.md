@@ -132,7 +132,7 @@ On every push to `main`, [`.github/workflows/deploy.yml`](.github/workflows/depl
 
 Reviewers see the source repository (pinned deep link, stars, forks, licence, last push) alongside the automated check report.
 
-Published skills install straight from their source with the [skills CLI](https://github.com/vercel-labs/skills): `npx skills add <owner>/<repo>` for a whole repository, or `npx skills add https://github.com/<owner>/<repo> --skill <name>` for one skill. Set the optional `GITHUB_TOKEN` env var on the web app to raise GitHub's API rate limit (60 requests/hour per IP unauthenticated; a submission or inspection costs 3 API calls).
+Published skills install straight from their source with the [skills CLI](https://github.com/vercel-labs/skills): `npx skills add <owner>/<repo>` for a whole repository, or `npx skills add <owner>/<repo> --skill <name>` for one skill. Set the optional `GITHUB_TOKEN` env var on the web app to raise GitHub's API rate limit (60 requests/hour per IP unauthenticated; a submission or inspection costs 3 API calls).
 
 Each published item exposes an assurance review trail of automated checks and the approval audit.
 
