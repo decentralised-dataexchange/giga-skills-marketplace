@@ -35,6 +35,7 @@ export function EducationShell({
           {signedIn ? (
             <>
               <Link href="/education/home">My education</Link>
+              <Link href="/education/consents">My data choices</Link>
               <SignOutButton redirectTo="/education" />
             </>
           ) : (

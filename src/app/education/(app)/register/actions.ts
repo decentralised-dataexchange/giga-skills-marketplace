@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation';
 
 import { requireRole } from '@/lib/guards';
 import { getLearnerByUserId, submitApplication } from '@/lib/registry';
+import { recordRegistrationConsents } from '@/lib/consent';
 
 /**
  * Submit the learner registration. The identity comes from the PID session;
@@ -35,6 +36,17 @@ export async function submitRegistration(formData: FormData): Promise<void> {
     },
     documents,
   });
+
+  // Consent recording is best-effort by design: a consent-service problem,
+  // or declining the optional agreements, must never block enrolment.
+  try {
+    await recordRegistrationConsents(learner, {
+      analytics: formData.get('consentAnalytics') === 'on',
+      employerSharing: formData.get('consentEmployerSharing') === 'on',
+    });
+  } catch (error) {
+    console.error('[Register] consent recording failed:', error);
+  }
 
   redirect('/education/home');
 }
