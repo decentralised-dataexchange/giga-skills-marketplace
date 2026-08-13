@@ -547,3 +547,53 @@ export async function issueDiploma(
     payload: { applicationId: appId },
   });
 }
+
+/** The diploma exchange for an application, if one exists. */
+export function getDiplomaExchange(appId: string) {
+  return getDb()
+    .prepare(
+      `SELECT * FROM "credential_exchanges"
+       WHERE "applicationId" = ? AND "credentialType" = 'diploma'
+       ORDER BY "createdAt" DESC LIMIT 1`
+    )
+    .get(appId) as
+    | { owsExchangeId: string; revoked: number; revokedAt: string | null }
+    | undefined;
+}
+
+/**
+ * Permanently revoke an issued diploma by its credential exchange id.
+ * A fresh employer verification must reject the credential afterwards.
+ */
+export async function revokeDiploma(
+  appId: string,
+  actor: { userId: string }
+): Promise<void> {
+  const exchange = getDiplomaExchange(appId);
+  if (!exchange) throw new Error('No issued diploma for this application.');
+  if (exchange.revoked) throw new Error('The diploma is already revoked.');
+
+  await ows(
+    'moe',
+    'PUT',
+    `/v2/config/digital-wallet/openid/sdjwt/credential/history/${exchange.owsExchangeId}/revocation-status`,
+    { revocationStatus: 'Revoked' }
+  );
+
+  const now = new Date().toISOString();
+  getDb()
+    .prepare(
+      `UPDATE "credential_exchanges" SET "revoked" = 1, "revokedAt" = ?,
+         "updatedAt" = ? WHERE "owsExchangeId" = ?`
+    )
+    .run(now, now, exchange.owsExchangeId);
+
+  audit({
+    actorUserId: actor.userId,
+    actorRole: 'registrar',
+    action: 'credential.diploma_revoked',
+    subjectType: 'exchange',
+    subjectId: exchange.owsExchangeId,
+    payload: { applicationId: appId },
+  });
+}

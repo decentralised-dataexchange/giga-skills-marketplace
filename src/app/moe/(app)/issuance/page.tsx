@@ -1,9 +1,9 @@
 import { MoeShell } from '@/components/MoeShell';
 import { getSession } from '@/lib/guards';
-import { listApplications } from '@/lib/registry';
+import { getDiplomaExchange, listApplications } from '@/lib/registry';
 import { PAYMENT_REQUIRED_KEY, getPolicy } from '@/lib/policy';
 
-import { processGraduation } from './actions';
+import { processGraduation, revokeIssuedDiploma } from './actions';
 
 export default async function MoeIssuance() {
   const session = await getSession();
@@ -106,17 +106,37 @@ export default async function MoeIssuance() {
                 <th>Programme</th>
                 <th>Payment</th>
                 <th>Issued</th>
+                <th>Revocation</th>
               </tr>
             </thead>
             <tbody>
-              {issued.map((app) => (
-                <tr key={app.id}>
-                  <td>{app.learnerName}</td>
-                  <td>{app.programme}</td>
-                  <td>{app.paymentLedgerRef ?? 'not required'}</td>
-                  <td>{app.updatedAt.slice(0, 10)}</td>
-                </tr>
-              ))}
+              {issued.map((app) => {
+                const exchange = getDiplomaExchange(app.id);
+                return (
+                  <tr key={app.id}>
+                    <td>{app.learnerName}</td>
+                    <td>{app.programme}</td>
+                    <td>{app.paymentLedgerRef ?? 'not required'}</td>
+                    <td>{app.updatedAt.slice(0, 10)}</td>
+                    <td>
+                      {exchange?.revoked ? (
+                        <span style={{ color: 'var(--bad)', fontWeight: 700 }}>
+                          Revoked {exchange.revokedAt?.slice(0, 10)}
+                        </span>
+                      ) : exchange ? (
+                        <form action={revokeIssuedDiploma}>
+                          <input type="hidden" name="applicationId" value={app.id} />
+                          <button className="moe-action" data-variant="danger" type="submit">
+                            Revoke permanently
+                          </button>
+                        </form>
+                      ) : (
+                        '—'
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
