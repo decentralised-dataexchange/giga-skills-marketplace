@@ -43,7 +43,7 @@ export default function Landing() {
               key={portal.id}
               href={portal.id === 'education' ? '/education' : portal.loginPath}
               className="landing-card"
-              style={{ borderTopColor: portal.brand.brand }}
+              style={{ borderColor: portal.brand.brand }}
             >
               <span className="landing-card-org">{portal.organisation}</span>
               <span className="landing-card-name">{portal.name}</span>

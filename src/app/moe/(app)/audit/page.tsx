@@ -2,6 +2,28 @@ import { MoeShell } from '@/components/MoeShell';
 import { auditTimeline, verifyAuditChain } from '@/lib/audit';
 import { getSession } from '@/lib/guards';
 
+function DetailList({ payload }: { payload: string }) {
+  let entries: [string, unknown][] = [];
+  try {
+    entries = Object.entries(JSON.parse(payload) as Record<string, unknown>);
+  } catch {
+    entries = [];
+  }
+  if (entries.length === 0) return <span className="moe-audit-empty">-</span>;
+  return (
+    <dl className="moe-audit-detail">
+      {entries.map(([key, value]) => (
+        <div key={key}>
+          <dt>{key}</dt>
+          <dd>
+            {typeof value === 'string' ? value : JSON.stringify(value)}
+          </dd>
+        </div>
+      ))}
+    </dl>
+  );
+}
+
 export default async function MoeAudit() {
   const session = await getSession();
   const events = auditTimeline(100);
@@ -29,32 +51,45 @@ export default async function MoeAudit() {
         {events.length === 0 ? (
           <p className="moe-empty">No audit events yet.</p>
         ) : (
-          <table>
+          <table className="moe-audit">
             <thead>
               <tr>
-                <th>#</th>
-                <th>Time (UTC)</th>
-                <th>Actor role</th>
-                <th>Action</th>
-                <th>Subject</th>
+                <th className="moe-audit-num">#</th>
+                <th className="moe-audit-time">Time (UTC)</th>
+                <th className="moe-audit-role">Actor</th>
+                <th className="moe-audit-action">Action</th>
+                <th className="moe-audit-subject">Subject</th>
                 <th>Detail</th>
               </tr>
             </thead>
             <tbody>
-              {events.map((event) => (
-                <tr key={event.seq}>
-                  <td>{event.seq}</td>
-                  <td>{event.createdAt.replace('T', ' ').slice(0, 19)}</td>
-                  <td>{event.actorRole}</td>
-                  <td>{event.action}</td>
-                  <td>
-                    {event.subjectType}: {event.subjectId}
-                  </td>
-                  <td>
-                    <code style={{ fontSize: '0.72rem' }}>{event.payload}</code>
-                  </td>
-                </tr>
-              ))}
+              {events.map((event) => {
+                const [date, time] = event.createdAt
+                  .slice(0, 19)
+                  .split('T');
+                return (
+                  <tr key={event.seq}>
+                    <td className="moe-audit-num">{event.seq}</td>
+                    <td className="moe-audit-time">
+                      <span>{date}</span>
+                      <small>{time}</small>
+                    </td>
+                    <td className="moe-audit-role">
+                      <span className="moe-role-chip">
+                        {event.actorRole.replace(/_/g, ' ')}
+                      </span>
+                    </td>
+                    <td className="moe-audit-action">{event.action}</td>
+                    <td className="moe-audit-subject">
+                      <small>{event.subjectType}</small>
+                      <code>{event.subjectId}</code>
+                    </td>
+                    <td>
+                      <DetailList payload={event.payload} />
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         )}

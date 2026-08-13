@@ -4,13 +4,13 @@ import { useCallback, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { WalletInvite } from '@/components/WalletInvite';
 import { useExchangeStatus } from '@/components/useExchangeStatus';
-import { startDiplomaVerification } from '@/app/civicworks/(app)/verify/actions';
+import { startDiplomaVerification } from '@/app/civicworks/verify/actions';
 
 /**
- * The employer verification flow: request → QR → navigate to the
- * server-rendered result when the presentation lands.
+ * The candidate's application proof: request → QR → navigate to the
+ * server-rendered application outcome when the presentation lands.
  */
-export function VerifyFlow() {
+export function VerifyFlow({ jobSlug }: { jobSlug?: string }) {
   const router = useRouter();
   const [request, setRequest] = useState<{ exchangeId: string; qrUri: string } | null>(null);
   const [busy, setBusy] = useState(false);
@@ -35,11 +35,12 @@ export function VerifyFlow() {
         topic === 'digitalwallet.presentation.verified' ||
         topic === 'openid.presentation.presentation_acked.v3'
       ) {
-        router.push(`/civicworks/verify?ex=${request?.exchangeId}`);
+        const jobParam = jobSlug ? `job=${jobSlug}&` : '';
+        router.push(`/civicworks/verify?${jobParam}ex=${request?.exchangeId}`);
         router.refresh();
       }
     },
-    [router, request]
+    [router, request, jobSlug]
   );
 
   useExchangeStatus(request?.exchangeId ?? null, onEvent);

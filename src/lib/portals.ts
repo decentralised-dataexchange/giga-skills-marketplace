@@ -119,13 +119,13 @@ export const PORTALS: Record<PortalId, PortalConfig> = {
   },
   civicworks: {
     id: 'civicworks',
-    name: 'CivicWorks Talent',
+    name: 'CivicWorks Careers',
     organisation: 'CivicWorks AB',
-    tagline: 'Verify qualifications in seconds',
+    tagline: 'Apply with the qualifications in your wallet',
     logo: '/portals/civicworks/logo.svg',
     role: 'employer_verifier',
-    loginPath: '/civicworks/login',
-    homePath: '/civicworks/verify',
+    loginPath: '/civicworks',
+    homePath: '/civicworks',
     brand: {
       brand: '#0e7c7b',
       'brand-dark': '#0a5958',

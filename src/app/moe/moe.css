@@ -147,18 +147,114 @@
 }
 
 .moe td {
-  padding: 0.45rem 0.7rem;
+  padding: 0.55rem 0.7rem;
   border: 1px solid var(--line);
   vertical-align: top;
-  overflow-wrap: anywhere;
 }
 
-/* Long JSON payloads in the audit detail column wrap instead of stretching
-   the table beyond its panel. */
-.moe td code {
+/* -------------------------------------------------- Audit timeline table */
+
+.moe-audit {
+  table-layout: fixed;
+  width: 100%;
+}
+
+.moe-audit th.moe-audit-num,
+.moe-audit td.moe-audit-num {
+  width: 2.6rem;
+  white-space: nowrap;
+  text-align: right;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.moe-audit th.moe-audit-time,
+.moe-audit td.moe-audit-time {
+  width: 6.8rem;
+  white-space: nowrap;
+}
+
+.moe-audit-time span {
   display: block;
-  max-width: 30rem;
-  white-space: pre-wrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.moe-audit-time small {
+  display: block;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.moe-audit th.moe-audit-role,
+.moe-audit td.moe-audit-role {
+  width: 8.5rem;
+}
+
+.moe-role-chip {
+  display: inline-block;
+  padding: 0.12rem 0.55rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+  font-size: 0.72rem;
+  font-weight: 600;
+  white-space: nowrap;
+  text-transform: capitalize;
+}
+
+.moe-audit th.moe-audit-action,
+.moe-audit td.moe-audit-action {
+  width: 12rem;
+  overflow-wrap: break-word;
+}
+
+.moe-audit th.moe-audit-subject,
+.moe-audit td.moe-audit-subject {
+  width: 14rem;
+}
+
+.moe-audit-subject small {
+  display: block;
+  color: var(--muted);
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.moe-audit-subject code {
+  display: block;
+  font-size: 0.74rem;
+  word-break: break-all;
+}
+
+.moe-audit-empty {
+  color: var(--muted);
+}
+
+/* The payload as tidy key-value rows instead of raw JSON. */
+.moe-audit-detail {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.moe-audit-detail > div {
+  display: flex;
+  flex-direction: column;
+}
+
+.moe-audit-detail dt {
+  color: var(--muted);
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.moe-audit-detail dd {
+  margin: 0;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.74rem;
   word-break: break-all;
 }
 
@@ -241,7 +337,7 @@
   max-width: 23rem;
   background: var(--card);
   padding: 2.25rem 2rem;
-  border-top: 5px solid var(--accent);
+  border: 1px solid var(--line);
 }
 
 .moe-login-card img {

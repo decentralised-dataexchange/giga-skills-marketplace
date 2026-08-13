@@ -1,21 +1,20 @@
 'use server';
 
-import { requireRole } from '@/lib/guards';
 import { getDb } from '@/lib/db';
 import { newId } from '@/lib/ids';
 import { audit } from '@/lib/audit';
 import { ows, requiredEnv } from '@/lib/ows';
 
 /**
- * Start a diploma verification from the CivicWorks sandbox: five claims
- * only (name, qualification, institution, code, award date), nothing else.
+ * Start the candidate's diploma proof for a job application. Public by
+ * design: the candidate is an anonymous visitor; the CivicWorks sandbox
+ * asks for five claims only (name, qualification, institution, code,
+ * award date), nothing else.
  */
 export async function startDiplomaVerification(): Promise<{
   exchangeId: string;
   qrUri: string;
 }> {
-  const session = await requireRole('employer_verifier');
-
   const answer = await ows(
     'civicworks',
     'POST',
@@ -49,8 +48,8 @@ export async function startDiplomaVerification(): Promise<{
     .run(newId('exc'), exchangeId, now, now);
 
   audit({
-    actorUserId: session.user.id,
-    actorRole: 'employer_verifier',
+    actorUserId: null,
+    actorRole: 'candidate',
     action: 'verification.requested',
     subjectType: 'exchange',
     subjectId: exchangeId,

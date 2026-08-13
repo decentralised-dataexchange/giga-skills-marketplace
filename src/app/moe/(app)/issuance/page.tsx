@@ -131,7 +131,7 @@ export default async function MoeIssuance() {
                           </button>
                         </form>
                       ) : (
-                        '—'
+                        '-'
                       )}
                     </td>
                   </tr>

@@ -152,7 +152,6 @@
 .edu-service {
   background: var(--card);
   border: 1px solid var(--line);
-  border-left: 4px solid var(--brand);
   border-radius: 8px;
   padding: 1.2rem;
 }

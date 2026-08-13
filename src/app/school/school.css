@@ -175,7 +175,6 @@
   max-width: 22rem;
   background: var(--card);
   border: 1px solid var(--line);
-  border-top: 6px solid var(--brand);
   border-radius: 14px;
   padding: 2rem;
   text-align: center;

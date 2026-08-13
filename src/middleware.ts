@@ -13,7 +13,7 @@ const PORTAL_LOGINS: Array<{ prefix: string; login: string; public: string[] }> 
   { prefix: '/school', login: '/school/login', public: ['/school/login'] },
   { prefix: '/moe', login: '/moe/login', public: ['/moe/login'] },
   { prefix: '/dpa', login: '/dpa/login', public: ['/dpa/login'] },
-  { prefix: '/civicworks', login: '/civicworks/login', public: ['/civicworks/login'] },
+  // /civicworks is fully public: the candidate is an anonymous visitor.
 ];
 
 export function middleware(request: NextRequest) {
@@ -38,6 +38,5 @@ export const config = {
     '/school/:path*',
     '/moe/:path*',
     '/dpa/:path*',
-    '/civicworks/:path*',
   ],
 };

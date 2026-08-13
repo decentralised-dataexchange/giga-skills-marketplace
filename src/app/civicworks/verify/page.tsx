@@ -1,6 +1,9 @@
+import Link from 'next/link';
+
 import { CivicworksShell } from '@/components/CivicworksShell';
 import { VerifyFlow } from '@/components/VerifyFlow';
 import { readVerification } from '@/lib/verification';
+import { getJob } from '@/lib/jobs';
 
 const CLAIM_LABELS: Record<string, string> = {
   learnerName: 'Name',
@@ -10,54 +13,65 @@ const CLAIM_LABELS: Record<string, string> = {
   awardDate: 'Award date',
 };
 
-export default async function CivicworksVerify({
+/**
+ * The application page for one posting, candidate perspective: prove your
+ * qualification from your wallet; the result reads as an application
+ * outcome, not a back-office verification record.
+ */
+export default async function CivicworksApply({
   searchParams,
 }: {
-  searchParams: Promise<{ ex?: string }>;
+  searchParams: Promise<{ ex?: string; job?: string }>;
 }) {
-  const { ex } = await searchParams;
+  const { ex, job: jobSlug } = await searchParams;
+  const job = getJob(jobSlug);
   const result = ex ? await readVerification(ex) : null;
 
   return (
-    <CivicworksShell active="verify">
-      <h1>Verify a qualification</h1>
-      <p className="cw-lede">
-        Ask a candidate to share their diploma from their wallet. You request
-        five fields only: name, qualification, awarding institution,
-        qualification code and award date. Date of birth, address, learner
-        identifier, email and grade are never requested.
+    <CivicworksShell>
+      <p className="cw-crumb">
+        <Link href="/civicworks">← All openings</Link>
       </p>
+      <h1>{job.title}</h1>
+      <p className="cw-job-meta">
+        {job.team} · {job.location} · {job.type} · {job.salary}
+      </p>
+      <p className="cw-lede">{job.blurb}</p>
 
       {result ? (
         <div className="cw-cards">
           <div
             className="cw-card"
             style={{
-              borderTop: `4px solid ${result.verified ? 'var(--ok)' : 'var(--bad)'}`,
+              borderColor: result.verified ? 'var(--ok)' : 'var(--bad)',
             }}
           >
             <h2>
-              {result.verified ? 'Verified' : result.answered ? 'Rejected' : 'No answer yet'}
+              {result.verified
+                ? 'Application received 🎉'
+                : result.answered
+                  ? 'We could not verify your diploma'
+                  : 'Waiting for your answer'}
             </h2>
             <p>
               {result.verified
-                ? 'The diploma is authentic: trusted issuer, valid signature, and not revoked.'
+                ? `Your qualification is verified: trusted issuer, valid signature, and not revoked. Your application for ${job.title} is in; our team will be in touch.`
                 : result.answered
-                  ? 'The presentation did not verify. The credential may be revoked, tampered with, or from an untrusted issuer.'
-                  : 'The candidate has not answered this request yet.'}
+                  ? 'The credential could not be verified. It may be revoked, tampered with, or from an issuer we do not trust. Contact your Ministry of Education if you believe this is wrong.'
+                  : 'You have not answered the request in your wallet yet.'}
             </p>
             <ul style={{ marginTop: '0.75rem', paddingLeft: '1.1rem', fontSize: '0.85rem' }}>
               {result.checks.map((check) => (
                 <li key={check.name} style={{ color: check.passed ? 'var(--ok)' : 'var(--bad)' }}>
                   {check.passed ? '✓' : '✗'} {check.name}
-                  {check.detail ? ` — ${check.detail}` : ''}
+                  {check.detail ? `: ${check.detail}` : ''}
                 </li>
               ))}
             </ul>
           </div>
           {Object.keys(result.claims).length > 0 ? (
             <div className="cw-card">
-              <h2>Disclosed fields</h2>
+              <h2>What you shared</h2>
               <table style={{ width: '100%', fontSize: '0.85rem', marginTop: '0.5rem' }}>
                 <tbody>
                   {Object.entries(CLAIM_LABELS).map(([key, label]) =>
@@ -73,7 +87,7 @@ export default async function CivicworksVerify({
                 </tbody>
               </table>
               <p style={{ marginTop: '0.75rem', fontSize: '0.78rem', color: 'var(--muted)' }}>
-                Only these fields left the candidate&apos;s wallet.{' '}
+                Only these fields left your wallet.{' '}
                 <span className="integration-badge real">Selective disclosure</span>
               </p>
             </div>
@@ -82,22 +96,25 @@ export default async function CivicworksVerify({
       ) : (
         <div className="cw-cards">
           <div className="cw-card">
-            <h2>Start a verification</h2>
+            <h2>Apply with your wallet</h2>
             <p>
-              Generates a request QR for the candidate. Results arrive live
-              with issuer, signature and revocation checks{' '}
-              <span className="integration-badge real">Real</span>.
+              This role requires: {job.requirement}. Scan with the EUDI Wallet
+              on your phone and approve sharing five fields: your name,
+              qualification, awarding institution, qualification code and
+              award date. Nothing else leaves your wallet.
             </p>
             <div style={{ marginTop: '1rem' }}>
-              <VerifyFlow />
+              <VerifyFlow jobSlug={job.slug} />
             </div>
           </div>
           <div className="cw-card">
-            <h2>What the candidate sees</h2>
+            <h2>Your privacy</h2>
             <p>
-              Their wallet shows exactly which fields you asked for and lets
-              them approve or decline. Selective disclosure keeps grades,
-              birth dates and identifiers private.
+              Your wallet shows exactly which fields we ask for, and you
+              approve or decline. We check the issuer, the signature and the
+              revocation status{' '}
+              <span className="integration-badge real">Real</span>; we never
+              see anything you did not share.
             </p>
           </div>
         </div>

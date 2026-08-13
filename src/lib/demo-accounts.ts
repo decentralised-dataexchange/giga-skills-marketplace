@@ -9,14 +9,11 @@ export type DemoAccount = {
   email: string;
   password: string;
   name: string;
-  role: 'school_officer' | 'registrar' | 'dpa_admin' | 'employer_verifier';
+  role: 'school_officer' | 'registrar' | 'dpa_admin';
   label: string;
 };
 
-export const DEMO_ACCOUNTS: Record<
-  'school' | 'moe' | 'dpa' | 'civicworks',
-  DemoAccount
-> = {
+export const DEMO_ACCOUNTS: Record<'school' | 'moe' | 'dpa', DemoAccount> = {
   school: {
     email: 'officer@riverside.school',
     password: 'officer123',
@@ -37,12 +34,5 @@ export const DEMO_ACCOUNTS: Record<
     name: 'Leena Virtanen',
     role: 'dpa_admin',
     label: 'Privacy supervisor (consent oversight, erasure)',
-  },
-  civicworks: {
-    email: 'hr@civicworks.example',
-    password: 'civicworks123',
-    name: 'Sofia Lindqvist',
-    role: 'employer_verifier',
-    label: 'HR verifier (qualification checks)',
   },
 };
