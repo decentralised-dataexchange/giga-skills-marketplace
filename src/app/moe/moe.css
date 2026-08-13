@@ -120,6 +120,7 @@
   border: 1px solid var(--line);
   padding: 1.4rem 1.6rem;
   margin-bottom: 1.25rem;
+  overflow-x: auto;
 }
 
 .moe-panel h2 {
@@ -149,6 +150,16 @@
   padding: 0.45rem 0.7rem;
   border: 1px solid var(--line);
   vertical-align: top;
+  overflow-wrap: anywhere;
+}
+
+/* Long JSON payloads in the audit detail column wrap instead of stretching
+   the table beyond its panel. */
+.moe td code {
+  display: block;
+  max-width: 30rem;
+  white-space: pre-wrap;
+  word-break: break-all;
 }
 
 .moe-empty {
