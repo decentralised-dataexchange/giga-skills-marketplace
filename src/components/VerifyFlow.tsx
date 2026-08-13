@@ -49,7 +49,7 @@ export function VerifyFlow({ jobSlug }: { jobSlug?: string }) {
     return (
       <div>
         <button className="cw-pill" type="button" onClick={begin} disabled={busy}>
-          {busy ? 'Preparing request…' : 'Start a verification'}
+          {busy ? 'Preparing…' : 'Apply with your wallet'}
         </button>
         {error ? <p className="login-error">{error}</p> : null}
       </div>
@@ -60,7 +60,7 @@ export function VerifyFlow({ jobSlug }: { jobSlug?: string }) {
     <WalletInvite
       uri={request.qrUri}
       logo="/portals/civicworks/logo.svg"
-      hint="Ask the candidate to scan this code and approve sharing the five requested fields."
+      hint="Scan with the EUDI Wallet on your phone and approve sharing the five fields."
       onRefresh={begin}
     />
   );

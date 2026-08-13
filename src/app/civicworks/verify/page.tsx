@@ -14,9 +14,9 @@ const CLAIM_LABELS: Record<string, string> = {
 };
 
 /**
- * The application page for one posting, candidate perspective: prove your
- * qualification from your wallet; the result reads as an application
- * outcome, not a back-office verification record.
+ * The job detail and application page, candidate perspective: a full role
+ * description, a prefilled application form, and the wallet proof as the
+ * qualification step. The result reads as an application outcome.
  */
 export default async function CivicworksApply({
   searchParams,
@@ -36,7 +36,13 @@ export default async function CivicworksApply({
       <p className="cw-job-meta">
         {job.team} · {job.location} · {job.type} · {job.salary}
       </p>
-      <p className="cw-lede">{job.blurb}</p>
+      <div className="cw-job-tags" style={{ marginTop: '0.6rem' }}>
+        {job.tags.map((tag) => (
+          <span key={tag} className="cw-tag">
+            {tag}
+          </span>
+        ))}
+      </div>
 
       {result ? (
         <div className="cw-cards">
@@ -48,7 +54,7 @@ export default async function CivicworksApply({
           >
             <h2>
               {result.verified
-                ? 'Application received 🎉'
+                ? 'Application received'
                 : result.answered
                   ? 'We could not verify your diploma'
                   : 'Waiting for your answer'}
@@ -94,29 +100,67 @@ export default async function CivicworksApply({
           ) : null}
         </div>
       ) : (
-        <div className="cw-cards">
-          <div className="cw-card">
-            <h2>Apply with your wallet</h2>
-            <p>
-              This role requires: {job.requirement}. Scan with the EUDI Wallet
-              on your phone and approve sharing five fields: your name,
-              qualification, awarding institution, qualification code and
-              award date. Nothing else leaves your wallet.
-            </p>
-            <div style={{ marginTop: '1rem' }}>
-              <VerifyFlow jobSlug={job.slug} />
-            </div>
+        <div className="cw-apply-grid">
+          <div className="cw-detail">
+            <section>
+              <h2>About the role</h2>
+              <p>{job.about}</p>
+            </section>
+            <section>
+              <h2>What you will do</h2>
+              <ul>
+                {job.responsibilities.map((item) => (
+                  <li key={item}>{item}</li>
+                ))}
+              </ul>
+            </section>
+            <section>
+              <h2>What we offer</h2>
+              <ul>
+                {job.offer.map((item) => (
+                  <li key={item}>{item}</li>
+                ))}
+              </ul>
+            </section>
+            <section>
+              <h2>Requirements</h2>
+              <p>{job.requirement}.</p>
+            </section>
           </div>
-          <div className="cw-card">
-            <h2>Your privacy</h2>
-            <p>
-              Your wallet shows exactly which fields we ask for, and you
-              approve or decline. We check the issuer, the signature and the
-              revocation status{' '}
-              <span className="integration-badge real">Real</span>; we never
-              see anything you did not share.
+
+          <aside className="cw-apply-card">
+            <h2>Your application</h2>
+            <form>
+              <label>
+                <span>Full name</span>
+                <input name="name" defaultValue="Alex Andersson" />
+              </label>
+              <label>
+                <span>Email</span>
+                <input name="email" type="email" defaultValue="alex.andersson@mail.example" />
+              </label>
+              <label>
+                <span>Phone</span>
+                <input name="phone" defaultValue="+46 70 123 45 67" />
+              </label>
+              <label>
+                <span>Message (optional)</span>
+                <textarea
+                  name="message"
+                  rows={3}
+                  defaultValue="I recently graduated and would love to join the analytics team."
+                />
+              </label>
+            </form>
+            <div className="cw-apply-divider" />
+            <h3>Qualification</h3>
+            <p className="cw-apply-note">
+              This role requires an upper secondary diploma. Prove it from
+              your wallet: you approve sharing five fields, and nothing else
+              leaves your phone.
             </p>
-          </div>
+            <VerifyFlow jobSlug={job.slug} />
+          </aside>
         </div>
       )}
     </CivicworksShell>
