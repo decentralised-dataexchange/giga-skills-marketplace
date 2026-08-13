@@ -25,3 +25,4 @@ sqlite.db*
 *.pem
 npm-debug.log*
 next-env.d.ts
+secrets/
