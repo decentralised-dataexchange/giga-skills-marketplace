@@ -565,6 +565,19 @@ export async function issueDiploma(
   });
 }
 
+/** True when the wallet has accepted the credential of this exchange. */
+export function isExchangeAccepted(owsExchangeId: string): boolean {
+  const row = getDb()
+    .prepare(
+      'SELECT "status" FROM "credential_exchanges" WHERE "owsExchangeId" = ?'
+    )
+    .get(owsExchangeId) as { status: string } | undefined;
+  return (
+    row?.status === 'openid.credential.credential_accepted' ||
+    row?.status === 'openid.credential.credential_acked'
+  );
+}
+
 /** The diploma exchange for an application, if one exists. */
 export function getDiplomaExchange(appId: string) {
   return getDb()

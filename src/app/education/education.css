@@ -201,15 +201,16 @@
   border-radius: 10px;
 }
 
-/* The pre-authorised code shown next to a credential offer. */
+/* The pre-authorised code shown centred below a credential offer QR. */
 .edu-pin {
-  display: inline-block;
-  margin: 0.25rem 0 0.9rem;
+  display: table;
+  margin: 0.9rem auto 0.25rem;
   padding: 0.45rem 0.9rem;
   background: var(--brand-soft);
   border: 1px dashed var(--brand);
   border-radius: 8px;
   font-size: 0.95rem;
+  text-align: center;
 }
 
 .edu-pin strong {
