@@ -42,10 +42,13 @@ export function PortalSwitcher() {
             onClick={() => setOpen(false)}
           >
             <span className="switcher-dot" style={{ background: '#1c2130' }} />
-            <span>
+            <span className="switcher-text">
               <strong>Showcase landing</strong>
               <small>Demo script and journey map</small>
             </span>
+            {pathname === '/' ? (
+              <span className="switcher-current">You are here</span>
+            ) : null}
           </Link>
           {Object.values(PORTALS).map((portal) => (
             <Link
@@ -59,10 +62,13 @@ export function PortalSwitcher() {
                 className="switcher-dot"
                 style={{ background: portal.brand.brand }}
               />
-              <span>
+              <span className="switcher-text">
                 <strong>{portal.name}</strong>
                 <small>{portal.organisation}</small>
               </span>
+              {current?.id === portal.id ? (
+                <span className="switcher-current">You are here</span>
+              ) : null}
             </Link>
           ))}
         </div>
@@ -74,7 +80,7 @@ export function PortalSwitcher() {
         aria-label="Switch portal"
       >
         <Compass size={16} />
-        {current ? current.organisation : 'Showcase'}
+        Switch portal
       </button>
     </div>
   );

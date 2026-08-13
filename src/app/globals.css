@@ -255,6 +255,25 @@ textarea {
 
 .switcher-item[data-active='true'] {
   background: #eef1f6;
+  box-shadow: inset 3px 0 0 #1c2130;
+}
+
+.switcher-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.switcher-current {
+  flex-shrink: 0;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #1c7c43;
+  background: #e5f4ea;
+  border: 1px solid #1c7c43;
+  border-radius: 999px;
+  padding: 0.15rem 0.5rem;
 }
 
 .switcher-item strong {
