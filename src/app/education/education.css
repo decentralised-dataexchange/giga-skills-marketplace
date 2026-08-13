@@ -1,0 +1,263 @@
+/*
+ * National Education Portal: a citizen-facing government service.
+ * Wide, calm, accessible: top navigation bar under a thin state banner,
+ * generous white space, large forms, rounded but restrained corners.
+ */
+
+.edu {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+  color: var(--ink);
+}
+
+/* Thin state banner above the header, a common government pattern. */
+.edu-statebar {
+  background: var(--brand-dark);
+  color: #ffffff;
+  font-size: 0.75rem;
+  padding: 0.3rem 1.5rem;
+  display: flex;
+  justify-content: space-between;
+}
+
+.edu-header {
+  background: var(--brand);
+  color: #ffffff;
+  padding: 0 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  min-height: 4rem;
+}
+
+.edu-header-id {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  text-decoration: none;
+  color: #ffffff;
+}
+
+.edu-header-id img {
+  width: 2.2rem;
+  height: 2.2rem;
+}
+
+.edu-header-name {
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+.edu-header-org {
+  display: block;
+  font-size: 0.7rem;
+  font-weight: 400;
+  opacity: 0.85;
+}
+
+.edu-nav {
+  display: flex;
+  gap: 0.25rem;
+  margin-left: auto;
+}
+
+.edu-nav a,
+.edu-nav button {
+  color: #ffffff;
+  background: transparent;
+  border: 0;
+  text-decoration: none;
+  font-size: 0.9rem;
+  padding: 0.5rem 0.9rem;
+  border-radius: 6px;
+}
+
+.edu-nav a:hover,
+.edu-nav button:hover {
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.edu-main {
+  flex: 1;
+  width: 100%;
+  max-width: 56rem;
+  margin: 0 auto;
+  padding: 2.5rem 1.5rem 4rem;
+}
+
+.edu-hero {
+  padding: 3rem 0 1rem;
+}
+
+.edu-hero h1 {
+  font-size: 2.1rem;
+  line-height: 1.2;
+  max-width: 34rem;
+}
+
+.edu-hero p {
+  margin-top: 1rem;
+  max-width: 38rem;
+  font-size: 1.05rem;
+  line-height: 1.65;
+  color: var(--muted);
+}
+
+.edu-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 1.75rem;
+  background: var(--brand);
+  color: #ffffff;
+  border: 0;
+  border-radius: 8px;
+  padding: 0.85rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.edu-cta:hover {
+  background: var(--brand-dark);
+}
+
+.edu-card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 1.75rem;
+  margin-top: 1.5rem;
+}
+
+.edu-card h2 {
+  font-size: 1.25rem;
+  margin-bottom: 0.75rem;
+}
+
+.edu-card p {
+  line-height: 1.6;
+  color: var(--muted);
+}
+
+.edu-services {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr));
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.edu-service {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--brand);
+  border-radius: 8px;
+  padding: 1.2rem;
+}
+
+.edu-service h3 {
+  font-size: 1rem;
+  margin-bottom: 0.4rem;
+}
+
+.edu-service p {
+  font-size: 0.85rem;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+/* Wallet sign-in screen. */
+.edu-login {
+  max-width: 30rem;
+  margin: 2rem auto;
+  text-align: center;
+}
+
+.edu-login .edu-card {
+  padding: 2.25rem;
+}
+
+.edu-login h1 {
+  font-size: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.edu-login p {
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.edu-qr-frame {
+  margin: 1.5rem auto 1rem;
+  width: 15rem;
+  height: 15rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #ffffff;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+}
+
+.edu-footer {
+  background: var(--brand-dark);
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 0.8rem;
+  line-height: 1.6;
+  padding: 1.5rem;
+  text-align: center;
+}
+
+/* Large accessible form fields, government style. */
+.edu form label {
+  display: block;
+  margin-top: 1.1rem;
+  font-weight: 600;
+}
+
+.edu form label span {
+  display: block;
+  margin-bottom: 0.35rem;
+}
+
+.edu form input,
+.edu form select,
+.edu form textarea {
+  width: 100%;
+  padding: 0.75rem 0.9rem;
+  border: 1.5px solid var(--line);
+  border-radius: 8px;
+  background: #ffffff;
+  font-size: 1rem;
+}
+
+.edu form input:focus,
+.edu form select:focus,
+.edu form textarea:focus {
+  outline: 3px solid var(--accent);
+  outline-offset: 1px;
+  border-color: var(--brand);
+}
+
+.edu form button[type='submit'] {
+  margin-top: 1.5rem;
+  width: 100%;
+  background: var(--brand);
+  color: #ffffff;
+  border: 0;
+  border-radius: 8px;
+  padding: 0.85rem;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.edu .login-error {
+  margin-top: 1rem;
+  color: var(--bad);
+  background: var(--bad-soft);
+  border-radius: 6px;
+  padding: 0.6rem 0.9rem;
+  font-size: 0.9rem;
+}

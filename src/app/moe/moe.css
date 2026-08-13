@@ -1,0 +1,309 @@
+/*
+ * Ministry of Education Registrar Back Office: a formal internal console.
+ * Fixed dark sidebar, serif headings, squared corners, dense tables,
+ * breadcrumbs. Deliberately austere next to the public portals.
+ */
+
+.moe {
+  min-height: 100vh;
+  display: flex;
+  background: var(--surface);
+  color: var(--ink);
+  font-size: 0.9rem;
+}
+
+.moe-sidebar {
+  width: 15.5rem;
+  flex-shrink: 0;
+  background: var(--brand);
+  color: #ffffff;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.moe-sidebar-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 1.1rem 1.2rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.moe-sidebar-brand img {
+  width: 2.1rem;
+  height: 2.1rem;
+}
+
+.moe-sidebar-brand strong {
+  display: block;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 0.95rem;
+  line-height: 1.2;
+}
+
+.moe-sidebar-brand small {
+  font-size: 0.68rem;
+  opacity: 0.75;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.moe-nav {
+  display: flex;
+  flex-direction: column;
+  padding: 0.75rem 0;
+}
+
+.moe-nav a {
+  padding: 0.6rem 1.2rem;
+  color: rgba(255, 255, 255, 0.85);
+  text-decoration: none;
+  font-size: 0.85rem;
+  border-left: 3px solid transparent;
+}
+
+.moe-nav a[data-active='true'] {
+  background: rgba(255, 255, 255, 0.08);
+  border-left-color: var(--accent);
+  color: #ffffff;
+}
+
+.moe-nav a:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.moe-sidebar-user {
+  margin-top: auto;
+  padding: 1rem 1.2rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.15);
+  font-size: 0.78rem;
+}
+
+.moe-sidebar-user button {
+  margin-top: 0.5rem;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  color: #ffffff;
+  padding: 0.3rem 0.8rem;
+  font-size: 0.75rem;
+}
+
+.moe-content {
+  flex: 1;
+  padding: 1.5rem 2rem 3rem;
+  max-width: 68rem;
+}
+
+.moe-breadcrumb {
+  font-size: 0.75rem;
+  color: var(--muted);
+  margin-bottom: 1rem;
+}
+
+.moe h1 {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 1.55rem;
+  font-weight: 600;
+  margin-bottom: 0.35rem;
+}
+
+.moe-page-intro {
+  color: var(--muted);
+  max-width: 44rem;
+  line-height: 1.6;
+  margin-bottom: 1.5rem;
+}
+
+.moe-panel {
+  background: var(--card);
+  border: 1px solid var(--line);
+  padding: 1.4rem 1.6rem;
+  margin-bottom: 1.25rem;
+}
+
+.moe-panel h2 {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 0.6rem;
+}
+
+.moe table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+}
+
+.moe th {
+  text-align: left;
+  padding: 0.5rem 0.7rem;
+  background: var(--brand-soft);
+  border: 1px solid var(--line);
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.moe td {
+  padding: 0.45rem 0.7rem;
+  border: 1px solid var(--line);
+  vertical-align: top;
+}
+
+.moe-empty {
+  color: var(--muted);
+  padding: 1rem 0;
+}
+
+/* Policy toggle row. */
+.moe-policy-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  padding: 0.9rem 0;
+  border-top: 1px solid var(--line);
+}
+
+.moe-policy-row:first-of-type {
+  border-top: 0;
+}
+
+.moe-policy-name {
+  font-weight: 600;
+}
+
+.moe-policy-desc {
+  font-size: 0.8rem;
+  color: var(--muted);
+  margin-top: 0.2rem;
+  max-width: 34rem;
+}
+
+.moe-policy-state {
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 0.25rem 0.7rem;
+  border: 1px solid;
+}
+
+.moe-policy-state[data-on='true'] {
+  color: var(--ok);
+  background: var(--ok-soft);
+}
+
+.moe-policy-state[data-on='false'] {
+  color: var(--muted);
+  background: var(--surface);
+}
+
+.moe button.moe-action {
+  background: var(--brand);
+  color: #ffffff;
+  border: 0;
+  padding: 0.5rem 1.1rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.moe button.moe-action:hover {
+  background: var(--brand-dark);
+}
+
+.moe button.moe-action[data-variant='danger'] {
+  background: var(--accent);
+}
+
+/* Login: severe, centred, official. */
+.moe-login {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background: var(--brand);
+}
+
+.moe-login-card {
+  width: 100%;
+  max-width: 23rem;
+  background: var(--card);
+  padding: 2.25rem 2rem;
+  border-top: 5px solid var(--accent);
+}
+
+.moe-login-card img {
+  width: 3rem;
+  height: 3rem;
+}
+
+.moe-login-card h1 {
+  font-size: 1.2rem;
+  margin-top: 0.6rem;
+}
+
+.moe-login-card > p {
+  font-size: 0.8rem;
+  color: var(--muted);
+  margin-top: 0.2rem;
+}
+
+.moe form label {
+  display: block;
+  margin-top: 1rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+}
+
+.moe form label span {
+  display: block;
+  margin-bottom: 0.3rem;
+}
+
+.moe form input {
+  width: 100%;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid var(--line);
+  border-radius: 0;
+  font-size: 0.9rem;
+  background: var(--surface);
+}
+
+.moe form input:focus {
+  outline: 2px solid var(--brand);
+}
+
+.moe form button[type='submit'] {
+  margin-top: 1.4rem;
+  width: 100%;
+  background: var(--brand);
+  color: #ffffff;
+  border: 0;
+  padding: 0.7rem;
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.moe .login-error {
+  margin-top: 0.9rem;
+  color: var(--bad);
+  background: var(--bad-soft);
+  padding: 0.5rem 0.75rem;
+  font-size: 0.8rem;
+}
+
+@media (max-width: 52rem) {
+  .moe {
+    flex-direction: column;
+  }
+  .moe-sidebar {
+    width: 100%;
+    min-height: 0;
+  }
+}

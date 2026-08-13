@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
+  <!-- Coat-of-arms style shield with an open book, in white for the blue header. -->
+  <path d="M24 3 L42 9 V24 C42 35 34 42 24 45 C14 42 6 35 6 24 V9 Z" fill="#ffffff" opacity="0.95"/>
+  <path d="M24 6.5 L39 11.5 V24 C39 33 32.5 39.2 24 42 C15.5 39.2 9 33 9 24 V11.5 Z" fill="#1d4e89"/>
+  <path d="M13 18 C17 16.5 21 16.8 24 19 C27 16.8 31 16.5 35 18 V30 C31 28.5 27 28.8 24 31 C21 28.8 17 28.5 13 30 Z" fill="#ffffff"/>
+  <line x1="24" y1="19" x2="24" y2="31" stroke="#1d4e89" stroke-width="1.4"/>
+  <circle cx="24" cy="12.5" r="2.2" fill="#f2b134"/>
+</svg>

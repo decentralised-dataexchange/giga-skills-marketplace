@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
+  <!-- School crest: a green roundel with a river band and a mortarboard. -->
+  <circle cx="24" cy="24" r="21" fill="#2e7d4f"/>
+  <circle cx="24" cy="24" r="17.5" fill="#e9f5ee"/>
+  <path d="M8 27 C14 24.5 20 29 24 27 C28 25 34 24 40 27 L40 31 C34 28.5 28 29.5 24 31 C20 32.5 14 28.5 8 31 Z" fill="#2e7d4f" opacity="0.55"/>
+  <path d="M24 12 L36 17 L24 22 L12 17 Z" fill="#215c3a"/>
+  <path d="M18 19.5 V24 C18 25.8 20.7 27 24 27 C27.3 27 30 25.8 30 24 V19.5 L24 22 Z" fill="#2e7d4f"/>
+  <line x1="35" y1="17.5" x2="35" y2="23.5" stroke="#e0a83d" stroke-width="1.6"/>
+  <circle cx="35" cy="24.6" r="1.4" fill="#e0a83d"/>
+</svg>
