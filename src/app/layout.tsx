@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 
 import { ensureSeeded } from '@/lib/seed';
+import { PortalSwitcher } from '@/components/PortalSwitcher';
 
 import './globals.css';
 
@@ -21,7 +22,10 @@ export default async function RootLayout({
 
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        {children}
+        <PortalSwitcher />
+      </body>
     </html>
   );
 }

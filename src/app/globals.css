@@ -176,6 +176,105 @@ textarea {
   opacity: 0.65;
 }
 
+/* The floating portal switcher: the one overlay that belongs to the
+   showcase itself, identical on every portal. */
+.switcher {
+  position: fixed;
+  right: 1.1rem;
+  bottom: 1.1rem;
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.6rem;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.switcher-fab {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  border: 0;
+  border-radius: 999px;
+  padding: 0.6rem 1.1rem;
+  background: #1c2130;
+  color: #ffffff;
+  font-size: 0.8rem;
+  font-weight: 600;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.28);
+}
+
+.switcher-fab:hover {
+  background: #2b3247;
+}
+
+.switcher-panel {
+  width: 19rem;
+  background: #ffffff;
+  border: 1px solid #dfe2e8;
+  border-radius: 14px;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.22);
+  overflow: hidden;
+  color: #1c2130;
+}
+
+.switcher-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.6rem 0.9rem;
+  background: #1c2130;
+  color: #ffffff;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.switcher-head button {
+  display: inline-flex;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  padding: 0.1rem;
+}
+
+.switcher-item {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.6rem 0.9rem;
+  text-decoration: none;
+  color: inherit;
+  border-top: 1px solid #f0f1f4;
+}
+
+.switcher-item:hover {
+  background: #f4f6f9;
+}
+
+.switcher-item[data-active='true'] {
+  background: #eef1f6;
+}
+
+.switcher-item strong {
+  display: block;
+  font-size: 0.83rem;
+}
+
+.switcher-item small {
+  display: block;
+  font-size: 0.7rem;
+  color: #6b7280;
+}
+
+.switcher-dot {
+  width: 0.7rem;
+  height: 0.7rem;
+  border-radius: 999px;
+  flex-shrink: 0;
+}
+
 /* Right-hand drawer, the marketplace treatment. */
 .drawer-root {
   position: fixed;
