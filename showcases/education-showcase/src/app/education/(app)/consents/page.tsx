@@ -22,8 +22,7 @@ export default async function ConsentsPage() {
       <section className="edu-hero">
         <h1>Your data choices</h1>
         <p>
-          These agreements govern how the education service handles your data{' '}
-          <span className="integration-badge real">Consent Building Block</span>.
+          These agreements govern how the education service handles your data.
           The two optional ones are yours to change at any time; withdrawing
           never affects your enrolment or your credentials.
         </p>

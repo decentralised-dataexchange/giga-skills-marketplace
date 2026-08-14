@@ -50,10 +50,7 @@ export default async function EducationHome() {
 
       {app && typeof form.studentIdOffer === 'string' ? (
         <div className="edu-card">
-          <h2>
-            Student ID{' '}
-            <span className="integration-badge real">Verifiable credential</span>
-          </h2>
+          <h2>Student ID</h2>
           {isExchangeAccepted(String(form.studentIdExchangeId)) ? (
             <p style={{ color: 'var(--ok)', fontWeight: 600 }}>
               ✓ Your Student ID is in your wallet.
@@ -82,10 +79,7 @@ export default async function EducationHome() {
 
       {app?.status === 'payment_pending' ? (
         <div className="edu-card">
-          <h2>
-            Diploma fee{' '}
-            <span className="integration-badge real">TS12 payment credential</span>
-          </h2>
+          <h2>Diploma fee</h2>
           <p>
             The Ministry requires payment before it issues your diploma. Pay
             from your account or by card: one scan pays the EUR 50 fee and
@@ -106,10 +100,7 @@ export default async function EducationHome() {
 
       {app && app.status === 'issued' && typeof form.diplomaOffer === 'string' ? (
         <div className="edu-card">
-          <h2>
-            Diploma{' '}
-            <span className="integration-badge real">Verifiable credential</span>
-          </h2>
+          <h2>Diploma</h2>
           {isExchangeAccepted(String(form.diplomaExchangeId)) ? (
             <p style={{ color: 'var(--ok)', fontWeight: 600 }}>
               ✓ Your diploma is in your wallet

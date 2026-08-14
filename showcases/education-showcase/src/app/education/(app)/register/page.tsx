@@ -37,8 +37,7 @@ export default async function RegisterPage() {
       <section className="edu-hero">
         <h1>Register as a learner</h1>
         <p>
-          Your name comes from the identity your wallet presented{' '}
-          <span className="integration-badge real">Verified by wallet</span>.
+          Your name comes from the identity your wallet presented.
           Complete the rest of the application; a school officer will review
           your documents manually before the Ministry approves the enrolment.
         </p>
@@ -95,10 +94,7 @@ export default async function RegisterPage() {
             <input name="specialSupport" placeholder="Any support the school should plan for" />
           </label>
 
-          <h2 style={{ marginTop: '1.75rem', fontSize: '1.1rem' }}>
-            Document references{' '}
-            <span className="integration-badge sandbox">Sandbox validation</span>
-          </h2>
+          <h2 style={{ marginTop: '1.75rem', fontSize: '1.1rem' }}>Document references</h2>
           <label>
             <span>Birth certificate or national ID reference</span>
             <input name="doc-birth-certificate" defaultValue="DOC-BC-2026-00417" required />
@@ -116,10 +112,7 @@ export default async function RegisterPage() {
             <input name="doc-prior-record" />
           </label>
 
-          <h2 style={{ marginTop: '1.75rem', fontSize: '1.1rem' }}>
-            Your data choices{' '}
-            <span className="integration-badge real">Consent</span>
-          </h2>
+          <h2 style={{ marginTop: '1.75rem', fontSize: '1.1rem' }}>Your data choices</h2>
           <p style={{ color: 'var(--muted)', fontSize: '0.9rem', marginTop: '0.5rem' }}>
             Enrolment processing itself is a public task and needs no consent.
             These two choices are separate, optional, and can be withdrawn at

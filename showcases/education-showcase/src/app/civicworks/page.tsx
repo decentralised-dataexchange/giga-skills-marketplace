@@ -28,10 +28,7 @@ export default function CivicworksCareers() {
                 {job.team} · {job.location} · {job.type} · {job.salary}
               </p>
               <p className="cw-job-blurb">{job.blurb}</p>
-              <p className="cw-job-req">
-                Requires: {job.requirement}{' '}
-                <span className="integration-badge real">Wallet verified</span>
-              </p>
+              <p className="cw-job-req">Requires: {job.requirement}</p>
               <div className="cw-job-tags">
                 {job.tags.map((tag) => (
                   <span key={tag} className="cw-tag">

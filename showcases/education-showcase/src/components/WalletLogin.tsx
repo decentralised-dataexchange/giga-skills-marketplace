@@ -68,8 +68,7 @@ export function WalletLogin() {
       <h1>Sign in with your wallet</h1>
       <p>
         Present your person identification data (PID) from the wallet on your
-        phone. We use it to confirm who you are; the registry keeps no copy of
-        your identity attributes.
+        phone. We use it to confirm who you are.
       </p>
       <div style={{ margin: '1.5rem 0 1rem' }}>
         {phase === 'starting' ? <p className="qr-hint">Preparing your sign-in…</p> : null}
@@ -103,7 +102,6 @@ export function WalletLogin() {
           </p>
         ) : null}
       </div>
-      <span className="integration-badge real">Real wallet flow</span>
     </div>
   );
 }

@@ -1,7 +1,36 @@
 /**
- * The try-it-out walkthrough, shared by the landing page and the floating
- * demo guide. Plain data so both surfaces render it in their own style.
+ * The demo script, shared by the landing page and the floating demo guide:
+ * the wallet prerequisites, who signs in where, the walkthrough steps, and
+ * the portal colour of each step. One source, so the two surfaces always
+ * look and read the same.
  */
+import { PORTALS } from '@/lib/portals';
+
+export const PREREQUISITES = [
+  {
+    name: 'PID credential',
+    detail: 'Signs you in as the learner',
+    href: 'https://igrant.io/demo/pid.html',
+  },
+  {
+    name: 'TS12 payment credential',
+    detail: 'Pays the diploma fee',
+    href: 'https://igrant.io/demo/ts12-payment-credential-issuance.html',
+  },
+] as const;
+
+export const WHO_SIGNS_IN: Record<string, string> = {
+  education: 'Learner · wallet sign-in',
+  school: 'School officer · password',
+  civicworks: 'Public · no sign-in',
+};
+
+/** The brand colour of the portal a step happens in, for its number chip. */
+export function stepColour(href: string): string {
+  const portal = Object.values(PORTALS).find((p) => href.startsWith(`/${p.id}`));
+  return portal?.brand.brand ?? '#1c2130';
+}
+
 export const DEMO_STEPS = [
   {
     title: 'Register as a learner',

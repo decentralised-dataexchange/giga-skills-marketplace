@@ -274,7 +274,6 @@ export function ApplicationForm({ job }: { job: Job }) {
                   <strong>National Diploma</strong>
                   <small>Issued by the Ministry of Education</small>
                 </div>
-                <span className="integration-badge real">Verified</span>
               </div>
               <table>
                 <tbody>

@@ -60,9 +60,8 @@ export default async function SchoolGraduation() {
                 />
               </label>
               <p style={{ fontSize: '0.78rem', color: 'var(--muted)', margin: '0.5rem 0' }}>
-                Signed by the institution{' '}
-                <span className="integration-badge sandbox">Sandbox TSP signature</span>
-                . On submission the registry validates the institution and
+                Signed by the institution. On submission the registry
+                validates the institution and
                 asks the learner to pay the diploma fee; the diploma is
                 issued to their wallet in the same payment step.
               </p>
@@ -86,55 +85,73 @@ export default async function SchoolGraduation() {
         {sent.length > 0 ? (
           <>
             <h2 style={{ marginTop: '1.5rem', fontSize: '1rem' }}>Submitted decisions</h2>
-            {sent.map((app) => (
-              <div
-                key={app.id}
-                style={{ borderTop: '1px solid var(--line)', paddingTop: '0.9rem', marginTop: '0.9rem' }}
-              >
-                <strong>{app.learnerName}</strong>
-                {app.status === 'payment_pending' ? (
-                  <p style={{ margin: '0.35rem 0 0' }}>
-                    Awaiting the learner&apos;s fee payment; the diploma is
-                    issued to their wallet in the same step.
-                  </p>
-                ) : getDiplomaExchange(app.id)?.revoked ? (
-                  <p style={{ margin: '0.35rem 0 0', color: 'var(--bad)', fontWeight: 600 }}>
-                    Diploma revoked
-                    {getDiplomaExchange(app.id)?.revokedAt
-                      ? ` on ${String(getDiplomaExchange(app.id)?.revokedAt).slice(0, 10)}`
-                      : ''}
-                    . Fresh verifications reject it.
-                  </p>
-                ) : (
-                  <>
-                    <p style={{ margin: '0.35rem 0 0.6rem', color: 'var(--ok)', fontWeight: 600 }}>
-                      Diploma issued to the learner&apos;s wallet.
+            {sent.map((app) => {
+              const exchange = getDiplomaExchange(app.id);
+              const issued = app.status === 'issued' && !exchange?.revoked;
+              return (
+                <div
+                  key={app.id}
+                  style={{ borderTop: '1px solid var(--line)', paddingTop: '0.9rem', marginTop: '0.9rem' }}
+                >
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      gap: '1rem',
+                    }}
+                  >
+                    <strong>{app.learnerName}</strong>
+                    {issued ? (
+                      <form action={revokeIssuedDiploma} style={{ margin: 0 }}>
+                        <input type="hidden" name="applicationId" value={app.id} />
+                        <button
+                          type="submit"
+                          style={{
+                            background: 'var(--bad)',
+                            color: '#fff',
+                            border: 0,
+                            borderRadius: 999,
+                            padding: '0.3rem 0.9rem',
+                            fontWeight: 700,
+                            fontSize: '0.78rem',
+                            width: 'auto',
+                            marginTop: 0,
+                            whiteSpace: 'nowrap',
+                          }}
+                        >
+                          Revoke the diploma
+                        </button>
+                      </form>
+                    ) : null}
+                  </div>
+                  {app.status === 'payment_pending' ? (
+                    <p style={{ margin: '0.35rem 0 0' }}>
+                      Awaiting the learner&apos;s fee payment; the diploma is
+                      issued to their wallet in the same step.
                     </p>
-                    <form action={revokeIssuedDiploma}>
-                      <input type="hidden" name="applicationId" value={app.id} />
-                      <button
-                        type="submit"
-                        style={{
-                          background: 'var(--bad)',
-                          color: '#fff',
-                          border: 0,
-                          borderRadius: 999,
-                          padding: '0.45rem 1.1rem',
-                          fontWeight: 700,
-                          fontSize: '0.82rem',
-                        }}
-                      >
-                        Revoke the diploma
-                      </button>
-                    </form>
-                    <p style={{ fontSize: '0.75rem', color: 'var(--muted)', margin: '0.4rem 0 0' }}>
-                      Revocation is permanent and takes effect immediately: a
-                      fresh verification anywhere rejects the credential.
+                  ) : exchange?.revoked ? (
+                    <p style={{ margin: '0.35rem 0 0', color: 'var(--bad)', fontWeight: 600 }}>
+                      Diploma revoked
+                      {exchange?.revokedAt
+                        ? ` on ${String(exchange.revokedAt).slice(0, 10)}`
+                        : ''}
+                      . Fresh verifications reject it.
                     </p>
-                  </>
-                )}
-              </div>
-            ))}
+                  ) : (
+                    <>
+                      <p style={{ margin: '0.35rem 0 0', color: 'var(--ok)', fontWeight: 600 }}>
+                        Diploma issued to the learner&apos;s wallet.
+                      </p>
+                      <p style={{ fontSize: '0.75rem', color: 'var(--muted)', margin: '0.4rem 0 0' }}>
+                        Revocation is permanent and takes effect immediately: a
+                        fresh verification anywhere rejects the credential.
+                      </p>
+                    </>
+                  )}
+                </div>
+              );
+            })}
           </>
         ) : null}
       </section>

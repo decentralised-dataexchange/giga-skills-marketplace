@@ -1,6 +1,7 @@
 import Link from 'next/link';
+import { ArrowRight, ExternalLink } from 'lucide-react';
 
-import { DEMO_STEPS } from '@/lib/demo-steps';
+import { DEMO_STEPS, PREREQUISITES, WHO_SIGNS_IN, stepColour } from '@/lib/demo-steps';
 import { PORTALS } from '@/lib/portals';
 
 import './landing.css';
@@ -9,8 +10,9 @@ import './landing.css';
  * The showcase landing page. This is the only screen that admits to being a
  * demo: prerequisites, the portals, and step-by-step instructions to try
  * the whole journey. Each portal then presents itself as its own product.
+ * It renders the same cards and steps as the floating demo guide (shared
+ * guide-* styles and data), so the two surfaces read identically.
  */
-
 
 export default function Landing() {
   return (
@@ -29,75 +31,94 @@ export default function Landing() {
         </p>
       </header>
 
-      <section className="landing-portals">
-        <h2>The three portals</h2>
-        <div className="landing-grid">
+      <section className="landing-section">
+        <h2 className="guide-heading">
+          <span className="guide-heading-n">1</span> Before you start
+        </h2>
+        <p className="guide-lede">
+          Load these two credentials into one EUDI Wallet on your phone.
+        </p>
+        <div className="guide-prereqs">
+          {PREREQUISITES.map((item) => (
+            <a
+              key={item.name}
+              className="guide-prereq"
+              href={item.href}
+              target="_blank"
+              rel="noreferrer"
+            >
+              <span className="guide-prereq-text">
+                <strong>{item.name}</strong>
+                <small>{item.detail}</small>
+              </span>
+              <ExternalLink size={14} aria-hidden="true" />
+            </a>
+          ))}
+        </div>
+      </section>
+
+      <section className="landing-section">
+        <h2 className="guide-heading">
+          <span className="guide-heading-n">2</span> The portals
+        </h2>
+        <p className="guide-lede">
+          Three organisations, one journey. Sessions persist per portal, so
+          you can switch freely.
+        </p>
+        <div className="guide-portals">
           {Object.values(PORTALS).map((portal) => (
             <Link
               key={portal.id}
               href={portal.id === 'education' ? '/education' : portal.homePath}
-              className="landing-card"
+              className="guide-portal"
             >
-              <span className="landing-card-org">{portal.organisation}</span>
-              <span className="landing-card-name">{portal.name}</span>
-              <span className="landing-card-tagline">{portal.tagline}</span>
+              <span
+                className="guide-portal-mark"
+                style={{ background: portal.brand['brand-soft'] }}
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={portal.logo} alt="" />
+              </span>
+              <span className="guide-portal-text">
+                <strong>{portal.name}</strong>
+                <small>
+                  {portal.organisation} · {WHO_SIGNS_IN[portal.id]}
+                </small>
+              </span>
+              <ArrowRight size={15} className="guide-portal-go" aria-hidden="true" />
             </Link>
           ))}
         </div>
       </section>
 
-      <section className="landing-prereqs">
-        <h2>Prerequisites</h2>
-        <p className="landing-section-lede">
-          Load these two credentials into the same EUDI Wallet on your phone
-          before you start.
+      <section className="landing-section">
+        <h2 className="guide-heading">
+          <span className="guide-heading-n">3</span> The walkthrough
+        </h2>
+        <p className="guide-lede">
+          Five steps, about 12 minutes. Follow them in order; every sign-in
+          form is prefilled with its demo account, and the pulsing highlight
+          on each screen marks the next thing to click.
         </p>
-        <div className="landing-grid landing-grid-two">
-          <a
-            className="landing-card"
-            href="https://igrant.io/demo/pid.html"
-            target="_blank"
-            rel="noreferrer"
-          >
-            <span className="landing-card-org">1 · Identity</span>
-            <span className="landing-card-name">Get a PID credential</span>
-            <span className="landing-card-tagline">
-              Issue a person identification credential to your wallet at
-              igrant.io/demo/pid.html. It signs you in as the learner.
-            </span>
-          </a>
-          <a
-            className="landing-card"
-            href="https://igrant.io/demo/ts12-payment-credential-issuance.html"
-            target="_blank"
-            rel="noreferrer"
-          >
-            <span className="landing-card-org">2 · Payment</span>
-            <span className="landing-card-name">Get a payment credential</span>
-            <span className="landing-card-tagline">
-              Issue a TS12 payment account credential to the same wallet. It
-              confirms the diploma fee.
-            </span>
-          </a>
-        </div>
-      </section>
-
-      <section className="landing-journey">
-        <h2>Try it out</h2>
-        <p className="landing-section-lede">
-          The whole journey takes 12 to 15 minutes. Follow the steps in order;
-          every sign-in form is prefilled with its demo account.
-        </p>
-        <ol className="landing-steps">
+        <ol className="guide-steps">
           {DEMO_STEPS.map((step, index) => (
             <li key={step.title}>
-              <span className="landing-step-n">{index + 1}</span>
-              <span className="landing-step-body">
-                <span className="landing-step-title">{step.title}</span>
-                <span className="landing-step-text">
-                  {step.text}{' '}
-                  <Link href={step.href}>{step.linkText} →</Link>
-                </span>
+              <span
+                className="guide-step-n"
+                style={{ background: stepColour(step.href) }}
+              >
+                {index + 1}
+              </span>
+              <span className="guide-step-body">
+                <span className="guide-step-title">{step.title}</span>
+                <span className="guide-step-text">{step.text}</span>
+                <Link
+                  className="guide-step-link"
+                  href={step.href}
+                  style={{ color: stepColour(step.href) }}
+                >
+                  {step.linkText} <ArrowRight size={13} aria-hidden="true" />
+                </Link>
               </span>
             </li>
           ))}
@@ -107,7 +128,6 @@ export default function Landing() {
           fictional.
         </p>
       </section>
-
     </main>
   );
 }

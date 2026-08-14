@@ -7,7 +7,7 @@ import { ArrowRight, BookOpen, ExternalLink } from 'lucide-react';
 
 import { Drawer } from '@/components/Drawer';
 import type { NextStop } from '@/lib/next-stop';
-import { DEMO_STEPS } from '@/lib/demo-steps';
+import { DEMO_STEPS, PREREQUISITES, WHO_SIGNS_IN, stepColour } from '@/lib/demo-steps';
 import { PORTALS, type PortalConfig } from '@/lib/portals';
 
 /**
@@ -17,33 +17,6 @@ import { PORTALS, type PortalConfig } from '@/lib/portals';
  * see the next step. Deliberately neutral: it belongs to the showcase, not
  * to any portal.
  */
-
-const PREREQUISITES = [
-  {
-    name: 'PID credential',
-    detail: 'Signs you in as the learner',
-    href: 'https://igrant.io/demo/pid.html',
-  },
-  {
-    name: 'TS12 payment credential',
-    detail: 'Pays the diploma fee',
-    href: 'https://igrant.io/demo/ts12-payment-credential-issuance.html',
-  },
-];
-
-const WHO_SIGNS_IN: Record<string, string> = {
-  education: 'Learner · wallet sign-in',
-  school: 'School officer · password',
-  civicworks: 'Public · no sign-in',
-};
-
-/** The brand colour of the portal a step happens in, for its number chip. */
-function stepColour(href: string): string {
-  const portal = Object.values(PORTALS).find((p) =>
-    href.startsWith(`/${p.id}`)
-  );
-  return portal?.brand.brand ?? '#1c2130';
-}
 
 function PortalRow({
   portal,

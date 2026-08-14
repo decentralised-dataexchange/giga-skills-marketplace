@@ -79,9 +79,8 @@ export default async function SchoolQueue({
               <h1>Manual document review</h1>
               <p>
                 Select an application from the queue to check the uploaded
-                documents against the civil registry{' '}
-                <span className="integration-badge sandbox">Sandbox</span> and
-                confirm prior education records. Validation enrols the
+                documents against the civil registry and confirm prior
+                education records. Validation enrols the
                 learner automatically and offers the Student ID to their
                 wallet.
               </p>
@@ -153,8 +152,8 @@ export default async function SchoolQueue({
                 {documents.map((doc) => (
                   <li key={doc}>
                     {doc}{' '}
-                    <span className="integration-badge sandbox">
-                      Civil registry: passed
+                    <span style={{ color: 'var(--muted)', fontSize: '0.78rem' }}>
+                      · civil registry: passed
                     </span>
                   </li>
                 ))}
