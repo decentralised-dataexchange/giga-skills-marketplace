@@ -173,22 +173,53 @@
   animation: spin 0.9s linear infinite;
 }
 
-.landing-reset-done {
-  display: inline-flex;
+/* Floating notification alert, top centre, above everything. */
+.toast {
+  position: fixed;
+  top: 1.25rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 80;
+  display: flex;
   align-items: center;
-  gap: 0.4rem;
-  margin-top: 0.75rem;
-  padding: 0.5rem 0.9rem;
-  border-radius: 8px;
+  gap: 0.55rem;
+  max-width: min(34rem, calc(100vw - 2rem));
+  padding: 0.75rem 1rem;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18);
+  animation: toast-in 160ms ease-out;
+}
+
+@keyframes toast-in {
+  from {
+    transform: translate(-50%, -8px);
+    opacity: 0;
+  }
+  to {
+    transform: translate(-50%, 0);
+    opacity: 1;
+  }
+}
+
+.toast-success {
   background: #e5f4ea;
   border: 1px solid #1c7c43;
   color: #1c7c43;
-  font-size: 0.85rem;
-  font-weight: 600;
 }
 
-.landing-reset-error {
-  margin-top: 0.75rem;
+.toast-error {
+  background: #fbebea;
+  border: 1px solid #b3261e;
   color: #b3261e;
-  font-size: 0.85rem;
+}
+
+.toast-close {
+  display: inline-flex;
+  margin-left: 0.25rem;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  padding: 0.1rem;
 }

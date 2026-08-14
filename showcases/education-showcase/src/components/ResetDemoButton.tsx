@@ -1,31 +1,39 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useRouter } from 'next/navigation';
-import { CheckCircle2, Loader2 } from 'lucide-react';
+import { CheckCircle2, Loader2, X } from 'lucide-react';
 
 import { resetDemo } from '@/app/reset-action';
 
 /**
  * The landing-page reset control: a working state while the wipe runs, and
- * a clear confirmation when it is done.
+ * a floating notification alert when it is done.
  */
 export function ResetDemoButton() {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
-  const [done, setDone] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [toast, setToast] = useState<'success' | 'error' | null>(null);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => setMounted(true), []);
+
+  useEffect(() => {
+    if (!toast) return;
+    const timer = setTimeout(() => setToast(null), 6000);
+    return () => clearTimeout(timer);
+  }, [toast]);
 
   async function reset() {
     setBusy(true);
-    setDone(false);
-    setError(null);
+    setToast(null);
     try {
       await resetDemo();
-      setDone(true);
+      setToast('success');
       router.refresh();
     } catch {
-      setError('The reset failed. Please try again.');
+      setToast('error');
     } finally {
       setBusy(false);
     }
@@ -48,17 +56,31 @@ export function ResetDemoButton() {
           'Reset demo data'
         )}
       </button>
-      {done ? (
-        <p className="landing-reset-done" role="status">
-          <CheckCircle2 size={15} />
-          Demo data was reset. The showcase is ready for a fresh run.
-        </p>
-      ) : null}
-      {error ? (
-        <p className="landing-reset-error" role="status">
-          {error}
-        </p>
-      ) : null}
+
+      {mounted && toast
+        ? createPortal(
+            <div
+              className={`toast ${toast === 'success' ? 'toast-success' : 'toast-error'}`}
+              role="alert"
+            >
+              {toast === 'success' ? <CheckCircle2 size={18} /> : null}
+              <span>
+                {toast === 'success'
+                  ? 'Demo data was reset. The showcase is ready for a fresh run.'
+                  : 'The reset failed. Please try again.'}
+              </span>
+              <button
+                type="button"
+                aria-label="Dismiss"
+                className="toast-close"
+                onClick={() => setToast(null)}
+              >
+                <X size={15} />
+              </button>
+            </div>,
+            document.body
+          )
+        : null}
     </div>
   );
 }
