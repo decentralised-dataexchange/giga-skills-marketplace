@@ -31,6 +31,11 @@ spec:
       annotations:
         checksum/config: {{ .Values.config | toYaml | sha256sum }}
     spec:
+      # The image runs as uid 1001; the mounted volume must be writable by
+      # that user or SQLite cannot create its database (SQLITE_CANTOPEN).
+      securityContext:
+        fsGroup: 1001
+        fsGroupChangePolicy: OnRootMismatch
       containers:
         - name: {{ .Values.app.name }}
           image: "{{ .Values.image.registry }}/education-showcase:{{ .Values.image.tag }}"
