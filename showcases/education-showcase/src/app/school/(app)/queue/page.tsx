@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { SchoolShell } from '@/components/SchoolShell';
 import { getSession } from '@/lib/guards';
 import { getApplication, listApplications } from '@/lib/registry';
+import { getIndividualId, readConsents } from '@/lib/consent';
 
 import { validateDocuments } from './actions';
 
@@ -22,6 +23,23 @@ export default async function SchoolQueue({
   const selected = selectedId ? getApplication(selectedId) : undefined;
   const form = selected ? (JSON.parse(selected.form) as Record<string, unknown>) : {};
   const documents = selected ? (JSON.parse(selected.documents) as string[]) : [];
+
+  // The consent states come live from the Consent Building Block, so an
+  // opt-out made later in the Education Portal shows here immediately. The
+  // submitted form values are only the fallback when no records exist.
+  let consentAnalytics = form.consentAnalytics === true;
+  let consentEmployer = form.consentEmployerSharing === true;
+  const individualId = selected ? getIndividualId(selected.learnerId) : undefined;
+  if (individualId) {
+    try {
+      for (const state of await readConsents(individualId)) {
+        if (state.key === 'analytics') consentAnalytics = state.optIn === true;
+        if (state.key === 'employer') consentEmployer = state.optIn === true;
+      }
+    } catch {
+      // Fall back to the submitted snapshot.
+    }
+  }
 
   return (
     <SchoolShell active="queue" userName={session?.user.name ?? 'Officer'}>
@@ -105,17 +123,17 @@ export default async function SchoolQueue({
                 </div>
                 <div className="sch-review-consents">
                   <label className="sch-review-check">
-                    <input type="checkbox" disabled checked={form.consentAnalytics === true} />
+                    <input type="checkbox" disabled checked={consentAnalytics} />
                     Anonymised analytics for policy planning (optional)
                   </label>
                   <label className="sch-review-check">
-                    <input
-                      type="checkbox"
-                      disabled
-                      checked={form.consentEmployerSharing === true}
-                    />
+                    <input type="checkbox" disabled checked={consentEmployer} />
                     Later qualification sharing with an employer (optional)
                   </label>
+                  <p className="sch-review-consent-note">
+                    Current status from the consent service; the learner can
+                    change these at any time in the Education Portal.
+                  </p>
                 </div>
               </form>
 

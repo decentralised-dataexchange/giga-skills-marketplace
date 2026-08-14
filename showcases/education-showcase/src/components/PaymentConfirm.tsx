@@ -10,10 +10,18 @@ import { startPayment } from '@/app/education/(app)/home/payment-actions';
  * The diploma-fee payment as a dynamic credential request: the learner
  * chooses account or card, scans once, presents the chosen TS12 payment
  * credential with the transaction data, and the wallet receives the diploma
- * in the same session.
+ * in the same session. The method is switchable until the payment is made:
+ * choosing again simply starts a fresh request.
  */
-export function PaymentConfirm() {
-  const [request, setRequest] = useState<{ exchangeId: string; qrUri: string } | null>(null);
+export function PaymentConfirm({
+  initial,
+}: {
+  /** A pending request from an earlier visit, so a refresh resumes it. */
+  initial?: { exchangeId: string; qrUri: string } | null;
+}) {
+  const [request, setRequest] = useState<{ exchangeId: string; qrUri: string } | null>(
+    initial ?? null
+  );
   const [busy, setBusy] = useState<'account' | 'card' | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -31,12 +39,23 @@ export function PaymentConfirm() {
 
   if (request) {
     return (
-      <ExchangeQr
-        exchangeId={request.exchangeId}
-        qrUri={request.qrUri}
-        logo="/portals/moe/logo.svg"
-        waitingText="Scan with your wallet: approve the EUR 50 payment and receive your diploma."
-      />
+      <div>
+        <ExchangeQr
+          exchangeId={request.exchangeId}
+          qrUri={request.qrUri}
+          logo="/portals/moe/logo.svg"
+          waitingText="Scan with your wallet: approve the EUR 50 payment and receive your diploma."
+        />
+        <p style={{ textAlign: 'center', marginTop: '0.5rem' }}>
+          <button
+            type="button"
+            className="qr-refresh"
+            onClick={() => setRequest(null)}
+          >
+            Pay another way
+          </button>
+        </p>
+      </div>
     );
   }
 

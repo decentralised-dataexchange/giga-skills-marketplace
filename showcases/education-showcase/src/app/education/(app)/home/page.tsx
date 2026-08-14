@@ -92,16 +92,16 @@ export default async function EducationHome() {
             from your account or by card: one scan pays the EUR 50 fee and
             delivers your diploma in the same step.
           </p>
-          {typeof form.diplomaOffer === 'string' ? (
-            <ExchangeQr
-              exchangeId={String(form.diplomaExchangeId)}
-              qrUri={form.diplomaOffer}
-              logo="/portals/moe/logo.svg"
-              waitingText="Scan with your wallet: approve the EUR 50 payment and receive your diploma."
-            />
-          ) : (
-            <PaymentConfirm />
-          )}
+          <PaymentConfirm
+            initial={
+              typeof form.diplomaOffer === 'string'
+                ? {
+                    exchangeId: String(form.diplomaExchangeId),
+                    qrUri: form.diplomaOffer,
+                  }
+                : null
+            }
+          />
         </div>
       ) : null}
 

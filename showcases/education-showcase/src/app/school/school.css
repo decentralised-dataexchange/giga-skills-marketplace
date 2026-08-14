@@ -198,6 +198,12 @@
   accent-color: var(--brand);
 }
 
+.sch-review-consent-note {
+  font-size: 0.75rem !important;
+  color: var(--muted) !important;
+  margin-top: 0.2rem;
+}
+
 @media (max-width: 40rem) {
   .sch-review-grid {
     grid-template-columns: 1fr;
