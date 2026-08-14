@@ -1,6 +1,5 @@
 import { sql } from "@/lib/db";
 import { check, route } from "@/lib/handler";
-import { isUuid } from "@/lib/utils";
 
 // Public review trail for a published skill: the automated check report plus the
 // human approval / provenance events. Served from the web app (not the catalog
@@ -13,28 +12,11 @@ const TRAIL_TYPES = [
   "skill.delisted",
 ];
 
-export const GET = route<{ slug: string }>(async ({ req, params }) => {
-  // Delisting removes a skill from the catalog without rewriting its history:
-  // the trail stays public. Skill names are unique per organisation, so a
-  // ?provider= qualifier picks the owner when several publish the same name.
-  const provider = new URL(req.url).searchParams.get("provider") ?? "";
-  const provCond = !provider
-    ? sql``
-    : isUuid(provider)
-      ? sql`AND o.id = ${provider}`
-      : sql`AND o.slug = ${provider}`;
-  const skills = await sql`
-    SELECT s.id, s.slug, s.status, s.published_version_id FROM skills s
-    JOIN orgs o ON o.id = s.org_id
-    WHERE s.slug = ${params.slug} AND s.status IN ('published','delisted')
-      AND s.published_version_id IS NOT NULL ${provCond}`;
-  check(skills.length, 404, "Skill not found or not published");
-  check(
-    skills.length === 1,
-    409,
-    "Several providers publish this name; qualify the request with ?provider=",
-  );
-  const [skill] = skills;
+export const GET = route<{ slug: string }>(async ({ params }) => {
+  const [skill] = await sql`
+    SELECT id, slug, published_version_id FROM skills
+    WHERE slug = ${params.slug} AND status = 'published'`;
+  check(skill, 404, "Skill not found or not published");
 
   const [version] = await sql`
     SELECT v.version, v.checks, v.review_notes, v.submitted_at, v.decided_at,
@@ -66,7 +48,7 @@ export const GET = route<{ slug: string }>(async ({ req, params }) => {
   ].filter(Boolean);
 
   return {
-    skill: { slug: skill.slug, status: skill.status },
+    skill: { slug: skill.slug },
     version: {
       version: version.version,
       checks: version.checks,

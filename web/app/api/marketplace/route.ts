@@ -39,16 +39,12 @@ export const GET = route(async ({ req }) => {
     : sql``;
   const rows = await sql`
     SELECT s.id, s.slug, s.status, v.repo,
-           s.source_id, src.url AS source_url, src.owner AS source_owner,
-           src.repo AS source_repo, src.status AS source_status,
            o.id AS org_id, o.slug AS org_slug, o.name AS org_name, o.website AS org_website,
            v.version, v.manifest, v.decided_at
     FROM skills s
     JOIN orgs o ON o.id = s.org_id
     JOIN versions v ON v.id = s.published_version_id
-    LEFT JOIN sources src ON src.id = s.source_id
-    WHERE s.status = 'published' AND o.status = 'approved'
-      AND (src.id IS NULL OR src.status = 'active') ${provCond} ${qCond}
+    WHERE s.status = 'published' AND o.status = 'approved' ${provCond} ${qCond}
     ORDER BY v.decided_at DESC NULLS LAST, s.created_at DESC
     LIMIT ${pageSize} OFFSET ${(page - 1) * pageSize}`;
   const [{ n: total }] = await sql`
@@ -56,9 +52,7 @@ export const GET = route(async ({ req }) => {
     FROM skills s
     JOIN orgs o ON o.id = s.org_id
     JOIN versions v ON v.id = s.published_version_id
-    LEFT JOIN sources src ON src.id = s.source_id
-    WHERE s.status = 'published' AND o.status = 'approved'
-      AND (src.id IS NULL OR src.status = 'active') ${provCond} ${qCond}`;
+    WHERE s.status = 'published' AND o.status = 'approved' ${provCond} ${qCond}`;
   return NextResponse.json(
     { skills: rows.map(marketplaceEntry), total, page, pageSize },
     {
