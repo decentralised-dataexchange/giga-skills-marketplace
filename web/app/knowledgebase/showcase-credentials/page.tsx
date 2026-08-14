@@ -13,17 +13,17 @@ export default function ShowcaseCredentialsPage() {
       <p className="docs-lead">
         These are the exact definitions the showcase runs on. The registry operates an issuer
         service for the credentials it awards and verifier services for the presentations it
-        requests; the employer operates its own verifier. Everything is carried as SD-JWT
-        verifiable credentials (<code>dc+sd-jwt</code>), signed with keys whose x509 certificates
-        are registered on a trust list, so the Wallet shows both organisations as trusted service
+        requests; the employer operates its own verifier. Everything is carried as SD-JWT verifiable
+        credentials (<code>dc+sd-jwt</code>), signed with keys whose x509 certificates are
+        registered on a trust list, so the Wallet shows both organisations as trusted service
         providers.
       </p>
 
       <h2>Credential: Verifiable Student ID</h2>
       <p>
-        Issued by the registry when the school validates a registration. Every claim is mandatory
-        at issuance and individually disclosable afterwards, so the holder decides field by field
-        what a later verifier sees.
+        Issued by the registry when the school validates a registration. Every claim is mandatory at
+        issuance and individually disclosable afterwards, so the holder decides field by field what
+        a later verifier sees.
       </p>
       <table>
         <thead>
@@ -280,10 +280,10 @@ export default function ShowcaseCredentialsPage() {
 
       <h2>Presentation: learner sign-in</h2>
       <p>
-        The education portal signs the learner in with a presentation request instead of a
-        password. The request is a DCQL query answered over OpenID4VP (<code>vp_token</code>,{" "}
-        <code>direct_post</code>), with the verifier identified by the{" "}
-        <code>x509_hash</code> client identifier scheme.
+        The education portal signs the learner in with a presentation request instead of a password.
+        The request is a DCQL query answered over OpenID4VP (<code>vp_token</code>,{" "}
+        <code>direct_post</code>), with the verifier identified by the <code>x509_hash</code> client
+        identifier scheme.
       </p>
       <table>
         <thead>
@@ -358,8 +358,8 @@ export default function ShowcaseCredentialsPage() {
       <h2>Presentation: employer qualification check</h2>
       <p>
         The employer&apos;s verifier requests two credentials in one presentation, and only the
-        listed fields. Date of birth, address, grades, and the learner identifier are not
-        requested, and the Wallet never sends them.
+        listed fields. Date of birth, address, grades, and the learner identifier are not requested,
+        and the Wallet never sends them.
       </p>
       <table>
         <thead>
@@ -386,16 +386,17 @@ export default function ShowcaseCredentialsPage() {
               <code>urn:education:diploma:1</code>
             </td>
             <td>
-              <code>learnerName</code>, <code>qualificationName</code>, <code>qualificationCode</code>,{" "}
-              <code>awardingInstitution</code>, <code>awardDate</code>
+              <code>learnerName</code>, <code>qualificationName</code>,{" "}
+              <code>qualificationCode</code>, <code>awardingInstitution</code>,{" "}
+              <code>awardDate</code>
             </td>
           </tr>
         </tbody>
       </table>
       <p>
-        The verification result the employer sees covers four proofs: the signature and integrity
-        of each credential, issuer trust against the trust list, and the live revocation status
-        from the status list. After the registry revokes a diploma, the same request is rejected.
+        The verification result the employer sees covers four proofs: the signature and integrity of
+        each credential, issuer trust against the trust list, and the live revocation status from
+        the status list. After the registry revokes a diploma, the same request is rejected.
       </p>
 
       <h2>Trust configuration</h2>
@@ -403,8 +404,8 @@ export default function ShowcaseCredentialsPage() {
         Each definition signs or requests with its own key, and each key&apos;s x509 certificate is
         registered individually on the trust list: separate certificates for the Student ID issuer,
         the diploma issuer, the sign-in verifier, the payment verifier, and the employer&apos;s
-        verifier. That is why the Wallet labels both organisations Trusted Service Provider on
-        every screen of the <Link href="/knowledgebase/showcase">walkthrough</Link>.
+        verifier. That is why the Wallet labels both organisations Trusted Service Provider on every
+        screen of the <Link href="/knowledgebase/showcase">walkthrough</Link>.
       </p>
     </>
   );

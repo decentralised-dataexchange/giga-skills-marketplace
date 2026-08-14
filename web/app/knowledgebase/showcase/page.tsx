@@ -26,13 +26,13 @@ export default function ShowcaseTryPage() {
         The National Learner Registry and Education Wallet showcase is a working demonstration of
         the education wallet building block: a learner registers with an identity credential from a
         Wallet on their phone, receives a Student ID and a diploma as verifiable credentials, pays
-        the diploma fee with a payment credential, and applies for a job sharing only the fields
-        the employer asks for. The whole journey takes about 12 minutes.
+        the diploma fee with a payment credential, and applies for a job sharing only the fields the
+        employer asks for. The whole journey takes about 12 minutes.
       </p>
       <p>
         Open the showcase at <a href={SHOWCASE_URL}>{"the showcase landing page"}</a>. A floating
-        Demo guide on every screen carries the portal switcher and these instructions, and a
-        pulsing highlight marks the next thing to click on each screen.
+        Demo guide on every screen carries the portal switcher and these instructions, and a pulsing
+        highlight marks the next thing to click on each screen.
       </p>
 
       <h2>Before you start</h2>
@@ -83,8 +83,8 @@ export default function ShowcaseTryPage() {
       />
       <p>
         The registration form arrives prefilled from the shared identity data. Complete the
-        remaining fields, make your two optional data choices (analytics and later employer
-        sharing; both can be changed at any time), and submit.
+        remaining fields, make your two optional data choices (analytics and later employer sharing;
+        both can be changed at any time), and submit.
       </p>
       <Figure
         src="education-register.png"
@@ -180,9 +180,9 @@ export default function ShowcaseTryPage() {
       <h2>What is real and what is simulated</h2>
       <p>
         Wallet sign-in, credential issuance, verification, selective disclosure, revocation, and
-        consent all run against live issuer, verifier, and consent services with x509 trust
-        anchors registered on a trust list. The civil registry check, the payment ledger
-        entry, the institution signature, and the education service registry are labelled sandbox
+        consent all run against live issuer, verifier, and consent services with x509 trust anchors
+        registered on a trust list. The civil registry check, the payment ledger entry, the
+        institution signature, and the education service registry are labelled sandbox
         representations. Every person and organisation in the showcase is fictional. The exact
         schemas are on the next two pages:{" "}
         <Link href="/knowledgebase/showcase-credentials">credentials and presentations</Link> and{" "}

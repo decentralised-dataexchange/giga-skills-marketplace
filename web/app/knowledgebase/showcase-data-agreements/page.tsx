@@ -58,8 +58,8 @@ export default function ShowcaseDataAgreementsPage() {
             </td>
             <td>Qualification data</td>
             <td>
-              Optional standing preference. Every actual share still requires Wallet approval of
-              the specific request, field by field
+              Optional standing preference. Every actual share still requires Wallet approval of the
+              specific request, field by field
             </td>
           </tr>
         </tbody>
@@ -74,8 +74,8 @@ export default function ShowcaseDataAgreementsPage() {
           itself.
         </li>
         <li>
-          <strong>In the Education Portal</strong>, the My data choices page lets the learner opt
-          in or out of each optional agreement at any time; the change is written to the consent
+          <strong>In the Education Portal</strong>, the My data choices page lets the learner opt in
+          or out of each optional agreement at any time; the change is written to the consent
           service immediately.
         </li>
         <li>
@@ -95,9 +95,9 @@ export default function ShowcaseDataAgreementsPage() {
       <p>
         The Education Portal carries a Delete my account action. It removes the learner&apos;s
         consent records from the consent service, then erases the local application, exchange
-        records, profile, and sign-in account. Credentials already held in the Wallet stay with
-        the holder, which is the point of a wallet: revocation through the status list, not
-        deletion, is how an issued credential is withdrawn.
+        records, profile, and sign-in account. Credentials already held in the Wallet stay with the
+        holder, which is the point of a wallet: revocation through the status list, not deletion, is
+        how an issued credential is withdrawn.
       </p>
 
       <h2>Auditability</h2>
