@@ -1,19 +1,25 @@
 name: Deploy to GKE
 
-# Builds both images and rolls out the Helm release on every merge to main.
-# Authenticates to GCP with Workload Identity Federation (no long-lived keys):
-# the github-pool provider `ai-integrator` lets this repo impersonate the
-# ddx-github service account. Secrets are injected from GitHub Actions secrets.
+# Builds the images that changed and rolls out the affected Helm releases on
+# every merge to main. Authenticates to GCP with Workload Identity Federation
+# (no long-lived keys): the github-pool provider `ai-integrator` lets this
+# repo impersonate the ddx-github service account.
+#
+# Speed comes from three things:
+# - path filtering: only the applications whose sources changed are rebuilt
+#   and redeployed;
+# - parallel build jobs: the images build side by side, not in sequence;
+# - BuildKit caching through the GitHub Actions cache: unchanged dependency
+#   and build layers are reused between runs.
+# When a release deploys but one of its images was not rebuilt (for example
+# a chart-only change), the previous image content is retagged to the new
+# commit tag with a manifest-only copy, so Helm always references a tag that
+# exists.
 
 on:
   push:
     branches: [main]
   workflow_dispatch:
-
-# Never run two deploys against the cluster at once.
-concurrency:
-  group: deploy-giga
-  cancel-in-progress: false
 
 permissions:
   contents: read
@@ -29,8 +35,15 @@ env:
   DEPLOY_SA: ddx-github@jenkins-189019.iam.gserviceaccount.com
 
 jobs:
-  deploy:
+  changes:
     runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.vars.outputs.tag }}
+      web: ${{ steps.filter.outputs.web }}
+      marketplace: ${{ steps.filter.outputs.marketplace }}
+      showcase: ${{ steps.filter.outputs.showcase }}
+      giga_release: ${{ steps.filter.outputs.giga_release }}
+      showcase_release: ${{ steps.filter.outputs.showcase_release }}
     steps:
       - uses: actions/checkout@v5
 
@@ -38,70 +51,191 @@ jobs:
         id: vars
         run: echo "tag=${GITHUB_SHA::12}" >> "$GITHUB_OUTPUT"
 
+      # A manual dispatch builds and deploys everything.
+      - name: Detect changed paths
+        id: filter
+        uses: dorny/paths-filter@v3
+        with:
+          predicate-quantifier: some
+          filters: |
+            web:
+              - 'web/**'
+            marketplace:
+              - 'services/marketplace/**'
+            showcase:
+              - 'showcases/education-showcase/**'
+            giga_release:
+              - 'web/**'
+              - 'services/marketplace/**'
+              - 'deploy/helm/giga/**'
+              - '.github/workflows/deploy.yml'
+            showcase_release:
+              - 'showcases/education-showcase/**'
+              - 'deploy/helm/education-showcase/**'
+              - '.github/workflows/deploy.yml'
+
+  build-web:
+    needs: changes
+    if: needs.changes.outputs.web == 'true' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
       - name: Authenticate to Google Cloud (WIF)
         uses: google-github-actions/auth@v2
         with:
           workload_identity_provider: ${{ env.WIF_PROVIDER }}
           service_account: ${{ env.DEPLOY_SA }}
+      - uses: google-github-actions/setup-gcloud@v2
+      - run: gcloud auth configure-docker eu.gcr.io --quiet
+      - uses: docker/setup-buildx-action@v3
+      - name: Build and push giga-web
+        uses: docker/build-push-action@v6
+        with:
+          context: web
+          file: web/Dockerfile
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/giga-web:${{ needs.changes.outputs.tag }}
+            ${{ env.REGISTRY }}/giga-web:latest
+          cache-from: type=gha,scope=giga-web
+          cache-to: type=gha,scope=giga-web,mode=max
 
-      - name: Set up gcloud
-        uses: google-github-actions/setup-gcloud@v2
+  build-marketplace:
+    needs: changes
+    if: needs.changes.outputs.marketplace == 'true' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Authenticate to Google Cloud (WIF)
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ env.WIF_PROVIDER }}
+          service_account: ${{ env.DEPLOY_SA }}
+      - uses: google-github-actions/setup-gcloud@v2
+      - run: gcloud auth configure-docker eu.gcr.io --quiet
+      - uses: docker/setup-buildx-action@v3
+      - name: Build and push giga-marketplace
+        uses: docker/build-push-action@v6
+        with:
+          context: services/marketplace
+          file: services/marketplace/Dockerfile
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/giga-marketplace:${{ needs.changes.outputs.tag }}
+            ${{ env.REGISTRY }}/giga-marketplace:latest
+          cache-from: type=gha,scope=giga-marketplace
+          cache-to: type=gha,scope=giga-marketplace,mode=max
 
-      - name: Configure Docker for Container Registry
-        run: gcloud auth configure-docker eu.gcr.io --quiet
+  build-showcase:
+    needs: changes
+    if: needs.changes.outputs.showcase == 'true' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Authenticate to Google Cloud (WIF)
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ env.WIF_PROVIDER }}
+          service_account: ${{ env.DEPLOY_SA }}
+      - uses: google-github-actions/setup-gcloud@v2
+      - run: gcloud auth configure-docker eu.gcr.io --quiet
+      - uses: docker/setup-buildx-action@v3
+      - name: Build and push education-showcase
+        uses: docker/build-push-action@v6
+        with:
+          context: showcases/education-showcase
+          file: showcases/education-showcase/Dockerfile
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/education-showcase:${{ needs.changes.outputs.tag }}
+            ${{ env.REGISTRY }}/education-showcase:latest
+          cache-from: type=gha,scope=education-showcase
+          cache-to: type=gha,scope=education-showcase,mode=max
 
-      - name: Build & push giga-web
+  deploy-giga:
+    needs: [changes, build-web, build-marketplace]
+    # Runs when anything in the giga release changed; tolerates the build
+    # jobs being skipped (unchanged application), never their failure.
+    if: >-
+      always() && !failure() && !cancelled() &&
+      (needs.changes.outputs.giga_release == 'true' || github.event_name == 'workflow_dispatch')
+    # One deploy against the cluster at a time.
+    concurrency:
+      group: deploy-giga
+      cancel-in-progress: false
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Authenticate to Google Cloud (WIF)
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ env.WIF_PROVIDER }}
+          service_account: ${{ env.DEPLOY_SA }}
+      - uses: google-github-actions/setup-gcloud@v2
+      - run: gcloud auth configure-docker eu.gcr.io --quiet
+
+      # A release rolls both images under one tag; give an unchanged (and so
+      # unbuilt) image the new tag with a manifest-only copy.
+      - name: Ensure both images carry the release tag
         run: |
-          docker build \
-            -t "$REGISTRY/giga-web:${{ steps.vars.outputs.tag }}" \
-            -t "$REGISTRY/giga-web:latest" \
-            -f web/Dockerfile web
-          docker push "$REGISTRY/giga-web:${{ steps.vars.outputs.tag }}"
-          docker push "$REGISTRY/giga-web:latest"
-
-      - name: Build & push giga-marketplace
-        run: |
-          docker build \
-            -t "$REGISTRY/giga-marketplace:${{ steps.vars.outputs.tag }}" \
-            -t "$REGISTRY/giga-marketplace:latest" \
-            -f services/marketplace/Dockerfile services/marketplace
-          docker push "$REGISTRY/giga-marketplace:${{ steps.vars.outputs.tag }}"
-          docker push "$REGISTRY/giga-marketplace:latest"
-
-      - name: Build & push education-showcase
-        run: |
-          docker build \
-            -t "$REGISTRY/education-showcase:${{ steps.vars.outputs.tag }}" \
-            -t "$REGISTRY/education-showcase:latest" \
-            -f showcases/education-showcase/Dockerfile showcases/education-showcase
-          docker push "$REGISTRY/education-showcase:${{ steps.vars.outputs.tag }}"
-          docker push "$REGISTRY/education-showcase:latest"
+          if [ "${{ needs.changes.outputs.web }}" != "true" ] && [ "${{ github.event_name }}" != "workflow_dispatch" ]; then
+            docker buildx imagetools create -t "$REGISTRY/giga-web:${{ needs.changes.outputs.tag }}" "$REGISTRY/giga-web:latest"
+          fi
+          if [ "${{ needs.changes.outputs.marketplace }}" != "true" ] && [ "${{ github.event_name }}" != "workflow_dispatch" ]; then
+            docker buildx imagetools create -t "$REGISTRY/giga-marketplace:${{ needs.changes.outputs.tag }}" "$REGISTRY/giga-marketplace:latest"
+          fi
 
       - name: Get GKE credentials
         uses: google-github-actions/get-gke-credentials@v2
         with:
           cluster_name: ${{ env.CLUSTER }}
           location: ${{ env.CLUSTER_LOCATION }}
-
-      - name: Set up Helm
-        uses: azure/setup-helm@v4
-
+      - uses: azure/setup-helm@v4
       - name: Deploy with Helm
         run: |
           helm upgrade --install giga ./deploy/helm/giga \
             --namespace "$NAMESPACE" --create-namespace \
-            --set image.tag=${{ steps.vars.outputs.tag }} \
+            --set image.tag=${{ needs.changes.outputs.tag }} \
             --set postgres.password="$POSTGRES_PASSWORD" \
             --wait --timeout 6m
           kubectl -n "$NAMESPACE" rollout status deploy/giga-web --timeout=5m
         env:
           POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
 
-      # The education showcase: its own release and namespace, one replica
-      # (SQLite). Sensitive values live only in the cluster secret
-      # education-showcase-secrets, created directly in the cluster; CI only
-      # rolls out images and Helm changes, and skips with a notice until an
-      # operator has created that secret.
+  # The education showcase: its own release and namespace, one replica
+  # (SQLite). Sensitive values live only in the cluster secret
+  # education-showcase-secrets, created directly in the cluster; CI only
+  # rolls out images and Helm changes, and skips with a notice until an
+  # operator has created that secret.
+  deploy-showcase:
+    needs: [changes, build-showcase]
+    if: >-
+      always() && !failure() && !cancelled() &&
+      (needs.changes.outputs.showcase_release == 'true' || github.event_name == 'workflow_dispatch')
+    concurrency:
+      group: deploy-education-showcase
+      cancel-in-progress: false
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Authenticate to Google Cloud (WIF)
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ env.WIF_PROVIDER }}
+          service_account: ${{ env.DEPLOY_SA }}
+      - uses: google-github-actions/setup-gcloud@v2
+      - run: gcloud auth configure-docker eu.gcr.io --quiet
+      - name: Ensure the image carries the release tag
+        run: |
+          if [ "${{ needs.changes.outputs.showcase }}" != "true" ] && [ "${{ github.event_name }}" != "workflow_dispatch" ]; then
+            docker buildx imagetools create -t "$REGISTRY/education-showcase:${{ needs.changes.outputs.tag }}" "$REGISTRY/education-showcase:latest"
+          fi
+      - name: Get GKE credentials
+        uses: google-github-actions/get-gke-credentials@v2
+        with:
+          cluster_name: ${{ env.CLUSTER }}
+          location: ${{ env.CLUSTER_LOCATION }}
+      - uses: azure/setup-helm@v4
       - name: Deploy education showcase with Helm
         run: |
           if ! kubectl -n education-showcase get secret education-showcase-secrets >/dev/null 2>&1; then
@@ -110,6 +244,6 @@ jobs:
           fi
           helm upgrade --install education-showcase ./deploy/helm/education-showcase \
             --namespace education-showcase \
-            --set image.tag=${{ steps.vars.outputs.tag }} \
+            --set image.tag=${{ needs.changes.outputs.tag }} \
             --wait --timeout 6m
           kubectl -n education-showcase rollout status deploy/education-showcase --timeout=5m
