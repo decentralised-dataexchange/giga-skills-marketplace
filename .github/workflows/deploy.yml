@@ -98,9 +98,14 @@ jobs:
           POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
 
       # The education showcase: its own release and namespace, one replica
-      # (SQLite), secrets injected from GitHub Actions secrets.
+      # (SQLite), secrets injected from GitHub Actions secrets. Skips with a
+      # notice until the EDU_* repository secrets are configured.
       - name: Deploy education showcase with Helm
         run: |
+          if [ -z "$EDU_IGRANT_API_KEY" ]; then
+            echo "::notice::EDU_* secrets are not configured; skipping the education showcase deploy."
+            exit 0
+          fi
           helm upgrade --install education-showcase ./deploy/helm/education-showcase \
             --namespace education-showcase --create-namespace \
             --set image.tag=${{ steps.vars.outputs.tag }} \
