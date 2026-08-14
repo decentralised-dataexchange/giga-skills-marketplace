@@ -1,0 +1,194 @@
+/* The showcase landing page: deliberately neutral, so no portal brand leaks. */
+
+.landing {
+  max-width: 60rem;
+  margin: 0 auto;
+  padding: 3rem 1.5rem 4rem;
+  color: #1c2130;
+}
+
+.landing-kicker {
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #5a6070;
+}
+
+.landing-hero h1 {
+  margin: 0.5rem 0 1rem;
+  font-size: 2.2rem;
+  line-height: 1.15;
+}
+
+.landing-lede {
+  max-width: 46rem;
+  font-size: 1.05rem;
+  line-height: 1.6;
+  color: #3a4150;
+}
+
+.landing h2 {
+  margin: 2.5rem 0 1rem;
+  font-size: 1.3rem;
+}
+
+.landing-section-lede {
+  margin: -0.5rem 0 1rem;
+  max-width: 44rem;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: #5a6070;
+}
+
+.landing-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+  gap: 1rem;
+}
+
+.landing-grid-two {
+  grid-template-columns: repeat(auto-fill, minmax(19rem, 1fr));
+}
+
+.landing-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 1.1rem 1.2rem 1.3rem;
+  background: #ffffff;
+  border: 1px solid #d5d9e2;
+  border-radius: 8px;
+  text-decoration: none;
+  color: inherit;
+  transition: transform 120ms ease, box-shadow 120ms ease;
+}
+
+.landing-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(28, 33, 48, 0.12);
+}
+
+.landing-card-org {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #5a6070;
+}
+
+.landing-card-name {
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.landing-card-tagline {
+  font-size: 0.85rem;
+  line-height: 1.5;
+  color: #5a6070;
+}
+
+.landing-steps {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.landing-steps li {
+  display: flex;
+  gap: 0.9rem;
+  align-items: flex-start;
+  padding: 0.9rem 1.1rem;
+  background: #ffffff;
+  border: 1px solid #d5d9e2;
+  border-radius: 8px;
+}
+
+.landing-step-n {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 1.7rem;
+  height: 1.7rem;
+  border-radius: 999px;
+  background: #1c2130;
+  color: #ffffff;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.landing-step-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.landing-step-title {
+  font-weight: 700;
+}
+
+.landing-step-text {
+  font-size: 0.9rem;
+  line-height: 1.6;
+  color: #3a4150;
+}
+
+.landing-step-text a {
+  color: #1c2130;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.landing-fineprint {
+  margin-top: 1.5rem;
+  font-size: 0.8rem;
+  color: #5a6070;
+}
+
+.landing-reset-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  border: 1px solid #b3261e;
+  background: transparent;
+  color: #b3261e;
+  border-radius: 8px;
+  padding: 0.6rem 1.3rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.landing-reset-button:hover:not(:disabled) {
+  background: #fbebea;
+}
+
+.landing-reset-button:disabled {
+  opacity: 0.7;
+}
+
+.landing-reset-spin {
+  animation: spin 0.9s linear infinite;
+}
+
+.landing-reset-done {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-top: 0.75rem;
+  padding: 0.5rem 0.9rem;
+  border-radius: 8px;
+  background: #e5f4ea;
+  border: 1px solid #1c7c43;
+  color: #1c7c43;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.landing-reset-error {
+  margin-top: 0.75rem;
+  color: #b3261e;
+  font-size: 0.85rem;
+}
