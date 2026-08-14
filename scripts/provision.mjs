@@ -290,6 +290,35 @@ async function main() {
   });
   if (paymentId) saveEnvValue('PAYMENT_PRESENTATION_DEFINITION_ID', paymentId);
 
+  const paymentCardId = await ensurePresentationDefinition(moeKey, {
+    label: 'Diploma fee payment confirmation (card)',
+    version: 'version_01',
+    responseType: 'vp_token',
+    responseMode: 'direct_post',
+    clientIdScheme: 'x509_hash',
+    trustAnchor: 'x509',
+    kid: env.PAYMENT_VERIFY_KID || undefined,
+    transactionDataDefinitionType: 'payment',
+    dcqlQuery: {
+      credentials: [
+        {
+          // The TS12 Payment Card Credential of the same demo issuer.
+          id: 'payment-card',
+          format: 'dc+sd-jwt',
+          meta: {
+            vct_values: ['https://oid4vc.igrant.io/service/vct-metadata/card'],
+          },
+          claims: [
+            { path: ['pan_last_four'] },
+            { path: ['scheme'] },
+            { path: ['scheme_logo'] },
+          ],
+        },
+      ],
+    },
+  });
+  if (paymentCardId) saveEnvValue('PAYMENT_CARD_PRESENTATION_DEFINITION_ID', paymentCardId);
+
   const studentIdDef = await ensureCredentialDefinition(moeKey, {
     label: 'Verifiable Student ID',
     version: 'version_01',

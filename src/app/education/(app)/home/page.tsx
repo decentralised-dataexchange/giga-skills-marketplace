@@ -89,9 +89,8 @@ export default async function EducationHome() {
           </h2>
           <p>
             The Ministry requires payment confirmation before it issues your
-            diploma. Present the Payment Account Credential from your wallet;
-            the funds movement itself is a simulated ledger entry{' '}
-            <span className="integration-badge sandbox">Sandbox ledger</span>.
+            diploma. Pay from your account or by card with the payment
+            credential in your wallet.
           </p>
           <PaymentConfirm />
         </div>

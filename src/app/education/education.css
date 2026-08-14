@@ -200,6 +200,17 @@
   border-radius: 10px;
 }
 
+/* The two payment method buttons. */
+.edu-pay-methods {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.edu-pay-methods .edu-cta {
+  margin-top: 0.5rem;
+}
+
 /* The pre-authorised code shown centred below a credential offer QR. */
 .edu-pin {
   display: table;

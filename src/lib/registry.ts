@@ -373,7 +373,8 @@ export async function moeProcessGraduation(
  */
 export async function startPaymentConfirmation(
   appId: string,
-  actor: { userId: string }
+  actor: { userId: string },
+  method: 'account' | 'card' = 'account'
 ): Promise<{ exchangeId: string; qrUri: string }> {
   const app = getApplication(appId);
   if (!app || app.status !== 'payment_pending') {
@@ -386,7 +387,9 @@ export async function startPaymentConfirmation(
     '/v3/config/digital-wallet/openid/sdjwt/verification/send',
     {
       presentationDefinitionId: requiredEnv(
-        'PAYMENT_PRESENTATION_DEFINITION_ID',
+        method === 'card'
+          ? 'PAYMENT_CARD_PRESENTATION_DEFINITION_ID'
+          : 'PAYMENT_PRESENTATION_DEFINITION_ID',
         'Payment confirmation'
       ),
       // By reference: the QR carries a request_uri, not the whole request.
@@ -430,7 +433,7 @@ export async function startPaymentConfirmation(
     action: 'payment.confirmation_requested',
     subjectType: 'exchange',
     subjectId: exchangeId,
-    payload: { applicationId: appId, amount: 50, currency: 'EUR' },
+    payload: { applicationId: appId, amount: 50, currency: 'EUR', method },
   });
 
   return { exchangeId, qrUri };
