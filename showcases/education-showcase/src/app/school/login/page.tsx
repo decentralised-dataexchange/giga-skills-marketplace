@@ -1,9 +1,18 @@
+import { redirect } from 'next/navigation';
+
 import { PORTALS } from '@/lib/portals';
 import { DEMO_ACCOUNTS } from '@/lib/demo-accounts';
 import { StaffLoginForm } from '@/components/StaffLoginForm';
+import { hasRestorableSession } from '@/lib/portal-sessions';
 
-export default function SchoolLogin() {
+export default async function SchoolLogin() {
   const portal = PORTALS.school;
+
+  // A still-valid stashed officer session skips the sign-in: the workbench
+  // swaps it back in through the middleware.
+  if (await hasRestorableSession('school_officer')) {
+    redirect(portal.homePath);
+  }
 
   return (
     <div className="sch-login">

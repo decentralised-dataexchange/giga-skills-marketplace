@@ -26,9 +26,32 @@ export const skillView = (r: any) => ({
   id: r.id,
   slug: r.slug,
   orgId: r.org_id,
+  sourceId: r.source_id ?? null,
   status: r.status,
   publishedVersionId: r.published_version_id,
   createdAt: r.created_at,
+});
+
+export const sourceView = (r: any) => ({
+  id: r.id,
+  orgId: r.org_id,
+  url: r.url ?? null,
+  owner: r.owner ?? null,
+  repo: r.repo ?? null,
+  status: r.status,
+  createdAt: r.created_at,
+});
+
+export const submissionView = (r: any) => ({
+  id: r.id,
+  sourceId: r.source_id,
+  status: r.status,
+  repo: r.repo ?? null,
+  submittedBy: r.submitted_by,
+  submittedAt: r.submitted_at,
+  reviewerId: r.reviewer_id,
+  reviewNotes: r.review_notes,
+  decidedAt: r.decided_at,
 });
 
 export function versionView(r: any, withFiles = false) {
@@ -36,6 +59,7 @@ export function versionView(r: any, withFiles = false) {
   return {
     id: r.id,
     skillId: r.skill_id,
+    submissionId: r.submission_id ?? null,
     version: r.version,
     manifest: r.manifest,
     checks: r.checks,
@@ -89,6 +113,15 @@ export function marketplaceEntry(r: any) {
     id: r.id,
     slug: r.slug,
     status: r.status,
+    source: r.source_id
+      ? {
+          id: r.source_id,
+          url: r.source_url ?? null,
+          owner: r.source_owner ?? null,
+          repo: r.source_repo ?? null,
+          status: r.source_status ?? "active",
+        }
+      : null,
     repo: repo
       ? {
           url: repo.url,

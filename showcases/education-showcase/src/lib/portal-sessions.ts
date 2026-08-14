@@ -49,6 +49,36 @@ export function sessionCookieFromSetCookie(
   return null;
 }
 
+/**
+ * True when the current request carries a stashed session for the role that
+ * is still valid. Login pages use this: they are public, so the middleware
+ * does not swap the stash in there; a valid stash means the visitor can go
+ * straight to the portal home instead of signing in again. Read-only: an
+ * invalid stash is simply reported false (the next sign-in overwrites it).
+ */
+export async function hasRestorableSession(
+  role: StashedRole
+): Promise<boolean> {
+  const { cookies } = await import('next/headers');
+  const stash = (await cookies()).get(stashCookieName(role))?.value;
+  if (!stash) return false;
+  const value = stash.includes('%') ? decodeURIComponent(stash) : stash;
+
+  const base =
+    process.env.BETTER_AUTH_URL || process.env.PUBLIC_BASE_URL || '';
+  const name = base.startsWith('https://')
+    ? '__Secure-better-auth.session_token'
+    : 'better-auth.session_token';
+
+  const { auth } = await import('@/lib/auth');
+  const session = await auth.api
+    .getSession({
+      headers: new Headers({ cookie: `${name}=${encodeURIComponent(value)}` }),
+    })
+    .catch(() => null);
+  return (session?.user as { role?: string } | undefined)?.role === role;
+}
+
 /** Shared attributes for the stash and restored session cookies. */
 export function cookieAttributes(secure: boolean) {
   return {
