@@ -58,8 +58,11 @@ spec:
             initialDelaySeconds: 15
             periodSeconds: 20
           resources:
+            # The cluster nodes are small and tightly packed on CPU
+            # requests; the showcase idles near zero, so a minimal request
+            # keeps it schedulable without an autoscaler event.
             requests:
-              cpu: 100m
+              cpu: 50m
               memory: 256Mi
             limits:
               memory: 512Mi
