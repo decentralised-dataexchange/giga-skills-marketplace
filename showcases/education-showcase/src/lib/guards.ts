@@ -4,6 +4,7 @@ import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 
 import { auth } from '@/lib/auth';
+import { BASE_PATH } from '@/lib/base-path';
 import { PORTALS, type PortalId } from '@/lib/portals';
 
 /**
@@ -16,12 +17,16 @@ export async function getSession() {
   return auth.api.getSession({ headers: await headers() });
 }
 
-/** Require the portal's role; redirect to its login screen otherwise. */
+/**
+ * Require the portal's role; redirect to its login screen otherwise.
+ * Server-side redirect() does not add the deploy base path, so it is
+ * prefixed explicitly here.
+ */
 export async function requirePortalRole(portalId: PortalId) {
   const portal = PORTALS[portalId];
   const session = await getSession();
   if (!session || (session.user as { role?: string }).role !== portal.role) {
-    redirect(portal.loginPath);
+    redirect(`${BASE_PATH}${portal.loginPath}`);
   }
   return session;
 }
