@@ -1,12 +1,18 @@
 import Link from 'next/link';
+import { cookies } from 'next/headers';
 
 import { EducationShell } from '@/components/EducationShell';
 import { getSession } from '@/lib/guards';
+import { stashCookieName } from '@/lib/portal-sessions';
 
 export default async function EducationLanding() {
   const session = await getSession();
+  // Signed in, or restorable: this page is public, so the middleware does
+  // not swap a stashed learner session in here. A stashed session means
+  // /education/home will restore it without a fresh wallet sign-in.
   const signedIn =
-    (session?.user as { role?: string } | undefined)?.role === 'learner';
+    (session?.user as { role?: string } | undefined)?.role === 'learner' ||
+    (await cookies()).has(stashCookieName('learner'));
 
   return (
     <EducationShell signedIn={signedIn}>

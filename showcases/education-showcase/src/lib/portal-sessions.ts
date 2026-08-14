@@ -30,23 +30,6 @@ export function stashCookieName(role: StashedRole): string {
 }
 
 /**
- * The active session cookie: prefer the name present among the request
- * cookies; fall back to the secure variant when the app runs behind HTTPS
- * (the tunnel and production) and the plain one otherwise.
- */
-export function sessionCookieName(
-  has: (name: string) => boolean
-): (typeof SESSION_COOKIE_NAMES)[number] {
-  for (const name of SESSION_COOKIE_NAMES) {
-    if (has(name)) return name;
-  }
-  const base = process.env.BETTER_AUTH_URL || process.env.PUBLIC_BASE_URL || '';
-  return base.startsWith('https://')
-    ? SESSION_COOKIE_NAMES[0]
-    : SESSION_COOKIE_NAMES[1];
-}
-
-/**
  * Pull the freshly written session cookie out of response Set-Cookie
  * headers, right after Better Auth set it.
  */

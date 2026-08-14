@@ -53,7 +53,7 @@ export function PortalSwitcher() {
           {Object.values(PORTALS).map((portal) => (
             <Link
               key={portal.id}
-              href={portal.id === 'education' ? '/education' : portal.homePath}
+              href={portal.homePath}
               className="switcher-item"
               data-active={current?.id === portal.id}
               onClick={() => setOpen(false)}
