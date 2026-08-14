@@ -62,12 +62,9 @@ async function consentApi(
   };
   if (individualId) headers['X-ConsentBB-IndividualId'] = individualId;
 
-  const resp = await fetch(`${baseUrl()}${path}`, {
-    method,
-    headers,
-    cache: 'no-store',
-    body: body ? JSON.stringify(body) : undefined,
-  });
+  const init: RequestInit = { method, headers, cache: 'no-store' };
+  if (body) init.body = JSON.stringify(body);
+  const resp = await fetch(`${baseUrl()}${path}`, init);
   let data: any = null;
   try {
     data = await resp.json();

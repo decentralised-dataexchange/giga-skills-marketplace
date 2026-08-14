@@ -50,14 +50,15 @@ const { env } = loadEnv();
 const BASE = (env.IGRANT_BASE_URL || 'https://demo-api.igrant.io').replace(/\/$/, '');
 
 async function ows(key, method, path, body) {
-  const answer = await fetch(`${BASE}${path}`, {
+  const init = {
     method,
     headers: {
       Authorization: `ApiKey ${key}`,
       'Content-Type': 'application/json',
     },
-    body: body ? JSON.stringify(body) : undefined,
-  });
+  };
+  if (body) init.body = JSON.stringify(body);
+  const answer = await fetch(`${BASE}${path}`, init);
   const data = await answer.json().catch(() => null);
   if (!answer.ok) {
     throw new Error(
