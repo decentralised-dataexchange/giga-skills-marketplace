@@ -1,0 +1,14 @@
+# Never bake local state or secrets into image layers.
+node_modules
+.next
+.git
+sqlite.db*
+*.db
+*.db-wal
+*.db-shm
+.env
+.env.local
+.env.*.local
+secrets
+helm
+README.md
