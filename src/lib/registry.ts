@@ -391,11 +391,17 @@ export async function startPaymentConfirmation(
       ),
       // By reference: the QR carries a request_uri, not the whole request.
       requestByReference: true,
+      // The TS12 payment transaction data lives under `payload`, the shape
+      // the platform validates (see the demonstrators' checkout).
       transactionData: {
-        transaction_id: appId.slice(0, 36),
-        payee: { name: 'Ministry of Education', id: 'ESR-MOE-0001' },
-        currency: 'EUR',
-        amount: 50,
+        payload: {
+          transaction_id: appId.slice(0, 36),
+          date_time: new Date().toISOString(),
+          payee: { name: 'Ministry of Education', id: 'ESR-MOE-0001' },
+          execution_date: new Date().toISOString().slice(0, 10),
+          currency: 'EUR',
+          amount: 50,
+        },
       },
     }
   );
