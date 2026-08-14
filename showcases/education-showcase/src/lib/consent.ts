@@ -93,11 +93,12 @@ export async function ensureIndividual(learner: Learner): Promise<string> {
   if (existing) return existing.individualId;
 
   // Recover by externalId before creating, so a lost mapping never
-  // duplicates the individual.
+  // duplicates the individual. The service answers HTTP 500 when nothing
+  // matches, so a failed lookup means "not found", not an error.
   const found = await consentApi(
     'GET',
     `/v2/config/individuals?externalIndividualId=${encodeURIComponent(learner.id)}&limit=1`
-  );
+  ).catch(() => null);
   let individualId: string | undefined = (found?.individuals ?? [])[0]?.id;
 
   if (!individualId) {
