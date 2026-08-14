@@ -42,6 +42,14 @@ export const DOCS: DocSection[] = [
     pages: [{ href: "/knowledgebase/installing", title: "Install skills" }],
   },
   {
+    label: "Education showcase",
+    pages: [
+      { href: "/knowledgebase/showcase", title: "Try the showcase" },
+      { href: "/knowledgebase/showcase-credentials", title: "Credentials and presentations" },
+      { href: "/knowledgebase/showcase-data-agreements", title: "Data agreements" },
+    ],
+  },
+  {
     label: "Reference",
     pages: [
       { href: "/knowledgebase/checks", title: "Automated checks" },
