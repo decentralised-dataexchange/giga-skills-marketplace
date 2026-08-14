@@ -8,9 +8,28 @@ import { getSessionCookie } from 'better-auth/cookies';
  * this simply saves an unauthenticated visitor a page load.
  */
 
-const PORTAL_LOGINS: Array<{ prefix: string; login: string; public: string[] }> = [
-  { prefix: '/education', login: '/education/login', public: ['/education', '/education/login'] },
-  { prefix: '/school', login: '/school/login', public: ['/school/login'] },
+const PORTAL_LOGINS: Array<{
+  id: string;
+  prefix: string;
+  login: string;
+  /** Stash cookie of this portal's role (see src/lib/portal-sessions.ts). */
+  stashCookie: string;
+  public: string[];
+}> = [
+  {
+    id: 'education',
+    prefix: '/education',
+    login: '/education/login',
+    stashCookie: 'portal-session.learner',
+    public: ['/education', '/education/login'],
+  },
+  {
+    id: 'school',
+    prefix: '/school',
+    login: '/school/login',
+    stashCookie: 'portal-session.school_officer',
+    public: ['/school/login'],
+  },
   // /civicworks is fully public: the candidate is an anonymous visitor.
 ];
 
@@ -28,9 +47,17 @@ export function middleware(request: NextRequest) {
     // Clone nextUrl rather than building a URL from scratch: it carries the
     // deploy base path, so the redirect stays under /showcase in the
     // monolith deployment.
-    const login = request.nextUrl.clone();
-    login.pathname = portal.login;
-    return NextResponse.redirect(login);
+    const target = request.nextUrl.clone();
+    if (request.cookies.has(portal.stashCookie)) {
+      // A stashed session for this portal exists: let the switch route try
+      // to re-activate it (it falls back to the login itself).
+      target.pathname = '/api/portal-session/switch';
+      target.search = `?portal=${portal.id}&next=${encodeURIComponent(pathname)}`;
+    } else {
+      target.pathname = portal.login;
+      target.search = '';
+    }
+    return NextResponse.redirect(target);
   }
   return NextResponse.next();
 }

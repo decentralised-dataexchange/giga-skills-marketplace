@@ -17,15 +17,17 @@ export async function getSession() {
 }
 
 /**
- * Require the portal's role; redirect to its login screen otherwise.
+ * Require the portal's role; otherwise hand over to the portal-session
+ * switch route, which re-activates this portal's stashed session when one
+ * is still valid and falls back to the portal's login screen when not.
  * Server-side redirect() applies the deploy base path itself, so the plain
- * portal path is correct here.
+ * path is correct here.
  */
 export async function requirePortalRole(portalId: PortalId) {
   const portal = PORTALS[portalId];
   const session = await getSession();
   if (!session || (session.user as { role?: string }).role !== portal.role) {
-    redirect(portal.loginPath);
+    redirect(`/api/portal-session/switch?portal=${portal.id}`);
   }
   return session;
 }

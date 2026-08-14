@@ -1,8 +1,15 @@
 import { betterAuth } from 'better-auth';
+import { createAuthMiddleware } from 'better-auth/api';
 import { admin } from 'better-auth/plugins';
 import { nextCookies } from 'better-auth/next-js';
 
 import { getDb } from '@/lib/db';
+import {
+  cookieAttributes,
+  isStashedRole,
+  sessionCookieFromSetCookie,
+  stashCookieName,
+} from '@/lib/portal-sessions';
 import { walletSignIn } from '@/lib/wallet-sign-in';
 
 const db = getDb();
@@ -55,6 +62,27 @@ export const auth = betterAuth({
     'http://localhost:3299',
   ].filter(Boolean),
   plugins: [admin(), walletSignIn(), nextCookies()],
+  // Per-portal session persistence: mirror every new session cookie into a
+  // per-role stash cookie, so the switch route can re-activate a portal's
+  // session after another portal signed in. A stash left behind by a
+  // sign-out points at a revoked session; the switch route detects that and
+  // clears it, so no sign-out hook is needed here.
+  hooks: {
+    after: createAuthMiddleware(async (ctx) => {
+      const fresh = ctx.context.newSession;
+      if (!fresh) return;
+      const role = (fresh.user as { role?: string }).role ?? '';
+      if (!isStashedRole(role)) return;
+      const headers = ctx.context.responseHeaders;
+      const cookie = headers ? sessionCookieFromSetCookie(headers) : null;
+      if (!cookie) return;
+      ctx.setCookie(
+        stashCookieName(role),
+        cookie.value,
+        cookieAttributes(cookie.name.startsWith('__Secure'))
+      );
+    }),
+  },
 });
 
 export type Session = typeof auth.$Infer.Session;
