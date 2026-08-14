@@ -2,7 +2,7 @@ import Link from 'next/link';
 
 import { PORTALS } from '@/lib/portals';
 
-import { resetDemo } from './reset-action';
+import { ResetDemoButton } from '@/components/ResetDemoButton';
 
 import './landing.css';
 
@@ -147,11 +147,7 @@ export default function Landing() {
           not touched; revoke a diploma in the Registrar Back Office first if
           you want a clean wallet story.
         </p>
-        <form action={resetDemo}>
-          <button type="submit" className="landing-reset-button">
-            Reset demo data
-          </button>
-        </form>
+        <ResetDemoButton />
       </section>
     </main>
   );
