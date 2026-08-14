@@ -27,10 +27,10 @@ export async function GET(request: NextRequest) {
   const portalId = request.nextUrl.searchParams.get('portal') ?? '';
   const portal = PORTALS[portalId as PortalId];
   if (!portal || !isStashedRole(portal.role)) {
-    return redirectTo(request, '/');
+    return redirectTo('/');
   }
 
-  const login = () => redirectTo(request, portal.loginPath);
+  const login = () => redirectTo(portal.loginPath);
 
   // The destination must stay inside this portal; anything else falls back
   // to the portal home.
@@ -63,11 +63,19 @@ export async function GET(request: NextRequest) {
     return gone;
   }
 
-  const response = redirectTo(request, destination);
+  const response = redirectTo(destination);
   response.cookies.set(name, value, cookieAttributes(name.startsWith('__Secure')));
   return response;
 }
 
-function redirectTo(request: NextRequest, path: string): NextResponse {
-  return NextResponse.redirect(new URL(`${BASE_PATH}${path}`, request.url));
+/**
+ * Redirect with a relative Location header. Building an absolute URL from
+ * request.url would leak the local bind address (localhost:3299) through
+ * the tunnel, because Next reports the server's own host there.
+ */
+function redirectTo(path: string): NextResponse {
+  return new NextResponse(null, {
+    status: 307,
+    headers: { location: `${BASE_PATH}${path}` },
+  });
 }
