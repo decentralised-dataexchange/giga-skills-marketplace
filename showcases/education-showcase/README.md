@@ -1,118 +1,130 @@
-# National Learner Registry & Education Wallet Showcase
+# National Learner Registry and Education Wallet Showcase
 
-A working demonstration of the ITU/Giga education use case: a learner registers
-in a National Learner Registry with a PID from an EUDI Wallet, receives a
-Student ID and a diploma as verifiable credentials, pays the diploma fee with a
-TS12 payment credential, and applies for a job with selective disclosure.
-Revocation closes the trust loop.
+A demonstration of the education wallet building block: a learner registers
+with a PID from an EUDI Wallet, receives a Student ID and a diploma as
+verifiable credentials, pays the diploma fee with a TS12 payment credential,
+and applies for a job with selective disclosure. One Next.js application
+serves the three portals (`/education`, `/school`, `/civicworks`), the
+landing page (`/`) and the public registry audit trail (`/audit`).
 
-One Next.js application serves three portals under one domain, each styled as
-its own product:
+## Run locally for development
 
-| Path | Portal | Who |
-| --- | --- | --- |
-| `/education` | National Education Portal | Learner (wallet sign-in only) |
-| `/school` | Riverside Secondary School, Admissions | School officer |
-| `/civicworks` | CivicWorks Careers (job board) | Candidate (public) |
+Prerequisites: Node.js 20 or later, and an iGrant.io organisation account on
+the target environment with a deployed Organisation Wallet.
 
-The Ministry of Education has no portal of its own: its registry functions
-run automatically. When the school validates the documents, the learner is
-enrolled and the Student ID is offered; when the school submits the
-graduation decision, the institution is validated and the fee falls due;
-revocation requested by the school is processed immediately. Every automatic
-step is written to the public registry audit trail at `/audit`.
+```bash
+cd showcases/education-showcase
+cp .env.local.example .env.local   # then fill in the values (see below)
+npm install
+node scripts/provision.mjs         # one-off: creates OWS artefacts, registers webhooks
+npm run dev
+```
 
-The landing page (`/`) carries the demo script and the prerequisites.
+Wallet webhooks require a public HTTPS URL. Point `PUBLIC_BASE_URL` and
+`BETTER_AUTH_URL` at a tunnel to your development port, for example:
 
-## What is real
+```bash
+cloudflared tunnel --url http://localhost:3000
+```
 
-- PID sign-in, credential issuance and verification run against the
-  [iGrant.io Organisation Wallet Suite](https://docs.igrant.io/docs/developer-apis)
-  over OpenID4VCI and OpenID4VP 1.0 (SD-JWT VC, DCQL, selective disclosure,
-  revocation), with x509 trust anchors and per-definition certificates
-  registered on the NXD trust lists.
-- The diploma fee is a dynamic credential request: the wallet presents a TS12
-  payment credential (account or card) with the transaction data, and the
-  diploma issues in the same session.
-- Consent runs against the iGrant.io Consent Building Block: a public-task
-  processing notice plus two optional, withdrawable agreements, and a
-  self-service opt-in/opt-out, consent erasure and account deletion in the Education Portal.
-- Registries, civil-registry checks, the payment ledger and the institution
-  signature are prototype or sandbox representations, labelled as such in the
-  UI.
+`scripts/provision.mjs` is idempotent: it creates the credential and
+presentation definitions, the signing keys and the webhooks on the iGrant.io
+environment, and writes the created identifiers back into `.env.local`.
+Re-running it skips anything that already exists.
 
-## Prerequisites
-
-Load two credentials into one EUDI Wallet on your phone:
+To use the demo, load two credentials into one EUDI Wallet on a phone:
 
 1. A PID: <https://igrant.io/demo/pid.html>
 2. A TS12 payment credential: <https://igrant.io/demo/ts12-payment-credential-issuance.html>
 
-## Run locally
-
-```bash
-cd showcases/education-showcase
-cp .env.local.example .env.local   # then fill in the values
-npm install
-npm run dev
-```
-
-Wallet webhooks need a public HTTPS URL: point `PUBLIC_BASE_URL` at a tunnel
-(for example `cloudflared tunnel --url http://localhost:3000`) and run
-`node scripts/provision.mjs` once to create the OWS artefacts and register the
-webhooks. The script is idempotent and writes created ids back into
-`.env.local`.
-
 ## Environment variables
+
+All values live in the gitignored `.env.local` during development and in the
+cluster during production. No secret is ever committed to the repository or
+passed through CI.
+
+### iGrant.io Organisation Wallet Suite
 
 | Variable | Purpose |
 | --- | --- |
 | `IGRANT_BASE_URL` | OWS base URL (demo: `https://demo-api.igrant.io`) |
-| `IGRANT_API_KEY` | Main-tenant key (Consent BB, provisioning) |
-| `MOE_IGRANT_API_KEY`, `MOE_SANDBOX_ORG_ID` | Ministry sandbox key and id |
-| `CIVICWORKS_IGRANT_API_KEY`, `CIVICWORKS_SANDBOX_ORG_ID` | Employer sandbox key and id |
-| `MOE_WEBHOOK_SECRET`, `CIVICWORKS_WEBHOOK_SECRET` | Webhook HMAC secrets |
+| `IGRANT_API_KEY` | Main-tenant API key (Consent Building Block, provisioning) |
+| `MOE_IGRANT_API_KEY`, `MOE_SANDBOX_ORG_ID` | Ministry sandbox key and organisation id |
+| `CIVICWORKS_IGRANT_API_KEY`, `CIVICWORKS_SANDBOX_ORG_ID` | Employer sandbox key and organisation id |
+| `MOE_WEBHOOK_SECRET`, `CIVICWORKS_WEBHOOK_SECRET` | Webhook HMAC secrets (any strong random value) |
+
+### Credential and presentation definitions
+
+Created by `scripts/provision.mjs`; the identifiers are not secret.
+
+| Variable | Purpose |
+| --- | --- |
 | `STUDENT_ID_CREDENTIAL_ID`, `DIPLOMA_CREDENTIAL_ID` | Credential definitions |
 | `PID_PRESENTATION_DEFINITION_ID` | PID sign-in presentation definition |
-| `PAYMENT_PRESENTATION_DEFINITION_ID`, `PAYMENT_CARD_PRESENTATION_DEFINITION_ID` | TS12 payment definitions |
-| `DIPLOMA_PRESENTATION_DEFINITION_ID` | Job application definition (PID + diploma) |
-| `CONSENT_BB_BASE_URL`, `AGREEMENT_*_ID` | Consent Building Block |
-| `PUBLIC_BASE_URL`, `BETTER_AUTH_URL`, `BETTER_AUTH_SECRET` | App base URL and session signing |
+| `PAYMENT_PRESENTATION_DEFINITION_ID`, `PAYMENT_CARD_PRESENTATION_DEFINITION_ID` | TS12 payment definitions (account and card) |
+| `DIPLOMA_PRESENTATION_DEFINITION_ID` | Job application definition (PID plus diploma) |
+
+### Consent Building Block
+
+| Variable | Purpose |
+| --- | --- |
+| `CONSENT_BB_BASE_URL` | Consent Building Block base URL |
+| `AGREEMENT_ENROLMENT_ID`, `AGREEMENT_ANALYTICS_ID`, `AGREEMENT_EMPLOYER_ID` | Data agreement identifiers |
+
+### Trust list (provisioning only)
+
+| Variable | Purpose |
+| --- | --- |
+| `TRUSTLIST_CLIENT_ID`, `TRUSTLIST_CLIENT_SECRET` | OAuth2 client for the NXD trust list backend |
+
+### Application
+
+| Variable | Purpose |
+| --- | --- |
+| `PUBLIC_BASE_URL` | Public HTTPS URL of the app (webhooks, wallet links) |
+| `BETTER_AUTH_URL` | Public URL used for session cookies and trusted origins |
+| `BETTER_AUTH_SECRET` | Session signing secret (generate with `openssl rand -base64 32`) |
 | `SQLITE_PATH` | Database file (default `./sqlite.db`; `/data/app.db` in the container) |
 | `LEARNER_PSEUDONYM_PEPPER` | Pepper for the pairwise learner pseudonym |
+| `DEMO_STAFF_PASSWORD` | Password for the seeded staff account |
+| `NEXT_PUBLIC_BASE_PATH` | Deploy prefix, build-time (empty locally, `/showcase` in production) |
 
-Secrets stay in the gitignored `.env.local` locally and in the cluster secret
-in production; they never enter the repository.
+## Production deployment
 
-## Deployment
-
-The Dockerfile builds a standalone Next.js server (node:20-alpine, SQLite on a
-mounted volume at `/data`). The Helm chart lives in
-`deploy/helm/education-showcase`: one replica with a Recreate strategy (SQLite
-is single-writer), a PersistentVolumeClaim, an nginx ingress with cert-manager
-TLS and non-secret configuration in a ConfigMap.
-
-Sensitive values never pass through the repository or CI. An operator creates
-the cluster secret once, directly in the cluster:
+The Dockerfile builds a standalone Next.js server (node:20-alpine) with
+SQLite on a mounted volume at `/data`. The deploy prefix is a build
+argument:
 
 ```bash
-./scripts/create-k8s-secret.sh   # reads .env.local, applies education-showcase-secrets
+docker build --platform linux/amd64 \
+  --build-arg NEXT_PUBLIC_BASE_PATH=/showcase \
+  -t <registry>/education-showcase:<tag> .
+docker push <registry>/education-showcase:<tag>
 ```
 
-The repository deploy workflow then only builds the image and rolls out Helm
-changes; it skips the showcase with a notice until that secret exists.
+Secrets are created once, directly in the cluster, by an operator. The
+script reads `.env.local`, generates a fresh production session secret and
+applies the `education-showcase-secrets` secret:
 
-## Data model notes
+```bash
+./scripts/create-k8s-secret.sh   # optional argument: namespace
+```
 
-- The learner identifier is `ULID-` plus 16 Crockford Base32 characters,
-  generated by the automatic enrolment that follows the school's document
-  validation.
-- The registry stores no PID attribute: the learner is keyed by a pairwise
-  pseudonym (HMAC of stable PID claims with a server pepper), and form
-  prefill values are transient.
-- The audit log is append-only (SQLite triggers) and hash-chained; the
-  public audit trail at `/audit` verifies the chain on every view.
-- The Student ID follows the registry `VerifiableStudentID` claim set. The
-  diploma models W3C VC 2.0 / Open Badges education fields semantically and
-  is carried as an SD-JWT VC for selective disclosure; the two are related
-  but distinct standards, and the credential format is the latter.
+The Helm chart lives in `deploy/helm/education-showcase` at the repository
+root: a single replica with a Recreate strategy (SQLite is single-writer), a
+persistent volume claim, an nginx ingress on the shared domain under the
+`/showcase` path, non-secret configuration in a ConfigMap and secrets from
+`existingSecret`. Install or upgrade:
+
+```bash
+helm upgrade --install education-showcase ./deploy/helm/education-showcase \
+  --namespace education-showcase --create-namespace \
+  --set image.tag=<tag>
+```
+
+Override `domain`, `basePath`, `image.registry` and the `config` values in
+`values.yaml` for your environment.
+
+On every push to `main`, the repository deploy workflow builds the image and
+rolls out the Helm changes. The workflow skips this application with a
+notice until the cluster secret exists.
