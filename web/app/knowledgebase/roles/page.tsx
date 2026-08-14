@@ -105,11 +105,14 @@ export default function RolesPage() {
         </tbody>
       </table>
 
-      <h2>Skill statuses</h2>
+      <h2>Skill and source statuses</h2>
       <p>
         The skill itself is <code>in_submission</code> until its first version is approved,{" "}
-        <code>published</code> while a version is live, and <code>delisted</code> if a super admin
-        removes it from the catalog.
+        <code>published</code> while a version is live, and <code>delisted</code> when it is removed
+        from the catalog. The source that carries the skills is <code>active</code> or{" "}
+        <code>delisted</code>; the owning provider (or a super admin) delists a source in one
+        action, and every published skill in it leaves the catalog together. Skill names are unique
+        per organisation, so two providers can publish the same name without conflict.
       </p>
 
       <h2>Organisation visibility</h2>

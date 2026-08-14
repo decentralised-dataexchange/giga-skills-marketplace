@@ -19,6 +19,7 @@ interface SkillEntry {
   slug: string;
   description: string;
   publishedAt: string | null;
+  source: { repo: string | null } | null;
   repo: {
     url: string;
     owner: string;
@@ -27,6 +28,10 @@ interface SkillEntry {
     stars: number;
   } | null;
 }
+
+// The catalog <source> segment: the source record's repo name, falling back
+// to the published version's repo blob, then the "bundles" pseudo-source.
+const sourceSegment = (s: SkillEntry) => s.source?.repo ?? s.repo?.repo ?? "bundles";
 
 // One source of a provider: a GitHub repository (addressed by repo name), or
 // the "bundles" pseudo-source for skills published without a repository.
@@ -45,11 +50,7 @@ export default function SourcePage() {
       .then(setProvider)
       .catch((e) => setError(e.message));
     fetchAllProviderSkills(handle)
-      .then((all) =>
-        setSkills(
-          all.filter((s: SkillEntry) => (source === "bundles" ? !s.repo : s.repo?.repo === source)),
-        ),
-      )
+      .then((all) => setSkills(all.filter((s: SkillEntry) => sourceSegment(s) === source)))
       .catch(() => setSkills([]));
   }, [handle, source]);
 

@@ -23,6 +23,7 @@ interface SkillEntry {
   description: string;
   protocols: string[];
   publishedAt: string | null;
+  source: { repo: string | null } | null;
   repo: {
     url: string;
     owner: string;
@@ -67,7 +68,7 @@ export default function ProviderPage() {
   const sources: Source[] = [
     ...skills
       .reduce((m, s) => {
-        const key = s.repo?.repo ?? "bundles";
+        const key = s.source?.repo ?? s.repo?.repo ?? "bundles";
         const g = m.get(key) ?? { key, repo: s.repo, skills: [] };
         g.skills.push(s);
         return m.set(key, g);

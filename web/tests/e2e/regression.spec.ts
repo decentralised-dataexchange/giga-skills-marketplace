@@ -56,7 +56,9 @@ test("a skill addressed under the wrong provider moves to the canonical URL", as
 
 test("removed surfaces are unlinked and unreachable", async ({ page }) => {
   await page.goto("/");
-  await expect(page.getByRole("link", { name: "Showcase" })).toHaveCount(0);
+  // Exact: the legitimate "Showcases" nav entry stays; the removed showcase
+  // moderation surface must not.
+  await expect(page.getByRole("link", { name: "Showcase", exact: true })).toHaveCount(0);
 
   for (const path of ["/showcase", "/builder", "/developer", "/governance/applications"]) {
     const response = await page.goto(path);
@@ -149,7 +151,7 @@ test("moved bundle route and skill API siblings do not conflict", async ({ reque
   for (const [path, status] of getChecks) {
     expect((await request.get(path)).status(), path).toBe(status);
   }
-  for (const path of ["/api/skills/1/delist"]) {
+  for (const path of ["/api/skills/1/delist", "/api/sources/1/delist"]) {
     expect((await request.post(path)).status(), path).toBe(401);
   }
 });
@@ -223,8 +225,9 @@ test("malformed ids are rejected as not-found rather than erroring", async ({ re
   const admin = await signIn(request, "superadmin@govbuild.test", "super123");
   const checks: [path: string, body: object][] = [
     ["/api/skills/not-a-uuid/delist", {}],
-    ["/api/review/versions/not-a-uuid/claim", {}],
-    ["/api/review/versions/not-a-uuid/decision", { decision: "approve" }],
+    ["/api/sources/not-a-uuid/delist", {}],
+    ["/api/review/submissions/not-a-uuid/claim", {}],
+    ["/api/review/submissions/not-a-uuid/decision", { decision: "approve" }],
   ];
   for (const [path, data] of checks) {
     const response = await request.post(path, { headers: admin, data });
@@ -232,6 +235,7 @@ test("malformed ids are rejected as not-found rather than erroring", async ({ re
   }
   expect((await request.get("/api/chats/not-a-uuid", { headers: admin })).status()).toBe(404);
   expect((await request.get("/api/versions/not-a-uuid", { headers: admin })).status()).toBe(404);
+  expect((await request.get("/api/submissions/not-a-uuid", { headers: admin })).status()).toBe(404);
 });
 
 test("public, provider, reviewer, and admin API smoke matrix", async ({ request }) => {
@@ -247,6 +251,7 @@ test("public, provider, reviewer, and admin API smoke matrix", async ({ request 
   const provider = await signIn(request, "provider@igrant.io", "provider123");
   expect((await request.get("/api/orgs/mine", { headers: provider })).status()).toBe(200);
   expect((await request.get("/api/skills/mine", { headers: provider })).status()).toBe(200);
+  expect((await request.get("/api/sources/mine", { headers: provider })).status()).toBe(200);
   expect((await request.get("/api/admin/users", { headers: provider })).status()).toBe(403);
 
   const reviewer = await signIn(request, "reviewer@govbuild.test", "review123");
@@ -303,33 +308,42 @@ test("a submission moves through review to a provider-scoped published page", as
     data: { orgId: org.id, files: E2E_BUNDLE },
   });
   expect(submitted.status()).toBe(200);
-  const { skill, version } = await submitted.json();
+  const { skill, version, submission, source } = await submitted.json();
   expect(skill.id).toMatch(UUID_RE);
   expect(version.id).toMatch(UUID_RE);
+  expect(submission.id).toMatch(UUID_RE);
+  expect(source.id).toMatch(UUID_RE);
   expect(version.status, JSON.stringify(version.checks)).toBe("submitted");
+  expect(submission.status).toBe("submitted");
 
+  // The queue lists source submissions, and the whole submission is decided.
   const reviewer = await signIn(request, "reviewer@govbuild.test", "review123");
   const queue = await request.get("/api/review/queue", { headers: reviewer });
   expect(queue.status()).toBe(200);
-  expect((await queue.json()).queue.map((v: { id: string }) => v.id)).toContain(version.id);
+  expect((await queue.json()).queue.map((s: { id: string }) => s.id)).toContain(submission.id);
 
   expect((await request.get(`/api/versions/${version.id}`, { headers: reviewer })).status()).toBe(
     200,
   );
   expect(
+    (await request.get(`/api/submissions/${submission.id}`, { headers: reviewer })).status(),
+  ).toBe(200);
+  expect(
     (
-      await request.post(`/api/review/versions/${version.id}/claim`, { headers: reviewer })
+      await request.post(`/api/review/submissions/${submission.id}/claim`, { headers: reviewer })
     ).status(),
   ).toBe(200);
 
-  const decision = await request.post(`/api/review/versions/${version.id}/decision`, {
+  const decision = await request.post(`/api/review/submissions/${submission.id}/decision`, {
     headers: reviewer,
     data: { decision: "approve", notes: "Approved by the regression suite." },
   });
   expect(decision.status()).toBe(200);
   const decided = await decision.json();
-  expect(decided.skill.status).toBe("published");
-  expect(decided.skill.publishedVersionId).toBe(version.id);
+  expect(decided.submission.status).toBe("approved");
+  const decidedSkill = decided.skills.find((s: { id: string }) => s.id === skill.id);
+  expect(decidedSkill.status).toBe("published");
+  expect(decidedSkill.publishedVersionId).toBe(version.id);
 
   const published = await request.get(`/api/marketplace/${E2E_SKILL}`);
   expect(published.status()).toBe(200);

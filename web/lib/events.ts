@@ -27,6 +27,7 @@ const LABELS: Record<string, string> = {
   "skill.submitted": "Skill submitted",
   "skill.checks_failed": "Checks failed",
   "skill.delisted": "Skill delisted",
+  "source.delisted": "Source delisted",
   "skill.official_set": "Endorsement changed",
   "seed.completed": "Demo data seeded",
 };
@@ -107,6 +108,11 @@ export function describeEvent(type: string, detail: Detail): string {
       return `Submitted ${q(d.slug)} version ${d.version}, but the automated checks failed.`;
     case "skill.delisted":
       return `Delisted ${q(d.slug)} from the catalog.`;
+    case "source.delisted": {
+      const label = d.repo ?? d.url ?? "the direct-submission source";
+      const n = Number(d.skillCount ?? 0);
+      return `Delisted the source ${q(label)}; ${n} published skill${n === 1 ? "" : "s"} left the catalog.`;
+    }
     case "skill.official_set":
       return d.official ? `Endorsed ${q(d.slug)} as Official.` : `Moved ${q(d.slug)} to Community.`;
     case "seed.completed":

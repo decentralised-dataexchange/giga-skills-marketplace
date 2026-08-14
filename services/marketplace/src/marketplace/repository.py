@@ -32,7 +32,7 @@ class CatalogRepository(Protocol):
 
     async def get_provider(self, key: str) -> dict[str, Any] | None: ...
 
-    async def get_skill(self, slug: str) -> dict[str, Any] | None: ...
+    async def get_skill(self, slug: str, provider: str = "") -> dict[str, Any] | None: ...
 
 
 def create_pool(database_url: str, max_connections: int) -> AsyncConnectionPool:
@@ -78,6 +78,19 @@ def _entry(row: dict[str, Any]) -> dict[str, Any]:
         "id": row["id"],
         "slug": row["slug"],
         "status": row["status"],
+        # The source record (one per organisation and repository); rows from
+        # before first-class sources carry None.
+        "source": (
+            {
+                "id": row["source_id"],
+                "url": row.get("source_url"),
+                "owner": row.get("source_owner"),
+                "repo": row.get("source_repo"),
+                "status": row.get("source_status") or "active",
+            }
+            if row.get("source_id")
+            else None
+        ),
         "repo": (
             {
                 "url": repo.get("url"),
@@ -125,12 +138,16 @@ class PostgresCatalogRepository:
 
     async def schema_ready(self) -> bool:
         # The web app owns schema bootstrap; readiness means the catalog
-        # tables exist here too.
+        # tables exist here too - including sources, so this service never
+        # runs its source joins before the web app has migrated.
         async with self._pool.connection() as connection:
             row = await (
-                await connection.execute("SELECT to_regclass('skills') AS skills_table")
+                await connection.execute(
+                    "SELECT to_regclass('skills') AS skills_table,"
+                    " to_regclass('sources') AS sources_table"
+                )
             ).fetchone()
-        return bool(row and row["skills_table"])
+        return bool(row and row["skills_table"] and row["sources_table"])
 
     async def list_skills(
         self,
@@ -140,8 +157,13 @@ class PostgresCatalogRepository:
         page: int,
         page_size: int,
     ) -> dict[str, Any]:
-        # A suspended or rejected organisation takes its skills off the catalog.
-        conditions = ["s.status = 'published'", "o.status = 'approved'"]
+        # A suspended or rejected organisation takes its skills off the
+        # catalog; so does a delisted source.
+        conditions = [
+            "s.status = 'published'",
+            "o.status = 'approved'",
+            "(src.id IS NULL OR src.status = 'active')",
+        ]
         params: list[Any] = []
         if provider:
             if UUID_RE.fullmatch(provider):
@@ -162,11 +184,14 @@ class PostgresCatalogRepository:
         offset = (page - 1) * page_size
         list_sql = f"""
             SELECT s.id, s.slug, s.status, v.repo,
+                   s.source_id, src.url AS source_url, src.owner AS source_owner,
+                   src.repo AS source_repo, src.status AS source_status,
                    o.id AS org_id, o.slug AS org_slug, o.name AS org_name,
                    o.website AS org_website, v.version, v.manifest, v.decided_at
             FROM skills s
             JOIN orgs o ON o.id = s.org_id
             JOIN versions v ON v.id = s.published_version_id
+            LEFT JOIN sources src ON src.id = s.source_id
             WHERE {where}
             ORDER BY v.decided_at DESC NULLS LAST, s.created_at DESC
             LIMIT %s OFFSET %s
@@ -176,6 +201,7 @@ class PostgresCatalogRepository:
             FROM skills s
             JOIN orgs o ON o.id = s.org_id
             JOIN versions v ON v.id = s.published_version_id
+            LEFT JOIN sources src ON src.id = s.source_id
             WHERE {where}
         """
 
@@ -247,24 +273,70 @@ class PostgresCatalogRepository:
             row = await (await connection.execute(query, (value,))).fetchone()
         return _provider_entry(row) if row else None
 
-    async def get_skill(self, slug: str) -> dict[str, Any] | None:
+    async def get_skill(self, slug: str, provider: str = "") -> dict[str, Any] | None:
+        # Skill names are unique per organisation, so a bare slug can have
+        # several published owners. Unqualified, the answer is then the list
+        # of homes ("multiple") and the caller picks.
+        conditions = [
+            "s.slug = %s",
+            "s.status = 'published'",
+            "o.status = 'approved'",
+            "(src.id IS NULL OR src.status = 'active')",
+        ]
+        params: list[Any] = [slug]
+        if provider:
+            if UUID_RE.fullmatch(provider):
+                conditions.append("o.id = %s")
+                params.append(UUID(provider))
+            else:
+                conditions.append("o.slug = %s")
+                params.append(provider)
+        where = " AND ".join(conditions)
         async with self._pool.connection() as connection:
-            skill = await (
+            skills = await (
                 await connection.execute(
-                    """
+                    f"""
                     SELECT s.*, o.name AS org_name, o.slug AS org_slug, o.logo AS org_logo,
                            o.website AS org_website, o.description AS org_description,
-                           o.status AS org_status, o.contact AS org_contact
+                           o.status AS org_status, o.contact AS org_contact,
+                           src.url AS source_url, src.owner AS source_owner,
+                           src.repo AS source_repo, src.status AS source_status,
+                           pv.version AS pub_version, pv.decided_at AS pub_decided_at
                     FROM skills s
                     JOIN orgs o ON o.id = s.org_id
-                    WHERE s.slug = %s AND s.status = 'published'
-                      AND o.status = 'approved'
+                    LEFT JOIN sources src ON src.id = s.source_id
+                    LEFT JOIN versions pv ON pv.id = s.published_version_id
+                    WHERE {where}
+                    ORDER BY pv.decided_at DESC NULLS LAST
                     """,
-                    (slug,),
+                    params,
                 )
-            ).fetchone()
-            if not skill:
+            ).fetchall()
+            if not skills:
                 return None
+            if len(skills) > 1:
+                return {
+                    "multiple": True,
+                    "matches": [
+                        {
+                            "slug": row["slug"],
+                            "org": {
+                                "slug": row.get("org_slug"),
+                                "name": row["org_name"],
+                                "logo": row.get("org_logo"),
+                            },
+                            "source": row.get("source_repo"),
+                            "version": row.get("pub_version"),
+                            "publishedAt": _published_at(row.get("pub_decided_at")),
+                            "path": (
+                                f"/marketplace/{row.get('org_slug')}"
+                                f"/{row.get('source_repo') or 'bundles'}/{row['slug']}"
+                            ),
+                        }
+                        for row in skills
+                    ],
+                }
+            skill = skills[0]
             version = await (
                 await connection.execute(
                     "SELECT * FROM versions WHERE id = %s", (skill["published_version_id"],)
@@ -298,6 +370,17 @@ class PostgresCatalogRepository:
                 "status": skill["org_status"],
                 "contact": skill.get("org_contact"),
             },
+            "source": (
+                {
+                    "id": skill["source_id"],
+                    "url": skill.get("source_url"),
+                    "owner": skill.get("source_owner"),
+                    "repo": skill.get("source_repo"),
+                    "status": skill.get("source_status") or "active",
+                }
+                if skill.get("source_id")
+                else None
+            ),
             "version": {
                 "id": version["id"],
                 "version": version["version"],

@@ -19,8 +19,20 @@ export const POST = route(
       orgId: string;
       files?: BundleFile[];
       skills?: { files: BundleFile[]; version?: string }[];
+      /** Names the source record instead of the org's pseudo-source, so the
+       * e2e suite can exercise source-level review and delisting without a
+       * live GitHub fetch. Like the whole endpoint: never in production. */
+      sourceUrl?: string;
     }>();
     const { orgId } = payload;
+    const sourceUrl = payload.sourceUrl?.trim() || null;
+    const sourceMeta = sourceUrl
+      ? (() => {
+          const m = /github\.com\/([^/]+)\/([^/?#]+)/i.exec(sourceUrl);
+          check(m, 400, "sourceUrl must be a github.com/<owner>/<repo> URL");
+          return { url: sourceUrl, owner: m[1], repo: m[2].replace(/\.git$/, "") };
+        })()
+      : null;
     // One call is one submission, whether it carries one bundle (legacy
     // shape) or several skills.
     const bundles = payload.skills?.length
@@ -37,7 +49,19 @@ export const POST = route(
 
     const { source, submission, created } = await sql.begin(async (tx) => {
       const db = tx as unknown as typeof sql;
-      const src = await findOrCreateSource(db, org.id, null);
+      const src = await findOrCreateSource(db, org.id, sourceMeta);
+      // A resubmission of a named source replaces its still-waiting
+      // submission, exactly like the from-repo flow. The pseudo-source is a
+      // grab-bag of unrelated direct bundles, so there it stays additive.
+      if (sourceMeta) {
+        await tx`
+          UPDATE versions SET status = 'superseded'
+          WHERE submission_id IN
+            (SELECT id FROM submissions WHERE source_id = ${src.id} AND status = 'submitted')`;
+        await tx`
+          UPDATE submissions SET status = 'superseded'
+          WHERE source_id = ${src.id} AND status = 'submitted'`;
+      }
       const [sub] = await tx`
         INSERT INTO submissions (source_id, submitted_by)
         VALUES (${src.id}, ${user!.id}) RETURNING *`;

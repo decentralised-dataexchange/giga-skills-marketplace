@@ -48,7 +48,8 @@ export default function InstallingPage() {
           Catalog URLs name the owner:{" "}
           <code>/marketplace/&lt;provider&gt;/&lt;source&gt;/&lt;skill&gt;</code>. A bare{" "}
           <code>/skill/&lt;slug&gt;</code> link redirects to the canonical page, because a slug
-          often travels alone in an agent prompt.
+          often travels alone in an agent prompt. Skill names are unique per organisation, so when
+          several providers publish the same name the bare link shows a chooser instead.
         </li>
         <li>
           Before installing, check the skill’s{" "}

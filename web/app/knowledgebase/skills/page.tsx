@@ -48,6 +48,13 @@ export default function SkillsPage() {
         rewrites a skill; it verifies and lists it.
       </p>
 
+      <h2>Names</h2>
+      <p>
+        A skill’s name (its manifest <code>name</code>, the catalog slug) is unique inside one
+        organisation, and each name belongs to one source. Different organisations can publish the
+        same name - the catalog URL names the owner, so there is no collision.
+      </p>
+
       <h2>Versions</h2>
       <p>
         Every submission is pinned to a commit, so a skill’s published version is immutable.

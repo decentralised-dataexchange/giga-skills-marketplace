@@ -49,10 +49,12 @@ export function ReviewTrail({
   const [error, setError] = useState("");
 
   useEffect(() => {
-    api(`/api/marketplace/${slug}/review`)
+    // The provider segment picks the owner: skill names are unique per
+    // organisation, and several organisations may publish the same name.
+    api(`/api/marketplace/${slug}/review?provider=${encodeURIComponent(provider)}`)
       .then(setData)
       .catch((e) => setError(e.message));
-  }, [slug]);
+  }, [slug, provider]);
 
   if (error)
     return (
@@ -108,6 +110,11 @@ export function ReviewTrail({
       <div className="mt-3 border-b border-border pb-5">
         <div className="flex flex-wrap items-center gap-3">
           <h1 className="text-3xl font-bold tracking-tight text-ink">Review trail</h1>
+          {data.skill?.status === "delisted" && (
+            <span className="rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-semibold text-red-700">
+              Delisted - no longer in the catalog; the record below stays as history
+            </span>
+          )}
         </div>
         <p className="mt-2 max-w-3xl text-muted-foreground">
           The assurance record for <span className="font-semibold text-ink">{slug}</span>: automated

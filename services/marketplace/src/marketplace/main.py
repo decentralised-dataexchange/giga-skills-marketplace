@@ -163,8 +163,11 @@ def create_app(repository: CatalogRepository | None = None) -> FastAPI:
         )
 
     @application.get("/v1/skills/{slug}")
-    async def get_skill(slug: str, repo: RepositoryDependency) -> Response:
-        result = await repo.get_skill(slug)
+    async def get_skill(slug: str, repo: RepositoryDependency, provider: str = "") -> Response:
+        # Skill names are unique per organisation; ?provider= picks the owner
+        # when several publish the same name (otherwise the answer lists the
+        # matches under "multiple").
+        result = await repo.get_skill(slug, provider)
         if result is None:
             return _error(404, "Skill not found or not published")
         return JSONResponse(

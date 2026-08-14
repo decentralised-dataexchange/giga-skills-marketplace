@@ -36,9 +36,9 @@ export default function PublishingPage() {
         The server fetches the repository snapshot itself, so the stored files, stars, licence, and
         commit are marketplace-verified. The{" "}
         <Link href="/knowledgebase/checks">automated checks</Link> run immediately on every
-        discovered skill; the source is then submitted as a whole, and each skill lands in the
-        review queue as <code>submitted</code> with its check report attached as evidence for the
-        reviewer.
+        discovered skill; the source is then submitted as a whole - one submission in the review
+        queue, however many skills it carries - with each skill’s check report attached as evidence
+        for the reviewer, who approves or declines the submission as a whole.
       </p>
       <p>
         One submission carries up to 200 skills. A larger repository answers with its directory list
@@ -65,8 +65,9 @@ export default function PublishingPage() {
         Updates and delisting act on the source, not on individual skills. Resubmit the repository
         at a new commit or tag and every skill it carries gets a new version through a fresh review;
         your published versions stay live and installable the whole time, superseded only on
-        approval. Delisting a source removes every published skill it carries from the catalog
-        together.
+        approval. Delisting is one action on the source record itself: the source and every
+        published skill it carries leave the catalog together, while the review history stays
+        public. Resubmitting a delisted source relists it - approval brings every skill back.
       </p>
 
       <h2>What happens on approval</h2>

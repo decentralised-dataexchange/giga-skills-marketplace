@@ -31,6 +31,7 @@ class FakeRepository:
         }
         self.skill_list_args: dict[str, Any] = {}
         self.provider_list_args: dict[str, Any] = {}
+        self.get_skill_args: tuple[str, str] | None = None
         self.health_calls = 0
         self.health_error: Exception | None = None
         self.schema_ready_result = True
@@ -64,7 +65,8 @@ class FakeRepository:
     async def get_provider(self, _key: str) -> dict[str, Any] | None:
         return self.provider_result
 
-    async def get_skill(self, _slug: str) -> dict[str, Any] | None:
+    async def get_skill(self, slug: str, provider: str = "") -> dict[str, Any] | None:
+        self.get_skill_args = (slug, provider)
         return self.skill_result
 
 
@@ -158,6 +160,39 @@ async def test_detail_endpoints_preserve_contract(client: AsyncClient) -> None:
     assert skill.status_code == 200
     assert skill.json()["version"]["version"] == "1.0.0"
     assert skill.headers["cache-control"] == PUBLIC_CACHE
+
+
+async def test_skill_detail_passes_provider_filter_through(
+    client: AsyncClient, repository: FakeRepository
+) -> None:
+    # Skill names are unique per organisation; the provider query parameter
+    # picks the owner and travels to the repository unchanged.
+    response = await client.get("/v1/skills/issuer", params={"provider": "igrant-io"})
+
+    assert response.status_code == 200
+    assert repository.get_skill_args == ("issuer", "igrant-io")
+
+
+async def test_ambiguous_skill_detail_lists_matches(
+    client: AsyncClient, repository: FakeRepository
+) -> None:
+    # Several organisations publishing the same name answer with the list of
+    # homes; the response stays cacheable like any other detail.
+    repository.skill_result = {
+        "multiple": True,
+        "matches": [
+            {"slug": "issuer", "org": {"slug": "igrant-io"}, "source": None},
+            {"slug": "issuer", "org": {"slug": "educhain-labs"}, "source": "skills"},
+        ],
+    }
+
+    response = await client.get("/v1/skills/issuer")
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["multiple"] is True
+    assert [m["org"]["slug"] for m in body["matches"]] == ["igrant-io", "educhain-labs"]
+    assert response.headers["cache-control"] == PUBLIC_CACHE
 
 
 async def test_missing_resources_preserve_error_bodies(

@@ -51,16 +51,32 @@ export default function SkillPage() {
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
-    api(`/api/marketplace/${slug}`)
+    // Skill names are unique per organisation, so the provider segment picks
+    // the owner. When this provider does not publish the slug, fall back to
+    // the bare-slug entry point: a unique owner redirects there, several
+    // owners get the chooser.
+    api(`/api/marketplace/${slug}?provider=${encodeURIComponent(provider)}`)
       .then(setDetail)
-      .catch((e) => setError(e.message));
-  }, [slug]);
+      .catch(async (e) => {
+        try {
+          const d = await api(`/api/marketplace/${slug}`);
+          if (d.multiple) router.replace(`/skill/${slug}`);
+          else
+            router.replace(
+              skillPath(d.org.slug, d.source?.repo ?? d.version?.repo?.repo ?? "bundles", slug),
+            );
+        } catch {
+          setError(e.message);
+        }
+      });
+  }, [slug, provider, router]);
 
-  // Skill slugs are globally unique, so the provider and source segments are
-  // claims about ownership. When either names the wrong place, move to the
-  // canonical URL.
+  // The source segment is a claim about where the skill comes from. When it
+  // names the wrong place, move to the canonical URL.
   const ownerSlug: string | null = detail?.org?.slug ?? null;
-  const canonicalSource: string | null = detail ? (detail.version?.repo?.repo ?? "bundles") : null;
+  const canonicalSource: string | null = detail
+    ? (detail.source?.repo ?? detail.version?.repo?.repo ?? "bundles")
+    : null;
   useEffect(() => {
     if (!ownerSlug || !canonicalSource) return;
     if (ownerSlug !== provider || canonicalSource !== source)
@@ -95,7 +111,7 @@ export default function SkillPage() {
   const checksPassed = checks.filter((c: any) => c.status === "pass").length;
   const handle = org.slug ?? provider;
   const repo = version.repo ?? null;
-  const srcKey = repo?.repo ?? "bundles";
+  const srcKey = detail.source?.repo ?? repo?.repo ?? "bundles";
   // Skills install via the skills CLI from their public GitHub repository;
   // legacy skills without one have no valid install command.
   const command = installCommand({ repoUrl: repo?.url, skillId: skill.slug });
@@ -218,7 +234,11 @@ export default function SkillPage() {
                 {related.map((r: any) => (
                   <li key={r.slug}>
                     <Link
-                      href={skillPath(r.org?.slug ?? handle, r.repo?.repo ?? "bundles", r.slug)}
+                      href={skillPath(
+                        r.org?.slug ?? handle,
+                        r.source?.repo ?? r.repo?.repo ?? "bundles",
+                        r.slug,
+                      )}
                       className="grid grid-cols-1 gap-x-4 py-3 transition-colors hover:bg-accent/30 sm:grid-cols-[1fr_auto]"
                     >
                       <span className="min-w-0">
