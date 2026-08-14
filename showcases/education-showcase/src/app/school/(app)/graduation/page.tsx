@@ -1,18 +1,22 @@
 import { SchoolShell } from '@/components/SchoolShell';
 import { getSession } from '@/lib/guards';
-import { listApplications } from '@/lib/registry';
+import { getDiplomaExchange, listApplications } from '@/lib/registry';
 
-import { submitGraduationDecision } from './actions';
+import { revokeIssuedDiploma, submitGraduationDecision } from './actions';
 
 /**
  * Graduation decisions: the school signs a decision (the sandbox TSP stands
  * in for a qualified signature), and the decision text is hashed; the hash
- * is referenced inside the Ministry-issued diploma credential.
+ * is referenced inside the diploma credential. Submission is processed by
+ * the registry automatically: the institution is checked against the
+ * Education Service Registry and the diploma fee falls due for the learner.
+ * Revocation of an issued diploma is also requested here and processed
+ * immediately.
  */
 export default async function SchoolGraduation() {
   const session = await getSession();
   const ready = listApplications(['approved']);
-  const sent = listApplications(['graduation_submitted', 'payment_pending', 'issued']);
+  const sent = listApplications(['payment_pending', 'issued']);
 
   return (
     <SchoolShell active="graduation" userName={session?.user.name ?? 'Officer'}>
@@ -58,6 +62,9 @@ export default async function SchoolGraduation() {
               <p style={{ fontSize: '0.78rem', color: 'var(--muted)', margin: '0.5rem 0' }}>
                 Signed by the institution{' '}
                 <span className="integration-badge sandbox">Sandbox TSP signature</span>
+                . On submission the registry validates the institution and
+                asks the learner to pay the diploma fee; the diploma is
+                issued to their wallet in the same payment step.
               </p>
               <button
                 type="submit"
@@ -75,6 +82,60 @@ export default async function SchoolGraduation() {
             </form>
           ))
         )}
+        {sent.length > 0 ? (
+          <>
+            <h2 style={{ marginTop: '1.5rem', fontSize: '1rem' }}>Submitted decisions</h2>
+            {sent.map((app) => (
+              <div
+                key={app.id}
+                style={{ borderTop: '1px solid var(--line)', paddingTop: '0.9rem', marginTop: '0.9rem' }}
+              >
+                <strong>{app.learnerName}</strong>
+                {app.status === 'payment_pending' ? (
+                  <p style={{ margin: '0.35rem 0 0' }}>
+                    Awaiting the learner&apos;s fee payment; the diploma is
+                    issued to their wallet in the same step.
+                  </p>
+                ) : getDiplomaExchange(app.id)?.revoked ? (
+                  <p style={{ margin: '0.35rem 0 0', color: 'var(--bad)', fontWeight: 600 }}>
+                    Diploma revoked
+                    {getDiplomaExchange(app.id)?.revokedAt
+                      ? ` on ${String(getDiplomaExchange(app.id)?.revokedAt).slice(0, 10)}`
+                      : ''}
+                    . Fresh verifications reject it.
+                  </p>
+                ) : (
+                  <>
+                    <p style={{ margin: '0.35rem 0 0.6rem', color: 'var(--ok)', fontWeight: 600 }}>
+                      Diploma issued to the learner&apos;s wallet.
+                    </p>
+                    <form action={revokeIssuedDiploma}>
+                      <input type="hidden" name="applicationId" value={app.id} />
+                      <button
+                        type="submit"
+                        style={{
+                          background: 'var(--bad)',
+                          color: '#fff',
+                          border: 0,
+                          borderRadius: 999,
+                          padding: '0.45rem 1.1rem',
+                          fontWeight: 700,
+                          fontSize: '0.82rem',
+                        }}
+                      >
+                        Revoke the diploma
+                      </button>
+                    </form>
+                    <p style={{ fontSize: '0.75rem', color: 'var(--muted)', margin: '0.4rem 0 0' }}>
+                      Revocation is permanent and takes effect immediately: a
+                      fresh verification anywhere rejects the credential.
+                    </p>
+                  </>
+                )}
+              </div>
+            ))}
+          </>
+        ) : null}
       </section>
     </SchoolShell>
   );

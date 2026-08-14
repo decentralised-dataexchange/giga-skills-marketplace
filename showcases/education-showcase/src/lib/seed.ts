@@ -6,7 +6,7 @@ import { newId } from '@/lib/ids';
 import { DEMO_ACCOUNTS } from '@/lib/demo-accounts';
 
 /**
- * Idempotent demo seed: the four staff accounts, the fictional institutions
+ * Idempotent demo seed: the staff account, the fictional institutions
  * and the default policy state. Runs once per process, guarded by a promise on
  * globalThis, and skips anything that already exists, so restarts and
  * hot-reloads never duplicate data.

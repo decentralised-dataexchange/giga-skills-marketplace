@@ -3,7 +3,7 @@
 import { revalidatePath } from 'next/cache';
 
 import { requireRole } from '@/lib/guards';
-import { submitGraduation } from '@/lib/registry';
+import { revokeDiploma, submitGraduation } from '@/lib/registry';
 
 export async function submitGraduationDecision(formData: FormData): Promise<void> {
   const session = await requireRole('school_officer');
@@ -17,5 +17,17 @@ export async function submitGraduationDecision(formData: FormData): Promise<void
     },
     { userId: session.user.id }
   );
+  revalidatePath('/school/graduation');
+}
+
+/**
+ * Permanently revoke an issued diploma. The registry processes the request
+ * immediately; a fresh employer verification then rejects the credential.
+ */
+export async function revokeIssuedDiploma(formData: FormData): Promise<void> {
+  const session = await requireRole('school_officer');
+  await revokeDiploma(String(formData.get('applicationId') ?? ''), {
+    userId: session.user.id,
+  });
   revalidatePath('/school/graduation');
 }

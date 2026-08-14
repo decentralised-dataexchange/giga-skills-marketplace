@@ -14,8 +14,10 @@ import { ows, requiredEnv } from '@/lib/ows';
  * called from role-guarded server actions or the webhook handler.
  *
  * Application states:
- *   draft → submitted → school_validated → approved →
- *   graduation_submitted → payment_pending → issued
+ *   draft → submitted → approved → payment_pending → issued
+ * The school's document validation and graduation submission each trigger
+ * automatic registry processing, so the intermediate review states are
+ * momentary.
  */
 
 export type Application = {
@@ -147,13 +149,17 @@ function setStatus(id: string, status: string) {
     .run(status, new Date().toISOString(), id);
 }
 
-/** The RFQ-required manual document review by the school officer. */
-export function schoolValidate(appId: string, actor: { userId: string }) {
+/**
+ * The RFQ-required manual document review by the school officer. Approval
+ * by the registry then runs automatically behind the scenes: the ULID is
+ * generated, the authoritative learner profile is created, and the
+ * Verifiable Student ID is issued to the wallet.
+ */
+export async function schoolValidate(appId: string, actor: { userId: string }) {
   const app = getApplication(appId);
   if (!app || app.status !== 'submitted') {
     throw new Error('The application is not awaiting review.');
   }
-  setStatus(appId, 'school_validated');
   audit({
     actorUserId: actor.userId,
     actorRole: 'school_officer',
@@ -162,21 +168,16 @@ export function schoolValidate(appId: string, actor: { userId: string }) {
     subjectId: appId,
     payload: { civilRegistryCheck: 'sandbox:passed' },
   });
+  await autoEnrol(appId);
 }
 
 /**
- * The registrar approval: generates the ULID, creates the authoritative
- * learner profile, and issues the Verifiable Student ID to the wallet.
- * Returns the credential offer URI for the learner's QR.
+ * The automatic registry processing that follows a successful document
+ * review: ULID, authoritative profile, and the Student ID issuance.
  */
-export async function registrarApprove(
-  appId: string,
-  actor: { userId: string }
-): Promise<void> {
+async function autoEnrol(appId: string): Promise<void> {
   const app = getApplication(appId);
-  if (!app || app.status !== 'school_validated') {
-    throw new Error('The application is not awaiting a registrar decision.');
-  }
+  if (!app) throw new Error('Unknown application.');
 
   const db = getDb();
   const now = new Date().toISOString();
@@ -188,12 +189,12 @@ export async function registrarApprove(
   setStatus(appId, 'approved');
 
   audit({
-    actorUserId: actor.userId,
-    actorRole: 'registrar',
+    actorUserId: null,
+    actorRole: 'system',
     action: 'application.approved',
     subjectType: 'application',
     subjectId: appId,
-    payload: { ulid },
+    payload: { ulid, processing: 'automatic' },
   });
 
   const form = JSON.parse(app.form) as Record<string, unknown>;
@@ -270,8 +271,8 @@ export async function registrarApprove(
   );
 
   audit({
-    actorUserId: actor.userId,
-    actorRole: 'registrar',
+    actorUserId: null,
+    actorRole: 'system',
     action: 'credential.student_id_offered',
     subjectType: 'exchange',
     subjectId: exchangeId,
@@ -279,7 +280,13 @@ export async function registrarApprove(
   });
 }
 
-/** The school submits the signed graduation decision reference. */
+/**
+ * The school submits the signed graduation decision reference. The registry
+ * then processes it automatically: the institution is validated against the
+ * sandbox Education Service Registry and the diploma is placed behind the
+ * fee. The learner pays with the wallet and receives the diploma in the
+ * same step.
+ */
 export function submitGraduation(
   appId: string,
   decision: {
@@ -327,30 +334,15 @@ export function submitGraduation(
       institutionSignature: 'sandbox:tsp-signed',
     },
   });
-}
 
-/**
- * The Ministry processes a graduation decision: validates the institution
- * against the sandbox Education Service Registry and places the diploma
- * behind the fee. Payment is always required; the learner pays with the
- * wallet and receives the diploma in the same step.
- */
-export async function moeProcessGraduation(
-  appId: string,
-  actor: { userId: string }
-): Promise<'payment_pending'> {
-  const app = getApplication(appId);
-  if (!app || app.status !== 'graduation_submitted') {
-    throw new Error('The application has no pending graduation decision.');
-  }
-
-  // Sandbox Education Service Registry check.
+  // Automatic registry processing: the sandbox Education Service Registry
+  // check, then the fee requirement.
   if (!app.esrRef || !app.esrRef.startsWith('ESR-')) {
     throw new Error('The institution is not authorised in the Education Service Registry.');
   }
   audit({
-    actorUserId: actor.userId,
-    actorRole: 'registrar',
+    actorUserId: null,
+    actorRole: 'system',
     action: 'graduation.institution_validated',
     subjectType: 'application',
     subjectId: appId,
@@ -359,13 +351,12 @@ export async function moeProcessGraduation(
 
   setStatus(appId, 'payment_pending');
   audit({
-    actorUserId: actor.userId,
-    actorRole: 'registrar',
+    actorUserId: null,
+    actorRole: 'system',
     action: 'graduation.payment_required',
     subjectType: 'application',
     subjectId: appId,
   });
-  return 'payment_pending';
 }
 
 /**
@@ -578,7 +569,7 @@ export async function revokeDiploma(
 
   audit({
     actorUserId: actor.userId,
-    actorRole: 'registrar',
+    actorRole: 'school_officer',
     action: 'credential.diploma_revoked',
     subjectType: 'exchange',
     subjectId: exchange.owsExchangeId,

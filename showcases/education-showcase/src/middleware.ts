@@ -11,7 +11,6 @@ import { getSessionCookie } from 'better-auth/cookies';
 const PORTAL_LOGINS: Array<{ prefix: string; login: string; public: string[] }> = [
   { prefix: '/education', login: '/education/login', public: ['/education', '/education/login'] },
   { prefix: '/school', login: '/school/login', public: ['/school/login'] },
-  { prefix: '/moe', login: '/moe/login', public: ['/moe/login'] },
   // /civicworks is fully public: the candidate is an anonymous visitor.
 ];
 
@@ -40,6 +39,5 @@ export const config = {
   matcher: [
     '/education/:path*',
     '/school/:path*',
-    '/moe/:path*',
   ],
 };

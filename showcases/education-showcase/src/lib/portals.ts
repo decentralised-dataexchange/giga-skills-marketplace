@@ -1,15 +1,17 @@
 import { assetPath } from '@/lib/base-path';
 
 /**
- * The five portal identities. One Next.js application serves five subpaths,
- * and each subpath presents itself as its own product: own name, logo,
- * palette and layout. The palettes live here; the layout and typography
+ * The three portal identities. One Next.js application serves three
+ * subpaths, and each subpath presents itself as its own product: own name,
+ * logo, palette and layout. The Ministry of Education exists only behind
+ * the scenes: enrolment, issuance and revocation processing run
+ * automatically in the registry. The palettes live here; the layout and typography
  * differences live in each portal's stylesheet and shell component.
  *
  * All organisations are fictional.
  */
 
-export type PortalId = 'education' | 'school' | 'moe' | 'civicworks';
+export type PortalId = 'education' | 'school' | 'civicworks';
 
 export type PortalConfig = {
   id: PortalId;
@@ -20,7 +22,7 @@ export type PortalConfig = {
   tagline: string;
   logo: string;
   /** The Better Auth role allowed into this portal. */
-  role: 'learner' | 'school_officer' | 'registrar' | 'employer_verifier';
+  role: 'learner' | 'school_officer' | 'employer_verifier';
   loginPath: string;
   homePath: string;
   /** Brand palette injected as CSS variables by the portal layout. */
@@ -73,29 +75,6 @@ export const PORTALS: Record<PortalId, PortalConfig> = {
       line: '#d9e2d4',
     },
     footer: 'Riverside Secondary School is a fictional institution. Sandbox data only.',
-  },
-  moe: {
-    id: 'moe',
-    name: 'Registrar Back Office',
-    organisation: 'Ministry of Education',
-    tagline: 'National Learner Registry administration',
-    logo: assetPath('/portals/moe/logo.svg'),
-    role: 'registrar',
-    loginPath: '/moe/login',
-    homePath: '/moe/approvals',
-    brand: {
-      brand: '#232f56',
-      'brand-dark': '#18203c',
-      'brand-soft': '#eceff7',
-      accent: '#8d1d2c',
-      surface: '#f2f3f6',
-      card: '#ffffff',
-      ink: '#1c2130',
-      muted: '#5a6070',
-      line: '#d5d9e2',
-    },
-    footer:
-      'Ministry of Education Registrar Back Office. Fictional authority for the education wallet showcase.',
   },
   civicworks: {
     id: 'civicworks',

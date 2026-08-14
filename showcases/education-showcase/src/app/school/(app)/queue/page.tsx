@@ -9,8 +9,10 @@ import { validateDocuments } from './actions';
 
 /**
  * The manual document review the RFQ requires: the officer opens an
- * application, checks the document references against the sandbox civil
- * registry, and validates it for the Ministry.
+ * application and checks the document references against the sandbox civil
+ * registry. On validation the registry processes the enrolment
+ * automatically: the learner identifier is generated and the Student ID is
+ * offered to the wallet, with no further manual step.
  */
 export default async function SchoolQueue({
   searchParams,
@@ -19,7 +21,7 @@ export default async function SchoolQueue({
 }) {
   const session = await getSession();
   const { app: selectedId } = await searchParams;
-  const queue = listApplications(['submitted', 'school_validated']);
+  const queue = listApplications(['submitted', 'approved']);
   const selected = selectedId ? getApplication(selectedId) : undefined;
   const form = selected ? (JSON.parse(selected.form) as Record<string, unknown>) : {};
   const documents = selected ? (JSON.parse(selected.documents) as string[]) : [];
@@ -56,7 +58,7 @@ export default async function SchoolQueue({
               <Link key={item.id} className="sch-queue-item" href={`/school/queue?app=${item.id}`}>
                 <strong>{item.learnerName}</strong>
                 <div style={{ fontSize: '0.75rem', color: 'var(--muted)' }}>
-                  {item.status === 'submitted' ? 'Awaiting review' : 'Validated'} ·{' '}
+                  {item.status === 'submitted' ? 'Awaiting review' : 'Enrolled'} ·{' '}
                   {item.createdAt.slice(0, 10)}
                 </div>
               </Link>
@@ -71,8 +73,9 @@ export default async function SchoolQueue({
                 Select an application from the queue to check the uploaded
                 documents against the civil registry{' '}
                 <span className="integration-badge sandbox">Sandbox</span> and
-                confirm prior education records before the Ministry approves
-                the enrolment.
+                confirm prior education records. Validation enrols the
+                learner automatically and offers the Student ID to their
+                wallet.
               </p>
             </>
           ) : (
@@ -162,12 +165,13 @@ export default async function SchoolQueue({
                       fontWeight: 700,
                     }}
                   >
-                    Validate documents and forward to the Ministry
+                    Validate documents and enrol the learner
                   </button>
                 </form>
               ) : (
                 <p style={{ color: 'var(--ok)', fontWeight: 600 }}>
-                  Validated. Awaiting the Ministry registrar.
+                  Validated. The learner was enrolled automatically and the
+                  Student ID was offered to their wallet.
                 </p>
               )}
             </>

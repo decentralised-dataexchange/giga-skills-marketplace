@@ -1,0 +1,149 @@
+/* The public registry audit trail: same neutral look as the landing page. */
+
+.adt {
+  max-width: 72rem;
+  margin: 0 auto;
+  padding: 3rem 1.5rem 4rem;
+  color: #1c2130;
+}
+
+.adt-kicker {
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #5a6070;
+}
+
+.adt h1 {
+  margin: 0.5rem 0 1rem;
+  font-size: 1.8rem;
+  line-height: 1.15;
+}
+
+.adt-intro {
+  max-width: 48rem;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: #3a4150;
+}
+
+.adt-back {
+  display: inline-block;
+  margin-bottom: 1.5rem;
+  font-size: 0.85rem;
+  color: #5a6070;
+  text-decoration: none;
+}
+
+.adt-back:hover {
+  color: #1c2130;
+}
+
+.adt-panel {
+  margin-top: 1.5rem;
+  background: #ffffff;
+  border: 1px solid #d5d9e2;
+  border-radius: 8px;
+  overflow-x: auto;
+}
+
+.adt-empty {
+  padding: 1.5rem;
+  color: #5a6070;
+  font-size: 0.9rem;
+}
+
+.adt-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+}
+
+.adt-table th {
+  text-align: left;
+  padding: 0.7rem 0.9rem;
+  background: #f2f3f6;
+  border-bottom: 1px solid #d5d9e2;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #5a6070;
+  white-space: nowrap;
+}
+
+.adt-table td {
+  padding: 0.6rem 0.9rem;
+  border-bottom: 1px solid #e8eaef;
+  vertical-align: top;
+}
+
+.adt-num {
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+  color: #5a6070;
+}
+
+.adt-time span {
+  display: block;
+  white-space: nowrap;
+}
+
+.adt-time small {
+  color: #5a6070;
+}
+
+.adt-role-chip {
+  display: inline-block;
+  padding: 0.15rem 0.55rem;
+  border: 1px solid #d5d9e2;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  white-space: nowrap;
+  text-transform: capitalize;
+}
+
+.adt-action {
+  font-family: ui-monospace, monospace;
+  font-size: 0.78rem;
+  white-space: nowrap;
+}
+
+.adt-subject small {
+  display: block;
+  color: #5a6070;
+}
+
+.adt-subject code {
+  font-size: 0.72rem;
+  word-break: break-all;
+}
+
+.adt-detail {
+  margin: 0;
+}
+
+.adt-detail div {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.adt-detail dt {
+  color: #5a6070;
+  white-space: nowrap;
+}
+
+.adt-detail dt::after {
+  content: ':';
+}
+
+.adt-detail dd {
+  margin: 0;
+  word-break: break-word;
+}
+
+.adt-detail-empty {
+  color: #5a6070;
+}

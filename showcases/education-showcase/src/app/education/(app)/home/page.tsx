@@ -10,10 +10,9 @@ import { ExchangeQr } from '@/components/ExchangeQr';
 import { PaymentConfirm } from '@/components/PaymentConfirm';
 
 const STATUS_TEXT: Record<string, string> = {
-  submitted: 'Your application is with the school admissions office for manual document review.',
-  school_validated: 'Documents validated. The Ministry registrar is reviewing your enrolment.',
-  approved: 'Enrolment approved. Add your Student ID to your wallet below.',
-  graduation_submitted: 'Your school submitted the graduation decision. The Ministry is validating it.',
+  submitted:
+    'Your application is with the school admissions office for document review. Once validated, you are enrolled automatically.',
+  approved: 'You are enrolled. Add your Student ID to your wallet below.',
   payment_pending: 'The diploma fee is due. Pay with your wallet, and your diploma is issued in the same step.',
   issued: 'Your diploma has been issued. Add it to your wallet below.',
 };
