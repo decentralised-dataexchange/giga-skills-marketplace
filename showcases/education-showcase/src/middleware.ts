@@ -27,7 +27,12 @@ export function middleware(request: NextRequest) {
 
   const cookie = getSessionCookie(request);
   if (!cookie) {
-    return NextResponse.redirect(new URL(portal.login, request.url));
+    // Clone nextUrl rather than building a URL from scratch: it carries the
+    // deploy base path, so the redirect stays under /showcase in the
+    // monolith deployment.
+    const login = request.nextUrl.clone();
+    login.pathname = portal.login;
+    return NextResponse.redirect(login);
   }
   return NextResponse.next();
 }
