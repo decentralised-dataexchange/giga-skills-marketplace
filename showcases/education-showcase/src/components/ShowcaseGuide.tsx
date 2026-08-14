@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation';
 import { ArrowRight, BookOpen, ExternalLink } from 'lucide-react';
 
 import { Drawer } from '@/components/Drawer';
+import type { NextStop } from '@/lib/next-stop';
 import { DEMO_STEPS } from '@/lib/demo-steps';
 import { PORTALS, type PortalConfig } from '@/lib/portals';
 
@@ -47,10 +48,12 @@ function stepColour(href: string): string {
 function PortalRow({
   portal,
   activeId,
+  isNext,
   onNavigate,
 }: {
   portal: PortalConfig;
   activeId?: string;
+  isNext: boolean;
   onNavigate: () => void;
 }) {
   const active = activeId === portal.id;
@@ -76,6 +79,8 @@ function PortalRow({
       </span>
       {active ? (
         <span className="guide-current">You are here</span>
+      ) : isNext ? (
+        <span className="guide-next-chip">Next step</span>
       ) : (
         <ArrowRight size={15} className="guide-portal-go" aria-hidden="true" />
       )}
@@ -83,7 +88,7 @@ function PortalRow({
   );
 }
 
-export function ShowcaseGuide() {
+export function ShowcaseGuide({ nextStop }: { nextStop: NextStop | null }) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
 
@@ -93,8 +98,26 @@ export function ShowcaseGuide() {
   );
   const close = () => setOpen(false);
 
+  // Annotate the button whenever the journey continues somewhere else than
+  // the portal on screen, so a finished step always points to the next one.
+  const atNextStop = nextStop
+    ? nextStop.portalId
+      ? pathname === `/${nextStop.portalId}` ||
+        pathname.startsWith(`/${nextStop.portalId}/`)
+      : pathname === nextStop.href
+    : true;
+  const showNext = Boolean(nextStop) && !atNextStop && !open;
+
   return (
     <div className="guide">
+      {showNext && nextStop ? (
+        <Link className="guide-next" href={nextStop.href}>
+          <span className="guide-next-kicker">Next step</span>
+          <span className="guide-next-label">
+            {nextStop.label} <ArrowRight size={13} aria-hidden="true" />
+          </span>
+        </Link>
+      ) : null}
       {open ? (
         <Drawer title="Demo guide" width={560} onClose={close}>
           <section className="guide-section">
@@ -156,6 +179,7 @@ export function ShowcaseGuide() {
                   key={portal.id}
                   portal={portal}
                   activeId={current?.id}
+                  isNext={nextStop?.portalId === portal.id}
                   onNavigate={close}
                 />
               ))}
@@ -199,7 +223,7 @@ export function ShowcaseGuide() {
       ) : null}
       <button
         type="button"
-        className="guide-fab"
+        className={showNext ? 'guide-fab hint-pulse' : 'guide-fab'}
         onClick={() => setOpen(true)}
         aria-label="Open the demo guide"
       >

@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 
+import { getNextStop } from '@/lib/next-stop';
 import { ensureSeeded } from '@/lib/seed';
 import { ShowcaseGuide } from '@/components/ShowcaseGuide';
 
@@ -19,12 +20,13 @@ export default async function RootLayout({
   children: React.ReactNode;
 }) {
   await ensureSeeded();
+  const nextStop = getNextStop();
 
   return (
     <html lang="en">
       <body>
         {children}
-        <ShowcaseGuide />
+        <ShowcaseGuide nextStop={nextStop} />
       </body>
     </html>
   );
