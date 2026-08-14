@@ -1,9 +1,9 @@
-import 'server-only';
+import "server-only";
 
-import { getDb } from '@/lib/db';
-import { audit } from '@/lib/audit';
-import { baseUrl, internalError, owsLog } from '@/lib/ows';
-import type { Learner } from '@/lib/registry';
+import { getDb } from "@/lib/db";
+import { audit } from "@/lib/audit";
+import { baseUrl, internalError, owsLog } from "@/lib/ows";
+import type { Learner } from "@/lib/registry";
 
 /**
  * The Consent Building Block client (main tenant). The three data agreements
@@ -14,31 +14,31 @@ import type { Learner } from '@/lib/registry';
 
 export const AGREEMENTS = [
   {
-    envVar: 'AGREEMENT_ENROLMENT_ID',
-    key: 'enrolment',
-    title: 'Core enrolment processing',
-    lawfulBasis: 'public_task',
+    envVar: "AGREEMENT_ENROLMENT_ID",
+    key: "enrolment",
+    title: "Core enrolment processing",
+    lawfulBasis: "public_task",
     optional: false,
     description:
-      'Registration, review, approval and credential issuance. A public task: it does not depend on consent.',
+      "Registration, review, approval and credential issuance. A public task: it does not depend on consent.",
   },
   {
-    envVar: 'AGREEMENT_ANALYTICS_ID',
-    key: 'analytics',
-    title: 'Anonymised education analytics',
-    lawfulBasis: 'consent',
+    envVar: "AGREEMENT_ANALYTICS_ID",
+    key: "analytics",
+    title: "Anonymised education analytics",
+    lawfulBasis: "consent",
     optional: true,
     description:
-      'Optional anonymised statistics for policy planning. Declining never affects your registration.',
+      "Optional anonymised statistics for policy planning. Declining never affects your registration.",
   },
   {
-    envVar: 'AGREEMENT_EMPLOYER_ID',
-    key: 'employer',
-    title: 'Employer qualification sharing',
-    lawfulBasis: 'consent',
+    envVar: "AGREEMENT_EMPLOYER_ID",
+    key: "employer",
+    title: "Employer qualification sharing",
+    lawfulBasis: "consent",
     optional: true,
     description:
-      'Optional later sharing of your qualification with an employer; every share still needs your wallet approval.',
+      "Optional later sharing of your qualification with an employer; every share still needs your wallet approval.",
   },
 ] as const;
 
@@ -49,20 +49,20 @@ export function agreementId(envVar: string): string {
 }
 
 async function consentApi(
-  method: 'GET' | 'POST' | 'PUT' | 'DELETE',
+  method: "GET" | "POST" | "PUT" | "DELETE",
   path: string,
   individualId?: string,
-  body?: Record<string, unknown> | null
+  body?: Record<string, unknown> | null,
 ): Promise<any> {
   const key = process.env.IGRANT_API_KEY;
-  if (!key) throw internalError('IGRANT_API_KEY not set for Consent BB');
+  if (!key) throw internalError("IGRANT_API_KEY not set for Consent BB");
   const headers: Record<string, string> = {
     Authorization: `ApiKey ${key}`,
-    'Content-Type': 'application/json',
+    "Content-Type": "application/json",
   };
-  if (individualId) headers['X-ConsentBB-IndividualId'] = individualId;
+  if (individualId) headers["X-ConsentBB-IndividualId"] = individualId;
 
-  const init: RequestInit = { method, headers, cache: 'no-store' };
+  const init: RequestInit = { method, headers, cache: "no-store" };
   if (body) init.body = JSON.stringify(body);
   const resp = await fetch(`${baseUrl()}${path}`, init);
   let data: any = null;
@@ -73,10 +73,10 @@ async function consentApi(
   }
   if (!resp.ok) {
     owsLog(
-      'error',
-      `Consent BB HTTP ${resp.status} ${method} ${path} ${JSON.stringify(data)?.slice(0, 300)}`
+      "error",
+      `Consent BB HTTP ${resp.status} ${method} ${path} ${JSON.stringify(data)?.slice(0, 300)}`,
     );
-    throw new Error('The consent service could not complete the request.');
+    throw new Error("The consent service could not complete the request.");
   }
   return data;
 }
@@ -93,29 +93,29 @@ export async function ensureIndividual(learner: Learner): Promise<string> {
   // duplicates the individual. The service answers HTTP 500 when nothing
   // matches, so a failed lookup means "not found", not an error.
   const found = await consentApi(
-    'GET',
-    `/v2/config/individuals?externalIndividualId=${encodeURIComponent(learner.id)}&limit=1`
+    "GET",
+    `/v2/config/individuals?externalIndividualId=${encodeURIComponent(learner.id)}&limit=1`,
   ).catch(() => null);
   let individualId: string | undefined = (found?.individuals ?? [])[0]?.id;
 
   if (!individualId) {
-    const created = await consentApi('POST', '/v2/config/individual', undefined, {
+    const created = await consentApi("POST", "/v2/config/individual", undefined, {
       individual: {
         // The pseudonymous display name only; no PID attribute reaches
         // the Consent BB.
         name: learner.displayName,
         email: `learner-${learner.pseudonym.slice(0, 12)}@wallet.invalid`,
-        phone: '',
+        phone: "",
         externalId: learner.id,
-        externalIdType: 'education-showcase-learner',
+        externalIdType: "education-showcase-learner",
       },
     });
     individualId = created?.individual?.id;
   }
-  if (!individualId) throw internalError('Consent BB returned no individual id');
+  if (!individualId) throw internalError("Consent BB returned no individual id");
 
   db.prepare(
-    'INSERT INTO "consent_links" ("learnerId", "individualId", "createdAt") VALUES (?, ?, ?)'
+    'INSERT INTO "consent_links" ("learnerId", "individualId", "createdAt") VALUES (?, ?, ?)',
   ).run(learner.id, individualId, new Date().toISOString());
 
   return individualId;
@@ -132,28 +132,28 @@ export function getIndividualId(learnerId: string): string | undefined {
 export async function setConsent(
   individualId: string,
   dataAgreementId: string,
-  optIn: boolean
+  optIn: boolean,
 ): Promise<void> {
   const existing = await consentApi(
-    'GET',
+    "GET",
     `/v2/service/individual/record/data-agreement/${dataAgreementId}`,
-    individualId
+    individualId,
   ).catch(() => null);
   const record = existing?.consentRecord;
 
   if (!record?.id) {
     const created = await consentApi(
-      'POST',
+      "POST",
       `/v2/service/individual/record/data-agreement/${dataAgreementId}`,
-      individualId
+      individualId,
     );
     const createdRecord = created?.consentRecord;
     if (createdRecord && createdRecord.optIn !== optIn) {
       await consentApi(
-        'PUT',
+        "PUT",
         `/v2/service/individual/record/consent-record/${createdRecord.id}?individualId=${individualId}&dataAgreementId=${dataAgreementId}`,
         individualId,
-        { consentRecord: { optIn } }
+        { consentRecord: { optIn } },
       );
     }
     return;
@@ -161,10 +161,10 @@ export async function setConsent(
 
   if (record.optIn !== optIn) {
     await consentApi(
-      'PUT',
+      "PUT",
       `/v2/service/individual/record/consent-record/${record.id}?individualId=${individualId}&dataAgreementId=${dataAgreementId}`,
       individualId,
-      { consentRecord: { optIn } }
+      { consentRecord: { optIn } },
     );
   }
 }
@@ -185,12 +185,12 @@ export async function readConsents(individualId: string): Promise<ConsentState[]
     let optIn: boolean | null = null;
     try {
       const answer = await consentApi(
-        'GET',
+        "GET",
         `/v2/service/individual/record/data-agreement/${agreementId(agreement.envVar)}`,
-        individualId
+        individualId,
       );
       const record = answer?.consentRecord;
-      optIn = typeof record?.optIn === 'boolean' ? record.optIn : null;
+      optIn = typeof record?.optIn === "boolean" ? record.optIn : null;
     } catch {
       optIn = null;
     }
@@ -209,43 +209,35 @@ export async function readConsents(individualId: string): Promise<ConsentState[]
 /** Right to be forgotten: delete every consent record of one individual. */
 export async function deleteAllConsents(
   individualId: string,
-  actor: { userId: string; role: string }
+  actor: { userId: string; role: string },
 ): Promise<void> {
-  await consentApi('DELETE', '/v2/service/individual/record', individualId);
+  await consentApi("DELETE", "/v2/service/individual/record", individualId);
   audit({
     actorUserId: actor.userId,
     actorRole: actor.role,
-    action: 'consent.erased_all',
-    subjectType: 'individual',
-    subjectId: 'redacted',
+    action: "consent.erased_all",
+    subjectType: "individual",
+    subjectId: "redacted",
   });
 }
 
 /** Record the initial decisions made on the registration form. */
 export async function recordRegistrationConsents(
   learner: Learner,
-  choices: { analytics: boolean; employerSharing: boolean }
+  choices: { analytics: boolean; employerSharing: boolean },
 ): Promise<void> {
   const individualId = await ensureIndividual(learner);
   // The public-task notice is acknowledged, not consented to; recording it
   // makes the processing visible in the individual's consent dashboard.
-  await setConsent(individualId, agreementId('AGREEMENT_ENROLMENT_ID'), true);
-  await setConsent(
-    individualId,
-    agreementId('AGREEMENT_ANALYTICS_ID'),
-    choices.analytics
-  );
-  await setConsent(
-    individualId,
-    agreementId('AGREEMENT_EMPLOYER_ID'),
-    choices.employerSharing
-  );
+  await setConsent(individualId, agreementId("AGREEMENT_ENROLMENT_ID"), true);
+  await setConsent(individualId, agreementId("AGREEMENT_ANALYTICS_ID"), choices.analytics);
+  await setConsent(individualId, agreementId("AGREEMENT_EMPLOYER_ID"), choices.employerSharing);
 
   audit({
     actorUserId: learner.userId,
-    actorRole: 'learner',
-    action: 'consent.recorded',
-    subjectType: 'learner',
+    actorRole: "learner",
+    action: "consent.recorded",
+    subjectType: "learner",
     subjectId: learner.id,
     payload: {
       analytics: choices.analytics,

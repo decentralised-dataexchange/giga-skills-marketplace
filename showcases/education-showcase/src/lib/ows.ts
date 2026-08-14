@@ -1,4 +1,4 @@
-import 'server-only';
+import "server-only";
 
 /**
  * The single place where this application talks to the iGrant.io Organisation
@@ -16,18 +16,18 @@ import 'server-only';
  * X-SandboxOrgId header is needed at call time.
  */
 
-export type OwsOrg = 'moe' | 'civicworks' | 'main';
+export type OwsOrg = "moe" | "civicworks" | "main";
 
 const KEY_ENV: Record<OwsOrg, string> = {
-  moe: 'MOE_IGRANT_API_KEY',
-  civicworks: 'CIVICWORKS_IGRANT_API_KEY',
-  main: 'IGRANT_API_KEY',
+  moe: "MOE_IGRANT_API_KEY",
+  civicworks: "CIVICWORKS_IGRANT_API_KEY",
+  main: "IGRANT_API_KEY",
 };
 
-export function owsLog(level: 'log' | 'warn' | 'error', msg: string) {
+export function owsLog(level: "log" | "warn" | "error", msg: string) {
   const ts = new Date().toISOString();
-  if (level === 'warn') console.warn(`[OWS][${ts}] ${msg}`);
-  else if (level === 'error') console.error(`[OWS][${ts}] ${msg}`);
+  if (level === "warn") console.warn(`[OWS][${ts}] ${msg}`);
+  else if (level === "error") console.error(`[OWS][${ts}] ${msg}`);
   else console.log(`[OWS][${ts}] ${msg}`);
 }
 
@@ -36,14 +36,14 @@ export function owsLog(level: 'log' | 'warn' | 'error', msg: string) {
  * detail server-side. The client only ever sees the returned message.
  */
 export function internalError(detail: string): Error {
-  owsLog('error', `Server error: ${detail}`);
-  return new Error('Something went wrong. Please try again.');
+  owsLog("error", `Server error: ${detail}`);
+  return new Error("Something went wrong. Please try again.");
 }
 
 export function baseUrl(): string {
   const url = process.env.IGRANT_BASE_URL;
-  if (!url) throw internalError('IGRANT_BASE_URL not configured');
-  return url.replace(/\/$/, '');
+  if (!url) throw internalError("IGRANT_BASE_URL not configured");
+  return url.replace(/\/$/, "");
 }
 
 function apiKey(org: OwsOrg): string {
@@ -65,9 +65,9 @@ export function requiredEnv(name: string, what: string): string {
  */
 export async function ows(
   org: OwsOrg,
-  method: 'GET' | 'POST' | 'PUT' | 'DELETE',
+  method: "GET" | "POST" | "PUT" | "DELETE",
   path: string,
-  body?: Record<string, unknown> | null
+  body?: Record<string, unknown> | null,
 ): Promise<any> {
   const url = `${baseUrl()}${path}`;
 
@@ -75,9 +75,9 @@ export async function ows(
     method,
     headers: {
       Authorization: `ApiKey ${apiKey(org)}`,
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
     },
-    cache: 'no-store',
+    cache: "no-store",
   };
   if (body) options.body = JSON.stringify(body);
 
@@ -92,13 +92,11 @@ export async function ows(
 
   if (!resp.ok) {
     owsLog(
-      'error',
-      `HTTP ${resp.status} ${method} ${path} [${org}] ${JSON.stringify(data)?.slice(0, 500)}`
+      "error",
+      `HTTP ${resp.status} ${method} ${path} [${org}] ${JSON.stringify(data)?.slice(0, 500)}`,
     );
     // Never surface the raw OWS error: it may carry internal detail.
-    throw new Error(
-      'The wallet service could not complete the request. Please try again.'
-    );
+    throw new Error("The wallet service could not complete the request. Please try again.");
   }
 
   return data;

@@ -1,13 +1,9 @@
-import { redirect } from 'next/navigation';
+import { redirect } from "next/navigation";
 
-import { getSession } from '@/lib/guards';
-import {
-  getApplicationForLearner,
-  getInstitutions,
-  getLearnerByUserId,
-} from '@/lib/registry';
+import { getSession } from "@/lib/guards";
+import { getApplicationForLearner, getInstitutions, getLearnerByUserId } from "@/lib/registry";
 
-import { submitRegistration } from './actions';
+import { submitRegistration } from "./actions";
 
 /**
  * The learner registration form. Identity fields are prefilled from the
@@ -18,13 +14,13 @@ import { submitRegistration } from './actions';
 export default async function RegisterPage() {
   const session = await getSession();
   const learner = session ? getLearnerByUserId(session.user.id) : undefined;
-  if (!learner) redirect('/education/login');
+  if (!learner) redirect("/education/login");
 
   const existing = getApplicationForLearner(learner.id);
-  if (existing) redirect('/education/home');
+  if (existing) redirect("/education/home");
 
-  const schools = getInstitutions('school');
-  const [firstName, ...rest] = learner.displayName.split(' ');
+  const schools = getInstitutions("school");
+  const [firstName, ...rest] = learner.displayName.split(" ");
   let prefill: { dateOfBirth?: string; email?: string; address?: string } = {};
   try {
     prefill = learner.prefill ? JSON.parse(learner.prefill) : {};
@@ -37,9 +33,9 @@ export default async function RegisterPage() {
       <section className="edu-hero">
         <h1>Register as a learner</h1>
         <p>
-          Your name comes from the identity your wallet presented.
-          Complete the rest of the application; a school officer will review
-          your documents manually before the Ministry approves the enrolment.
+          Your name comes from the identity your wallet presented. Complete the rest of the
+          application; a school officer will review your documents manually before the Ministry
+          approves the enrolment.
         </p>
       </section>
 
@@ -47,33 +43,28 @@ export default async function RegisterPage() {
         <form action={submitRegistration}>
           <label>
             <span>First name (from your PID)</span>
-            <input name="firstName" defaultValue={firstName ?? ''} required />
+            <input name="firstName" defaultValue={firstName ?? ""} required />
           </label>
           <label>
             <span>Family name (from your PID)</span>
-            <input name="familyName" defaultValue={rest.join(' ')} required />
+            <input name="familyName" defaultValue={rest.join(" ")} required />
           </label>
           <label>
             <span>Date of birth (from your PID)</span>
             <input
               name="dateOfBirth"
               type="date"
-              defaultValue={prefill.dateOfBirth ?? ''}
+              defaultValue={prefill.dateOfBirth ?? ""}
               required
             />
           </label>
           <label>
             <span>Contact email (from your PID)</span>
-            <input
-              name="email"
-              type="email"
-              defaultValue={prefill.email ?? ''}
-              required
-            />
+            <input name="email" type="email" defaultValue={prefill.email ?? ""} required />
           </label>
           <label>
             <span>Home address (from your PID)</span>
-            <input name="address" defaultValue={prefill.address ?? ''} required />
+            <input name="address" defaultValue={prefill.address ?? ""} required />
           </label>
           <label>
             <span>School</span>
@@ -94,7 +85,7 @@ export default async function RegisterPage() {
             <input name="specialSupport" placeholder="Any support the school should plan for" />
           </label>
 
-          <h2 style={{ marginTop: '1.75rem', fontSize: '1.1rem' }}>Document references</h2>
+          <h2 style={{ marginTop: "1.75rem", fontSize: "1.1rem" }}>Document references</h2>
           <label>
             <span>Birth certificate or national ID reference</span>
             <input name="doc-birth-certificate" defaultValue="DOC-BC-2026-00417" required />
@@ -112,21 +103,28 @@ export default async function RegisterPage() {
             <input name="doc-prior-record" />
           </label>
 
-          <h2 style={{ marginTop: '1.75rem', fontSize: '1.1rem' }}>Your data choices</h2>
-          <p style={{ color: 'var(--muted)', fontSize: '0.9rem', marginTop: '0.5rem' }}>
-            Enrolment processing itself is a public task and needs no consent.
-            These two choices are separate, optional, and can be withdrawn at
-            any time. Declining them does not affect your registration.
+          <h2 style={{ marginTop: "1.75rem", fontSize: "1.1rem" }}>Your data choices</h2>
+          <p style={{ color: "var(--muted)", fontSize: "0.9rem", marginTop: "0.5rem" }}>
+            Enrolment processing itself is a public task and needs no consent. These two choices are
+            separate, optional, and can be withdrawn at any time. Declining them does not affect
+            your registration.
           </p>
           <label style={{ fontWeight: 400 }}>
-            <input type="checkbox" name="consentAnalytics" style={{ width: 'auto', marginRight: '0.5rem' }} />
-            Allow anonymised use of my learner data for education analytics and
-            policy planning.
+            <input
+              type="checkbox"
+              name="consentAnalytics"
+              style={{ width: "auto", marginRight: "0.5rem" }}
+            />
+            Allow anonymised use of my learner data for education analytics and policy planning.
           </label>
           <label style={{ fontWeight: 400 }}>
-            <input type="checkbox" name="consentEmployerSharing" style={{ width: 'auto', marginRight: '0.5rem' }} />
-            Allow sharing my qualification with an employer later, when I
-            approve each request in my wallet.
+            <input
+              type="checkbox"
+              name="consentEmployerSharing"
+              style={{ width: "auto", marginRight: "0.5rem" }}
+            />
+            Allow sharing my qualification with an employer later, when I approve each request in my
+            wallet.
           </label>
 
           <button type="submit">Submit registration</button>

@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from "react";
 
-import { apiPath } from '@/lib/base-path';
+import { apiPath } from "@/lib/base-path";
 
 /**
  * Live status of one OWS exchange: opens the SSE stream and drops to
@@ -11,9 +11,9 @@ import { apiPath } from '@/lib/base-path';
  */
 export function useExchangeStatus(
   exchangeId: string | null,
-  onEvent: (payload: Record<string, unknown>) => void
+  onEvent: (payload: Record<string, unknown>) => void,
 ) {
-  const [transport, setTransport] = useState<'sse' | 'polling' | 'idle'>('idle');
+  const [transport, setTransport] = useState<"sse" | "polling" | "idle">("idle");
   const handler = useRef(onEvent);
   handler.current = onEvent;
 
@@ -24,7 +24,7 @@ export function useExchangeStatus(
     let pollTimer: ReturnType<typeof setInterval> | undefined;
 
     const source = new EventSource(apiPath(`/api/exchanges/${exchangeId}/events`));
-    setTransport('sse');
+    setTransport("sse");
 
     source.onmessage = (message) => {
       try {
@@ -37,7 +37,7 @@ export function useExchangeStatus(
     source.onerror = () => {
       if (closed) return;
       source.close();
-      setTransport('polling');
+      setTransport("polling");
       pollTimer = setInterval(async () => {
         try {
           const answer = await fetch(apiPath(`/api/exchanges/${exchangeId}/status`));

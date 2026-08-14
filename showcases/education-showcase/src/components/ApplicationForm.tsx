@@ -1,31 +1,31 @@
-'use client';
+"use client";
 
-import { useCallback, useRef, useState } from 'react';
-import { CheckCircle2, FileText, Wallet } from 'lucide-react';
+import { useCallback, useRef, useState } from "react";
+import { CheckCircle2, FileText, Wallet } from "lucide-react";
 
-import { Drawer } from '@/components/Drawer';
-import { assetPath } from '@/lib/base-path';
-import { WalletInvite } from '@/components/WalletInvite';
-import { useExchangeStatus } from '@/components/useExchangeStatus';
+import { Drawer } from "@/components/Drawer";
+import { assetPath } from "@/lib/base-path";
+import { WalletInvite } from "@/components/WalletInvite";
+import { useExchangeStatus } from "@/components/useExchangeStatus";
 import {
   readApplicationData,
   startApplicationRequest,
   submitJobApplication,
-} from '@/app/civicworks/verify/actions';
-import type { VerificationResult } from '@/lib/verification';
-import type { Job } from '@/lib/jobs';
+} from "@/app/civicworks/verify/actions";
+import type { VerificationResult } from "@/lib/verification";
+import type { Job } from "@/lib/jobs";
 
 const CLAIM_LABELS: Record<string, string> = {
-  learnerName: 'Name on diploma',
-  qualificationName: 'Qualification',
-  qualificationCode: 'Qualification code',
-  awardingInstitution: 'Awarding institution',
-  awardDate: 'Award date',
+  learnerName: "Name on diploma",
+  qualificationName: "Qualification",
+  qualificationCode: "Qualification code",
+  awardingInstitution: "Awarding institution",
+  awardDate: "Award date",
 };
 
 type Evidence =
-  | { kind: 'wallet'; result: VerificationResult }
-  | { kind: 'pdf'; name: string; url: string };
+  | { kind: "wallet"; result: VerificationResult }
+  | { kind: "pdf"; name: string; url: string };
 
 /**
  * The application card: the candidate fills the form manually and uploads a
@@ -35,10 +35,10 @@ type Evidence =
  * candidate submits when satisfied. The success screen is generic.
  */
 export function ApplicationForm({ job }: { job: Job }) {
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [phone, setPhone] = useState('');
-  const [message, setMessage] = useState('');
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [message, setMessage] = useState("");
   const [evidence, setEvidence] = useState<Evidence | null>(null);
   const [walletRequest, setWalletRequest] = useState<{
     exchangeId: string;
@@ -57,7 +57,7 @@ export function ApplicationForm({ job }: { job: Job }) {
     try {
       setWalletRequest(await startApplicationRequest());
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : 'Something went wrong.');
+      setError(cause instanceof Error ? cause.message : "Something went wrong.");
     } finally {
       setWalletBusy(false);
     }
@@ -65,10 +65,10 @@ export function ApplicationForm({ job }: { job: Job }) {
 
   const onWalletEvent = useCallback(
     async (payload: Record<string, unknown>) => {
-      const topic = typeof payload.topic === 'string' ? payload.topic : '';
+      const topic = typeof payload.topic === "string" ? payload.topic : "";
       if (
-        topic !== 'digitalwallet.presentation.verified' &&
-        topic !== 'openid.presentation.presentation_acked.v3'
+        topic !== "digitalwallet.presentation.verified" &&
+        topic !== "openid.presentation.presentation_acked.v3"
       ) {
         return;
       }
@@ -78,20 +78,20 @@ export function ApplicationForm({ job }: { job: Job }) {
       setWalletRequest(null);
       if (!result || !result.verified) {
         setError(
-          'The credentials could not be verified. You can try again, or fill the form yourself and upload evidence.'
+          "The credentials could not be verified. You can try again, or fill the form yourself and upload evidence.",
         );
         return;
       }
       const fullName =
-        [result.pid.givenName, result.pid.familyName].filter(Boolean).join(' ') ||
+        [result.pid.givenName, result.pid.familyName].filter(Boolean).join(" ") ||
         result.claims.learnerName ||
-        '';
+        "";
       setName(fullName);
       if (result.pid.email) setEmail(result.pid.email);
-      setEvidence({ kind: 'wallet', result });
+      setEvidence({ kind: "wallet", result });
       setWalletFilled(true);
     },
-    [walletRequest]
+    [walletRequest],
   );
 
   useExchangeStatus(walletRequest?.exchangeId ?? null, onWalletEvent);
@@ -99,23 +99,23 @@ export function ApplicationForm({ job }: { job: Job }) {
   function onPdfPicked(event: React.ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
     if (!file) return;
-    setEvidence({ kind: 'pdf', name: file.name, url: URL.createObjectURL(file) });
+    setEvidence({ kind: "pdf", name: file.name, url: URL.createObjectURL(file) });
   }
 
   async function submit() {
     if (!name || !email) {
-      setError('Please give at least your name and email.');
+      setError("Please give at least your name and email.");
       return;
     }
     if (!evidence) {
-      setError('Please attach evidence: fill with your wallet or upload a PDF.');
+      setError("Please attach evidence: fill with your wallet or upload a PDF.");
       return;
     }
     setError(null);
     await submitJobApplication({
       jobSlug: job.slug,
       evidence: evidence.kind,
-      exchangeId: evidence.kind === 'wallet' ? evidence.result.exchangeId : undefined,
+      exchangeId: evidence.kind === "wallet" ? evidence.result.exchangeId : undefined,
     });
     setSubmitted(true);
   }
@@ -126,8 +126,8 @@ export function ApplicationForm({ job }: { job: Job }) {
         <CheckCircle2 size={40} color="var(--ok)" />
         <h2>Application submitted</h2>
         <p className="cw-apply-note">
-          Thank you for applying for {job.title}. We have received your
-          application and our team will be in touch.
+          Thank you for applying for {job.title}. We have received your application and our team
+          will be in touch.
         </p>
       </aside>
     );
@@ -138,18 +138,14 @@ export function ApplicationForm({ job }: { job: Job }) {
       <h2>Your application</h2>
 
       {walletRequest ? (
-        <div style={{ marginTop: '1rem' }}>
+        <div style={{ marginTop: "1rem" }}>
           <WalletInvite
             uri={walletRequest.qrUri}
             logo="/portals/civicworks/logo.svg"
             hint="Scan with the Wallet on your phone and share your PID and diploma. The PID fills your details; the diploma is your evidence."
             onRefresh={beginWalletFill}
           />
-          <button
-            type="button"
-            className="cw-linklike"
-            onClick={() => setWalletRequest(null)}
-          >
+          <button type="button" className="cw-linklike" onClick={() => setWalletRequest(null)}>
             Cancel and fill the form myself
           </button>
         </div>
@@ -162,11 +158,11 @@ export function ApplicationForm({ job }: { job: Job }) {
             disabled={walletBusy}
           >
             <Wallet size={15} />
-            {walletBusy ? 'Preparing…' : 'Fill with your Wallet'}
+            {walletBusy ? "Preparing…" : "Fill with your Wallet"}
           </button>
-          <p className="cw-apply-note" style={{ marginTop: '0.5rem' }}>
-            Your PID fills the details below; your diploma is attached as
-            evidence. Or fill the form yourself and upload a PDF.
+          <p className="cw-apply-note" style={{ marginTop: "0.5rem" }}>
+            Your PID fills the details below; your diploma is attached as evidence. Or fill the form
+            yourself and upload a PDF.
           </p>
 
           <form onSubmit={(event) => event.preventDefault()}>
@@ -184,50 +180,42 @@ export function ApplicationForm({ job }: { job: Job }) {
             </label>
             <label>
               <span>Message (optional)</span>
-              <textarea
-                rows={3}
-                value={message}
-                onChange={(e) => setMessage(e.target.value)}
-              />
+              <textarea rows={3} value={message} onChange={(e) => setMessage(e.target.value)} />
             </label>
           </form>
 
           <div className="cw-apply-divider" />
           <h3>Evidence of qualification</h3>
           {evidence ? (
-            <button
-              type="button"
-              className="cw-evidence"
-              onClick={() => setDrawerOpen(true)}
-            >
+            <button type="button" className="cw-evidence" onClick={() => setDrawerOpen(true)}>
               <FileText size={16} />
               <span className="cw-evidence-text">
                 <strong>
-                  {evidence.kind === 'wallet'
-                    ? 'Diploma attestation from your wallet'
+                  {evidence.kind === "wallet"
+                    ? "Diploma attestation from your wallet"
                     : evidence.name}
                 </strong>
                 <small>
-                  {evidence.kind === 'wallet'
+                  {evidence.kind === "wallet"
                     ? walletFilled
-                      ? 'Verified: trusted issuer, valid signature, not revoked. Click to preview.'
-                      : 'Click to preview.'
-                    : 'Uploaded PDF. Click to preview.'}
+                      ? "Verified: trusted issuer, valid signature, not revoked. Click to preview."
+                      : "Click to preview."
+                    : "Uploaded PDF. Click to preview."}
                 </small>
               </span>
             </button>
           ) : (
             <>
               <p className="cw-apply-note">
-                {job.requirement}. Attach it from your wallet with the button
-                above, or upload a PDF.
+                {job.requirement}. Attach it from your wallet with the button above, or upload a
+                PDF.
               </p>
               <input
                 ref={fileInput}
                 type="file"
                 accept="application/pdf"
                 onChange={onPdfPicked}
-                style={{ display: 'none' }}
+                style={{ display: "none" }}
               />
               <button
                 type="button"
@@ -259,17 +247,17 @@ export function ApplicationForm({ job }: { job: Job }) {
             </button>
           }
         >
-          {evidence.kind === 'pdf' ? (
+          {evidence.kind === "pdf" ? (
             <embed
               src={evidence.url}
               type="application/pdf"
-              style={{ width: '100%', height: '75vh', borderRadius: 8 }}
+              style={{ width: "100%", height: "75vh", borderRadius: 8 }}
             />
           ) : (
             <div className="cw-attestation">
               <div className="cw-attestation-head">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={assetPath('/portals/moe/logo.svg')} alt="" />
+                <img src={assetPath("/portals/moe/logo.svg")} alt="" />
                 <div>
                   <strong>National Diploma</strong>
                   <small>Issued by the Ministry of Education</small>
@@ -283,24 +271,21 @@ export function ApplicationForm({ job }: { job: Job }) {
                         <td>{label}</td>
                         <td>{evidence.result.claims[key]}</td>
                       </tr>
-                    ) : null
+                    ) : null,
                   )}
                 </tbody>
               </table>
               <ul>
                 {evidence.result.checks.map((check) => (
-                  <li
-                    key={check.name}
-                    style={{ color: check.passed ? 'var(--ok)' : 'var(--bad)' }}
-                  >
-                    {check.passed ? '✓' : '✗'} {check.name}
-                    {check.detail ? `: ${check.detail}` : ''}
+                  <li key={check.name} style={{ color: check.passed ? "var(--ok)" : "var(--bad)" }}>
+                    {check.passed ? "✓" : "✗"} {check.name}
+                    {check.detail ? `: ${check.detail}` : ""}
                   </li>
                 ))}
               </ul>
               <p>
-                Shared from the candidate&apos;s wallet with selective
-                disclosure; only the fields above were disclosed.
+                Shared from the candidate&apos;s wallet with selective disclosure; only the fields
+                above were disclosed.
               </p>
             </div>
           )}

@@ -1,7 +1,7 @@
-import { createHash } from 'crypto';
+import { createHash } from "crypto";
 
-import { getDb } from '@/lib/db';
-import { newId } from '@/lib/ids';
+import { getDb } from "@/lib/db";
+import { newId } from "@/lib/ids";
 
 /**
  * Append-only audit log with a SHA-256 hash chain.
@@ -35,35 +35,35 @@ export function audit(entry: {
 }): void {
   const db = getDb();
   const now = new Date().toISOString();
-  const id = newId('aud');
+  const id = newId("aud");
   const payload = JSON.stringify(entry.payload ?? {});
 
   const insert = db.transaction(() => {
     const prev = db
       .prepare('SELECT "hash" FROM "audit_events" ORDER BY "seq" DESC LIMIT 1')
       .get() as { hash: string } | undefined;
-    const prevHash = prev?.hash ?? 'genesis';
-    const hash = createHash('sha256')
+    const prevHash = prev?.hash ?? "genesis";
+    const hash = createHash("sha256")
       .update(
         [
           prevHash,
           id,
-          entry.actorUserId ?? '',
+          entry.actorUserId ?? "",
           entry.actorRole,
           entry.action,
           entry.subjectType,
           entry.subjectId,
           payload,
           now,
-        ].join('|')
+        ].join("|"),
       )
-      .digest('hex');
+      .digest("hex");
 
     db.prepare(
       `INSERT INTO "audit_events"
         ("id", "actorUserId", "actorRole", "action", "subjectType", "subjectId",
          "payload", "prevHash", "hash", "createdAt")
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     ).run(
       id,
       entry.actorUserId ?? null,
@@ -74,7 +74,7 @@ export function audit(entry: {
       payload,
       prevHash,
       hash,
-      now
+      now,
     );
   });
 
@@ -94,23 +94,23 @@ export function verifyAuditChain(): number | null {
     .prepare('SELECT * FROM "audit_events" ORDER BY "seq" ASC')
     .all() as AuditEvent[];
 
-  let prevHash = 'genesis';
+  let prevHash = "genesis";
   for (const row of rows) {
-    const expected = createHash('sha256')
+    const expected = createHash("sha256")
       .update(
         [
           prevHash,
           row.id,
-          row.actorUserId ?? '',
+          row.actorUserId ?? "",
           row.actorRole,
           row.action,
           row.subjectType,
           row.subjectId,
           row.payload,
           row.createdAt,
-        ].join('|')
+        ].join("|"),
       )
-      .digest('hex');
+      .digest("hex");
     if (row.prevHash !== prevHash || row.hash !== expected) return row.seq;
     prevHash = row.hash;
   }

@@ -49,7 +49,10 @@ export async function createSubmission(input: SubmissionInput, db: typeof sql = 
   // another organisation using the same name is no conflict at all.
   let [skill] = await db`SELECT * FROM skills WHERE org_id = ${org.id} AND slug = ${slug}`;
   if (skill && skill.source_id && skill.source_id !== input.sourceId) {
-    throw new ApiError(409, `Name "${slug}" already belongs to another source in your organisation`);
+    throw new ApiError(
+      409,
+      `Name "${slug}" already belongs to another source in your organisation`,
+    );
   }
   if (skill && !skill.source_id) {
     // A row from before first-class sources; adopt it into this source.
@@ -64,7 +67,10 @@ export async function createSubmission(input: SubmissionInput, db: typeof sql = 
     } catch (err) {
       // Unique violation on (org_id, slug): a concurrent submission won the race.
       if ((err as { code?: string }).code === "23505") {
-        throw new ApiError(409, `Name "${slug}" already belongs to another source in your organisation`);
+        throw new ApiError(
+          409,
+          `Name "${slug}" already belongs to another source in your organisation`,
+        );
       }
       throw err;
     }

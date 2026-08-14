@@ -1,5 +1,5 @@
-import { NextResponse, type NextRequest } from 'next/server';
-import { getSessionCookie } from 'better-auth/cookies';
+import { NextResponse, type NextRequest } from "next/server";
+import { getSessionCookie } from "better-auth/cookies";
 
 /**
  * Two jobs, both optimistic (real role enforcement stays server-side in
@@ -19,10 +19,7 @@ import { getSessionCookie } from 'better-auth/cookies';
  *    redirect to the portal's login screen.
  */
 
-const SESSION_COOKIE_NAMES = [
-  '__Secure-better-auth.session_token',
-  'better-auth.session_token',
-];
+const SESSION_COOKIE_NAMES = ["__Secure-better-auth.session_token", "better-auth.session_token"];
 
 const PORTAL_LOGINS: Array<{
   id: string;
@@ -33,31 +30,31 @@ const PORTAL_LOGINS: Array<{
   public: string[];
 }> = [
   {
-    id: 'education',
-    prefix: '/education',
-    login: '/education/login',
-    stashCookie: 'portal-session.learner',
-    public: ['/education', '/education/login'],
+    id: "education",
+    prefix: "/education",
+    login: "/education/login",
+    stashCookie: "portal-session.learner",
+    public: ["/education", "/education/login"],
   },
   {
-    id: 'school',
-    prefix: '/school',
-    login: '/school/login',
-    stashCookie: 'portal-session.school_officer',
-    public: ['/school/login'],
+    id: "school",
+    prefix: "/school",
+    login: "/school/login",
+    stashCookie: "portal-session.school_officer",
+    public: ["/school/login"],
   },
   // /civicworks is fully public: the candidate is an anonymous visitor.
 ];
 
 function decoded(value: string): string {
-  return value.includes('%') ? decodeURIComponent(value) : value;
+  return value.includes("%") ? decodeURIComponent(value) : value;
 }
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   const portal = PORTAL_LOGINS.find(
-    (p) => pathname === p.prefix || pathname.startsWith(`${p.prefix}/`)
+    (p) => pathname === p.prefix || pathname.startsWith(`${p.prefix}/`),
   );
   if (!portal) return NextResponse.next();
   if (portal.public.includes(pathname)) return NextResponse.next();
@@ -67,10 +64,8 @@ export function middleware(request: NextRequest) {
   if (stash) {
     const name =
       SESSION_COOKIE_NAMES.find((n) => request.cookies.has(n)) ??
-      (request.nextUrl.protocol === 'https:'
-        ? SESSION_COOKIE_NAMES[0]
-        : SESSION_COOKIE_NAMES[1]);
-    const active = request.cookies.get(name)?.value ?? '';
+      (request.nextUrl.protocol === "https:" ? SESSION_COOKIE_NAMES[0] : SESSION_COOKIE_NAMES[1]);
+    const active = request.cookies.get(name)?.value ?? "";
     const value = decoded(stash);
     if (decoded(active) !== value) {
       // Another portal's session is active: swap this portal's own session
@@ -79,9 +74,9 @@ export function middleware(request: NextRequest) {
       const response = NextResponse.next({ request });
       response.cookies.set(name, value, {
         httpOnly: true,
-        sameSite: 'lax',
-        path: '/',
-        secure: name.startsWith('__Secure'),
+        sameSite: "lax",
+        path: "/",
+        secure: name.startsWith("__Secure"),
         maxAge: 60 * 60 * 24 * 7,
       });
       return response;
@@ -96,15 +91,12 @@ export function middleware(request: NextRequest) {
     // monolith deployment.
     const login = request.nextUrl.clone();
     login.pathname = portal.login;
-    login.search = '';
+    login.search = "";
     return NextResponse.redirect(login);
   }
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: [
-    '/education/:path*',
-    '/school/:path*',
-  ],
+  matcher: ["/education/:path*", "/school/:path*"],
 };

@@ -1,7 +1,7 @@
-import Link from 'next/link';
+import Link from "next/link";
 
-import { PORTALS } from '@/lib/portals';
-import { SignOutButton } from '@/components/SignOutButton';
+import { PORTALS } from "@/lib/portals";
+import { SignOutButton } from "@/components/SignOutButton";
 
 /**
  * The Riverside Admissions chrome: crest header, tab navigation, footer.
@@ -11,7 +11,7 @@ export function SchoolShell({
   userName,
   children,
 }: {
-  active: 'queue' | 'graduation';
+  active: "queue" | "graduation";
   userName: string;
   children: React.ReactNode;
 }) {
@@ -33,10 +33,10 @@ export function SchoolShell({
           </div>
         </div>
         <nav className="sch-tabs">
-          <Link href="/school/queue" data-active={active === 'queue'}>
+          <Link href="/school/queue" data-active={active === "queue"}>
             Review queue
           </Link>
-          <Link href="/school/graduation" data-active={active === 'graduation'}>
+          <Link href="/school/graduation" data-active={active === "graduation"}>
             Graduation decisions
           </Link>
         </nav>

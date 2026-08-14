@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState } from "react";
 
 /**
  * True when the wallet is most likely on this same device, so a deep link
@@ -16,11 +16,11 @@ export function useSameDevice(): boolean {
   const [sameDevice, setSameDevice] = useState(false);
 
   useEffect(() => {
-    const query = window.matchMedia('(pointer: coarse) and (max-width: 900px)');
+    const query = window.matchMedia("(pointer: coarse) and (max-width: 900px)");
     const update = () => setSameDevice(query.matches);
     update();
-    query.addEventListener('change', update);
-    return () => query.removeEventListener('change', update);
+    query.addEventListener("change", update);
+    return () => query.removeEventListener("change", update);
   }, []);
 
   return sameDevice;

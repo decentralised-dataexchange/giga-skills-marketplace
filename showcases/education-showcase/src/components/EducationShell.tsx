@@ -1,7 +1,7 @@
-import Link from 'next/link';
+import Link from "next/link";
 
-import { PORTALS } from '@/lib/portals';
-import { SignOutButton } from '@/components/SignOutButton';
+import { PORTALS } from "@/lib/portals";
+import { SignOutButton } from "@/components/SignOutButton";
 
 /**
  * The National Education Portal chrome: state banner, blue service header

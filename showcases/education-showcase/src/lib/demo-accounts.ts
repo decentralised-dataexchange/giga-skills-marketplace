@@ -9,16 +9,16 @@ export type DemoAccount = {
   email: string;
   password: string;
   name: string;
-  role: 'school_officer';
+  role: "school_officer";
   label: string;
 };
 
-export const DEMO_ACCOUNTS: Record<'school', DemoAccount> = {
+export const DEMO_ACCOUNTS: Record<"school", DemoAccount> = {
   school: {
-    email: 'officer@riverside.school',
-    password: 'officer123',
-    name: 'Amina Osei',
-    role: 'school_officer',
-    label: 'Admissions officer (document review, graduation decisions)',
+    email: "officer@riverside.school",
+    password: "officer123",
+    name: "Amina Osei",
+    role: "school_officer",
+    label: "Admissions officer (document review, graduation decisions)",
   },
 };

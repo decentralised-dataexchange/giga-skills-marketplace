@@ -45,49 +45,49 @@ passed through CI.
 
 ### iGrant.io Organisation Wallet Suite
 
-| Variable | Purpose |
-| --- | --- |
-| `IGRANT_BASE_URL` | OWS base URL (demo: `https://demo-api.igrant.io`) |
-| `IGRANT_API_KEY` | Main-tenant API key (Consent Building Block, provisioning) |
-| `MOE_IGRANT_API_KEY`, `MOE_SANDBOX_ORG_ID` | Ministry sandbox key and organisation id |
-| `CIVICWORKS_IGRANT_API_KEY`, `CIVICWORKS_SANDBOX_ORG_ID` | Employer sandbox key and organisation id |
-| `MOE_WEBHOOK_SECRET`, `CIVICWORKS_WEBHOOK_SECRET` | Webhook HMAC secrets (any strong random value) |
+| Variable                                                 | Purpose                                                    |
+| -------------------------------------------------------- | ---------------------------------------------------------- |
+| `IGRANT_BASE_URL`                                        | OWS base URL (demo: `https://demo-api.igrant.io`)          |
+| `IGRANT_API_KEY`                                         | Main-tenant API key (Consent Building Block, provisioning) |
+| `MOE_IGRANT_API_KEY`, `MOE_SANDBOX_ORG_ID`               | Ministry sandbox key and organisation id                   |
+| `CIVICWORKS_IGRANT_API_KEY`, `CIVICWORKS_SANDBOX_ORG_ID` | Employer sandbox key and organisation id                   |
+| `MOE_WEBHOOK_SECRET`, `CIVICWORKS_WEBHOOK_SECRET`        | Webhook HMAC secrets (any strong random value)             |
 
 ### Credential and presentation definitions
 
 Created by `scripts/provision.mjs`; the identifiers are not secret.
 
-| Variable | Purpose |
-| --- | --- |
-| `STUDENT_ID_CREDENTIAL_ID`, `DIPLOMA_CREDENTIAL_ID` | Credential definitions |
-| `PID_PRESENTATION_DEFINITION_ID` | PID sign-in presentation definition |
-| `PAYMENT_PRESENTATION_DEFINITION_ID`, `PAYMENT_CARD_PRESENTATION_DEFINITION_ID` | TS12 payment definitions (account and card) |
-| `DIPLOMA_PRESENTATION_DEFINITION_ID` | Job application definition (PID plus diploma) |
+| Variable                                                                        | Purpose                                       |
+| ------------------------------------------------------------------------------- | --------------------------------------------- |
+| `STUDENT_ID_CREDENTIAL_ID`, `DIPLOMA_CREDENTIAL_ID`                             | Credential definitions                        |
+| `PID_PRESENTATION_DEFINITION_ID`                                                | PID sign-in presentation definition           |
+| `PAYMENT_PRESENTATION_DEFINITION_ID`, `PAYMENT_CARD_PRESENTATION_DEFINITION_ID` | TS12 payment definitions (account and card)   |
+| `DIPLOMA_PRESENTATION_DEFINITION_ID`                                            | Job application definition (PID plus diploma) |
 
 ### Consent Building Block
 
-| Variable | Purpose |
-| --- | --- |
-| `CONSENT_BB_BASE_URL` | Consent Building Block base URL |
-| `AGREEMENT_ENROLMENT_ID`, `AGREEMENT_ANALYTICS_ID`, `AGREEMENT_EMPLOYER_ID` | Data agreement identifiers |
+| Variable                                                                    | Purpose                         |
+| --------------------------------------------------------------------------- | ------------------------------- |
+| `CONSENT_BB_BASE_URL`                                                       | Consent Building Block base URL |
+| `AGREEMENT_ENROLMENT_ID`, `AGREEMENT_ANALYTICS_ID`, `AGREEMENT_EMPLOYER_ID` | Data agreement identifiers      |
 
 ### Trust list (provisioning only)
 
-| Variable | Purpose |
-| --- | --- |
+| Variable                                         | Purpose                                      |
+| ------------------------------------------------ | -------------------------------------------- |
 | `TRUSTLIST_CLIENT_ID`, `TRUSTLIST_CLIENT_SECRET` | OAuth2 client for the NXD trust list backend |
 
 ### Application
 
-| Variable | Purpose |
-| --- | --- |
-| `PUBLIC_BASE_URL` | Public HTTPS URL of the app (webhooks, wallet links) |
-| `BETTER_AUTH_URL` | Public URL used for session cookies and trusted origins |
-| `BETTER_AUTH_SECRET` | Session signing secret (generate with `openssl rand -base64 32`) |
-| `SQLITE_PATH` | Database file (default `./sqlite.db`; `/data/app.db` in the container) |
-| `LEARNER_PSEUDONYM_PEPPER` | Pepper for the pairwise learner pseudonym |
-| `DEMO_STAFF_PASSWORD` | Password for the seeded staff account |
-| `NEXT_PUBLIC_BASE_PATH` | Deploy prefix, build-time (empty locally, `/showcase` in production) |
+| Variable                   | Purpose                                                                |
+| -------------------------- | ---------------------------------------------------------------------- |
+| `PUBLIC_BASE_URL`          | Public HTTPS URL of the app (webhooks, wallet links)                   |
+| `BETTER_AUTH_URL`          | Public URL used for session cookies and trusted origins                |
+| `BETTER_AUTH_SECRET`       | Session signing secret (generate with `openssl rand -base64 32`)       |
+| `SQLITE_PATH`              | Database file (default `./sqlite.db`; `/data/app.db` in the container) |
+| `LEARNER_PSEUDONYM_PEPPER` | Pepper for the pairwise learner pseudonym                              |
+| `DEMO_STAFF_PASSWORD`      | Password for the seeded staff account                                  |
+| `NEXT_PUBLIC_BASE_PATH`    | Deploy prefix, build-time (empty locally, `/showcase` in production)   |
 
 ## Production deployment
 

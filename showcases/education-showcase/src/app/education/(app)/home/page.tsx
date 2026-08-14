@@ -1,20 +1,17 @@
-import Link from 'next/link';
+import Link from "next/link";
 
-import { getSession } from '@/lib/guards';
-import {
-  getApplicationForLearner,
-  getLearnerByUserId,
-  isExchangeAccepted,
-} from '@/lib/registry';
-import { ExchangeQr } from '@/components/ExchangeQr';
-import { PaymentConfirm } from '@/components/PaymentConfirm';
+import { getSession } from "@/lib/guards";
+import { getApplicationForLearner, getLearnerByUserId, isExchangeAccepted } from "@/lib/registry";
+import { ExchangeQr } from "@/components/ExchangeQr";
+import { PaymentConfirm } from "@/components/PaymentConfirm";
 
 const STATUS_TEXT: Record<string, string> = {
   submitted:
-    'Your application is with the school admissions office for document review. Once validated, you are enrolled automatically.',
-  approved: 'You are enrolled. Add your Student ID to your wallet below.',
-  payment_pending: 'The diploma fee is due. Pay with your wallet, and your diploma is issued in the same step.',
-  issued: 'Your diploma has been issued. Add it to your wallet below.',
+    "Your application is with the school admissions office for document review. Once validated, you are enrolled automatically.",
+  approved: "You are enrolled. Add your Student ID to your wallet below.",
+  payment_pending:
+    "The diploma fee is due. Pay with your wallet, and your diploma is issued in the same step.",
+  issued: "Your diploma has been issued. Add it to your wallet below.",
 };
 
 export default async function EducationHome() {
@@ -26,11 +23,11 @@ export default async function EducationHome() {
   return (
     <>
       <section className="edu-hero">
-        <h1>Welcome, {learner?.displayName ?? 'Learner'}</h1>
+        <h1>Welcome, {learner?.displayName ?? "Learner"}</h1>
         <p>
           {app
-            ? STATUS_TEXT[app.status] ?? 'Your application is in progress.'
-            : 'Start your learner registration. Your wallet has already confirmed your identity.'}
+            ? (STATUS_TEXT[app.status] ?? "Your application is in progress.")
+            : "Start your learner registration. Your wallet has already confirmed your identity."}
         </p>
         {!app ? (
           <Link className="edu-cta hint-pulse" href="/education/register">
@@ -43,23 +40,23 @@ export default async function EducationHome() {
         <div className="edu-card">
           <h2>Your learner identifier</h2>
           <p>
-            <code style={{ fontSize: '1.05rem' }}>{learner.ulid}</code>
+            <code style={{ fontSize: "1.05rem" }}>{learner.ulid}</code>
           </p>
         </div>
       ) : null}
 
-      {app && typeof form.studentIdOffer === 'string' ? (
+      {app && typeof form.studentIdOffer === "string" ? (
         <div className="edu-card">
           <h2>Student ID</h2>
           {isExchangeAccepted(String(form.studentIdExchangeId)) ? (
-            <p style={{ color: 'var(--ok)', fontWeight: 600 }}>
+            <p style={{ color: "var(--ok)", fontWeight: 600 }}>
               ✓ Your Student ID is in your wallet.
             </p>
           ) : (
             <>
               <p>
-                Scan with your wallet to receive your selectively disclosable
-                Student ID. The wallet will ask for the transaction code below.
+                Scan with your wallet to receive your selectively disclosable Student ID. The wallet
+                will ask for the transaction code below.
               </p>
               <ExchangeQr
                 exchangeId={String(form.studentIdExchangeId)}
@@ -67,7 +64,7 @@ export default async function EducationHome() {
                 logo="/portals/moe/logo.svg"
                 waitingText="Waiting for your wallet to accept the Student ID…"
               />
-              {typeof form.studentIdPin === 'string' ? (
+              {typeof form.studentIdPin === "string" ? (
                 <p className="edu-pin">
                   Transaction code: <strong>{form.studentIdPin}</strong>
                 </p>
@@ -77,17 +74,16 @@ export default async function EducationHome() {
         </div>
       ) : null}
 
-      {app?.status === 'payment_pending' ? (
+      {app?.status === "payment_pending" ? (
         <div className="edu-card">
           <h2>Diploma fee</h2>
           <p>
-            The Ministry requires payment before it issues your diploma. Pay
-            from your account or by card: one scan pays the EUR 50 fee and
-            delivers your diploma in the same step.
+            The Ministry requires payment before it issues your diploma. Pay from your account or by
+            card: one scan pays the EUR 50 fee and delivers your diploma in the same step.
           </p>
           <PaymentConfirm
             initial={
-              typeof form.diplomaOffer === 'string'
+              typeof form.diplomaOffer === "string"
                 ? {
                     exchangeId: String(form.diplomaExchangeId),
                     qrUri: form.diplomaOffer,
@@ -98,21 +94,21 @@ export default async function EducationHome() {
         </div>
       ) : null}
 
-      {app && app.status === 'issued' && typeof form.diplomaOffer === 'string' ? (
+      {app && app.status === "issued" && typeof form.diplomaOffer === "string" ? (
         <div className="edu-card">
           <h2>Diploma</h2>
           {isExchangeAccepted(String(form.diplomaExchangeId)) ? (
-            <p style={{ color: 'var(--ok)', fontWeight: 600 }}>
+            <p style={{ color: "var(--ok)", fontWeight: 600 }}>
               ✓ Your diploma is in your wallet
-              {app.paymentLedgerRef ? ` (payment reference ${app.paymentLedgerRef})` : ''}.
-              You can now share it with an employer, on your terms.
+              {app.paymentLedgerRef ? ` (payment reference ${app.paymentLedgerRef})` : ""}. You can
+              now share it with an employer, on your terms.
             </p>
           ) : (
             <>
               <p>
                 Congratulations. Scan with your wallet to receive your diploma
-                {app.paymentLedgerRef ? ` (payment reference ${app.paymentLedgerRef})` : ''}.
-                The wallet will ask for the transaction code below.
+                {app.paymentLedgerRef ? ` (payment reference ${app.paymentLedgerRef})` : ""}. The
+                wallet will ask for the transaction code below.
               </p>
               <ExchangeQr
                 exchangeId={String(form.diplomaExchangeId)}
@@ -120,7 +116,7 @@ export default async function EducationHome() {
                 logo="/portals/moe/logo.svg"
                 waitingText="Waiting for your wallet to accept the diploma…"
               />
-              {typeof form.diplomaPin === 'string' ? (
+              {typeof form.diplomaPin === "string" ? (
                 <p className="edu-pin">
                   Transaction code: <strong>{form.diplomaPin}</strong>
                 </p>

@@ -1,12 +1,8 @@
-import { PORTALS, brandVars } from '@/lib/portals';
+import { PORTALS, brandVars } from "@/lib/portals";
 
-import './civicworks.css';
+import "./civicworks.css";
 
-export default function CivicworksLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function CivicworksLayout({ children }: { children: React.ReactNode }) {
   const portal = PORTALS.civicworks;
   return (
     <div className="cw" data-portal="civicworks" style={brandVars(portal)}>

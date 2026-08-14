@@ -1,10 +1,10 @@
-'use server';
+"use server";
 
-import { getDb } from '@/lib/db';
-import { newId } from '@/lib/ids';
-import { audit } from '@/lib/audit';
-import { ows, requiredEnv } from '@/lib/ows';
-import { readVerification, type VerificationResult } from '@/lib/verification';
+import { getDb } from "@/lib/db";
+import { newId } from "@/lib/ids";
+import { audit } from "@/lib/audit";
+import { ows, requiredEnv } from "@/lib/ows";
+import { readVerification, type VerificationResult } from "@/lib/verification";
 
 /**
  * The candidate's application, public by design (the candidate is an
@@ -18,24 +18,24 @@ export async function startApplicationRequest(): Promise<{
   qrUri: string;
 }> {
   const answer = await ows(
-    'civicworks',
-    'POST',
-    '/v3/config/digital-wallet/openid/sdjwt/verification/send',
+    "civicworks",
+    "POST",
+    "/v3/config/digital-wallet/openid/sdjwt/verification/send",
     {
       presentationDefinitionId: requiredEnv(
-        'DIPLOMA_PRESENTATION_DEFINITION_ID',
-        'Job application'
+        "DIPLOMA_PRESENTATION_DEFINITION_ID",
+        "Job application",
       ),
       // By reference: the QR carries a request_uri, not the whole request.
       requestByReference: true,
-    }
+    },
   );
 
   const history = answer?.verificationHistory ?? answer;
   const exchangeId: string | undefined = history?.presentationExchangeId;
   const qrUri: string | undefined = history?.vpTokenQrCode;
   if (!exchangeId || !qrUri) {
-    throw new Error('The wallet service could not start the request.');
+    throw new Error("The wallet service could not start the request.");
   }
 
   const now = new Date().toISOString();
@@ -45,26 +45,26 @@ export async function startApplicationRequest(): Promise<{
          ("id", "owsExchangeId", "direction", "credentialType", "status",
           "createdAt", "updatedAt")
        VALUES (?, ?, 'presentation', 'diploma-verify', 'request_sent', ?, ?)
-       ON CONFLICT("owsExchangeId") DO NOTHING`
+       ON CONFLICT("owsExchangeId") DO NOTHING`,
     )
-    .run(newId('exc'), exchangeId, now, now);
+    .run(newId("exc"), exchangeId, now, now);
 
   audit({
     actorUserId: null,
-    actorRole: 'candidate',
-    action: 'verification.requested',
-    subjectType: 'exchange',
+    actorRole: "candidate",
+    action: "verification.requested",
+    subjectType: "exchange",
     subjectId: exchangeId,
     payload: {
       requestedClaims: [
-        'given_name',
-        'family_name',
-        'email',
-        'learnerName',
-        'qualificationName',
-        'qualificationCode',
-        'awardingInstitution',
-        'awardDate',
+        "given_name",
+        "family_name",
+        "email",
+        "learnerName",
+        "qualificationName",
+        "qualificationCode",
+        "awardingInstitution",
+        "awardDate",
       ],
     },
   });
@@ -73,9 +73,7 @@ export async function startApplicationRequest(): Promise<{
 }
 
 /** Read the finished presentation so the form can be filled for review. */
-export async function readApplicationData(
-  exchangeId: string
-): Promise<VerificationResult | null> {
+export async function readApplicationData(exchangeId: string): Promise<VerificationResult | null> {
   return readVerification(exchangeId);
 }
 
@@ -85,14 +83,14 @@ export async function readApplicationData(
  */
 export async function submitJobApplication(entry: {
   jobSlug: string;
-  evidence: 'wallet' | 'pdf';
+  evidence: "wallet" | "pdf";
   exchangeId?: string;
 }): Promise<{ ok: boolean }> {
   audit({
     actorUserId: null,
-    actorRole: 'candidate',
-    action: 'job.application_submitted',
-    subjectType: 'job',
+    actorRole: "candidate",
+    action: "job.application_submitted",
+    subjectType: "job",
     subjectId: entry.jobSlug,
     payload: {
       evidence: entry.evidence,

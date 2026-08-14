@@ -59,21 +59,21 @@ the repository or passed through CI.
 
 ### Web application (`web/`)
 
-| Variable | Purpose |
-| --- | --- |
-| `DATABASE_URL` | PostgreSQL connection string |
-| `MARKETPLACE_API_URL` | Base URL of the marketplace service |
-| `GITHUB_TOKEN` | Optional; raises the GitHub API rate limit for repository submissions |
+| Variable                   | Purpose                                                                       |
+| -------------------------- | ----------------------------------------------------------------------------- |
+| `DATABASE_URL`             | PostgreSQL connection string                                                  |
+| `MARKETPLACE_API_URL`      | Base URL of the marketplace service                                           |
+| `GITHUB_TOKEN`             | Optional; raises the GitHub API rate limit for repository submissions         |
 | `NEXT_PUBLIC_SHOWCASE_URL` | Optional; overrides the showcase link in the navigation (default `/showcase`) |
 
 ### Marketplace service (`services/marketplace/`)
 
-| Variable | Purpose |
-| --- | --- |
-| `DATABASE_URL` | PostgreSQL connection string |
-| `PORT` | Listen port (default 4830) |
-| `CORS_ORIGIN` | Allowed browser origin for the public API |
-| `DB_MAX_CONNECTIONS` | Connection pool size |
+| Variable             | Purpose                                   |
+| -------------------- | ----------------------------------------- |
+| `DATABASE_URL`       | PostgreSQL connection string              |
+| `PORT`               | Listen port (default 4830)                |
+| `CORS_ORIGIN`        | Allowed browser origin for the public API |
+| `DB_MAX_CONNECTIONS` | Connection pool size                      |
 
 ## Production deployment
 

@@ -1,6 +1,6 @@
-import Link from 'next/link';
+import Link from "next/link";
 
-import { PORTALS } from '@/lib/portals';
+import { PORTALS } from "@/lib/portals";
 
 /**
  * CivicWorks chrome, candidate perspective: a public careers site header.

@@ -1,7 +1,7 @@
-import Link from 'next/link';
+import Link from "next/link";
 
-import { CivicworksShell } from '@/components/CivicworksShell';
-import { JOBS } from '@/lib/jobs';
+import { CivicworksShell } from "@/components/CivicworksShell";
+import { JOBS } from "@/lib/jobs";
 
 /**
  * The CivicWorks job board, candidate perspective: open roles, and applying
@@ -13,9 +13,9 @@ export default function CivicworksCareers() {
       <section className="cw-hero">
         <h1>Find your next role at CivicWorks</h1>
         <p className="cw-lede">
-          {JOBS.length} open positions. We hire on verified qualifications,
-          not photocopies: apply with the diploma in your own wallet, share
-          five fields only, and keep everything else private.
+          {JOBS.length} open positions. We hire on verified qualifications, not photocopies: apply
+          with the diploma in your own wallet, share five fields only, and keep everything else
+          private.
         </p>
       </section>
 
@@ -39,7 +39,7 @@ export default function CivicworksCareers() {
             </div>
             <div className="cw-job-apply">
               <Link
-                className={index === 0 ? 'cw-pill hint-pulse' : 'cw-pill'}
+                className={index === 0 ? "cw-pill hint-pulse" : "cw-pill"}
                 href={`/civicworks/verify?job=${job.slug}`}
               >
                 Apply now

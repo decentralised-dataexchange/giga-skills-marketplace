@@ -1,8 +1,8 @@
-import { consumeEvents } from '@/lib/webhook/store';
+import { consumeEvents } from "@/lib/webhook/store";
 
 // Long-lived streaming response; never cache, always run on the node runtime.
-export const runtime = 'nodejs';
-export const dynamic = 'force-dynamic';
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 const TICK_MS = 1000;
 const MAX_MS = 5 * 60 * 1000;
@@ -16,29 +16,24 @@ const MAX_MS = 5 * 60 * 1000;
  * issuance or a presentation open this stream and close it on the terminal
  * event; the polling endpoint is the fallback.
  */
-export async function GET(
-  _req: Request,
-  ctx: { params: Promise<{ exchangeId: string }> }
-) {
+export async function GET(_req: Request, ctx: { params: Promise<{ exchangeId: string }> }) {
   const { exchangeId } = await ctx.params;
   const enc = new TextEncoder();
   let interval: ReturnType<typeof setInterval> | undefined;
 
   const stream = new ReadableStream<Uint8Array>({
     start(controller) {
-      controller.enqueue(enc.encode(': open\n\n'));
+      controller.enqueue(enc.encode(": open\n\n"));
       let ticks = 0;
       interval = setInterval(() => {
         ticks += 1;
         try {
           const events = consumeEvents(exchangeId);
           for (const event of events) {
-            controller.enqueue(
-              enc.encode(`data: ${JSON.stringify(event.payload)}\n\n`)
-            );
+            controller.enqueue(enc.encode(`data: ${JSON.stringify(event.payload)}\n\n`));
           }
           if (events.length === 0 && ticks % 15 === 0) {
-            controller.enqueue(enc.encode(': keepalive\n\n'));
+            controller.enqueue(enc.encode(": keepalive\n\n"));
           }
           if (ticks * TICK_MS >= MAX_MS) {
             controller.close();
@@ -56,10 +51,10 @@ export async function GET(
 
   return new Response(stream, {
     headers: {
-      'Content-Type': 'text/event-stream',
-      'Cache-Control': 'no-cache, no-transform',
-      Connection: 'keep-alive',
-      'X-Accel-Buffering': 'no',
+      "Content-Type": "text/event-stream",
+      "Cache-Control": "no-cache, no-transform",
+      Connection: "keep-alive",
+      "X-Accel-Buffering": "no",
     },
   });
 }

@@ -270,7 +270,7 @@
   border-color: var(--brand);
 }
 
-.edu form button[type='submit'] {
+.edu form button[type="submit"] {
   margin-top: 1.5rem;
   width: 100%;
   background: var(--brand);

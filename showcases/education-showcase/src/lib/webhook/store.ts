@@ -1,4 +1,4 @@
-import { getDb } from '@/lib/db';
+import { getDb } from "@/lib/db";
 
 /**
  * SQLite-backed webhook event store, keyed by exchange id. The receiver
@@ -27,21 +27,21 @@ export function storeEvent(entry: {
   const now = Date.now();
 
   db.prepare('DELETE FROM "exchange_events" WHERE "expiresAt" < ?').run(
-    new Date(now).toISOString()
+    new Date(now).toISOString(),
   );
 
   db.prepare(
     `INSERT INTO "exchange_events"
        ("deliveryId", "owsExchangeId", "topic", "payload", "createdAt", "expiresAt")
      VALUES (?, ?, ?, ?, ?, ?)
-     ON CONFLICT("deliveryId") DO NOTHING`
+     ON CONFLICT("deliveryId") DO NOTHING`,
   ).run(
     entry.deliveryId,
     entry.owsExchangeId,
     entry.topic,
     JSON.stringify(entry.payload),
     new Date(now).toISOString(),
-    new Date(now + TTL_MS).toISOString()
+    new Date(now + TTL_MS).toISOString(),
   );
 }
 
@@ -50,9 +50,9 @@ export function consumeEvents(owsExchangeId: string): StoredEvent[] {
   const rows = getDb()
     .prepare(
       `DELETE FROM "exchange_events" WHERE "owsExchangeId" = ?
-       RETURNING "deliveryId", "owsExchangeId", "topic", "payload", "createdAt"`
+       RETURNING "deliveryId", "owsExchangeId", "topic", "payload", "createdAt"`,
     )
-    .all(owsExchangeId) as Array<Omit<StoredEvent, 'payload'> & { payload: string }>;
+    .all(owsExchangeId) as Array<Omit<StoredEvent, "payload"> & { payload: string }>;
 
   return rows.map((row) => ({
     ...row,

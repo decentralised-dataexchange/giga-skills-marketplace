@@ -136,7 +136,7 @@
 }
 
 .adt-detail dt::after {
-  content: ':';
+  content: ":";
 }
 
 .adt-detail dd {

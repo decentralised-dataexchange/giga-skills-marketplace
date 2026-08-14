@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import { RefreshCw, Smartphone } from 'lucide-react';
-import { QRCodeSVG } from 'qrcode.react';
+import { RefreshCw, Smartphone } from "lucide-react";
+import { QRCodeSVG } from "qrcode.react";
 
-import { useSameDevice } from '@/components/useSameDevice';
-import { assetPath } from '@/lib/base-path';
+import { useSameDevice } from "@/components/useSameDevice";
+import { assetPath } from "@/lib/base-path";
 
 /**
  * Hand a deep link to the learner's or candidate's Wallet.
@@ -38,7 +38,7 @@ export function WalletInvite({
             Open in your Wallet
           </a>
           <p className="qr-hint">
-            {hint ?? 'Your wallet opens on this device. Come back here when it is done.'}
+            {hint ?? "Your wallet opens on this device. Come back here when it is done."}
           </p>
         </>
       ) : (
@@ -49,15 +49,11 @@ export function WalletInvite({
               size={232}
               level="H"
               imageSettings={
-                logo
-                  ? { src: assetPath(logo), height: 44, width: 44, excavate: true }
-                  : undefined
+                logo ? { src: assetPath(logo), height: 44, width: 44, excavate: true } : undefined
               }
             />
           </div>
-          <p className="qr-hint">
-            {hint ?? 'Scan this with the Wallet on your phone.'}
-          </p>
+          <p className="qr-hint">{hint ?? "Scan this with the Wallet on your phone."}</p>
         </>
       )}
 

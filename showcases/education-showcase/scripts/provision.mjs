@@ -18,15 +18,15 @@
  * Run: node scripts/provision.mjs
  */
 
-import { readFileSync, writeFileSync } from 'node:fs';
-import { randomBytes } from 'node:crypto';
+import { readFileSync, writeFileSync } from "node:fs";
+import { randomBytes } from "node:crypto";
 
-const ENV_PATH = new URL('../.env.local', import.meta.url).pathname;
+const ENV_PATH = new URL("../.env.local", import.meta.url).pathname;
 
 function loadEnv() {
-  const text = readFileSync(ENV_PATH, 'utf8');
+  const text = readFileSync(ENV_PATH, "utf8");
   const env = {};
-  for (const line of text.split('\n')) {
+  for (const line of text.split("\n")) {
     const match = line.match(/^([A-Z0-9_]+)=(.*)$/);
     if (match) env[match[1]] = match[2];
   }
@@ -36,7 +36,7 @@ function loadEnv() {
 function saveEnvValue(name, value) {
   let { text, env } = loadEnv();
   if (env[name]) return false;
-  const pattern = new RegExp(`^${name}=$`, 'm');
+  const pattern = new RegExp(`^${name}=$`, "m");
   if (pattern.test(text)) {
     text = text.replace(pattern, `${name}=${value}`);
   } else {
@@ -47,14 +47,14 @@ function saveEnvValue(name, value) {
 }
 
 const { env } = loadEnv();
-const BASE = (env.IGRANT_BASE_URL || 'https://demo-api.igrant.io').replace(/\/$/, '');
+const BASE = (env.IGRANT_BASE_URL || "https://demo-api.igrant.io").replace(/\/$/, "");
 
 async function ows(key, method, path, body) {
   const init = {
     method,
     headers: {
       Authorization: `ApiKey ${key}`,
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
     },
   };
   if (body) init.body = JSON.stringify(body);
@@ -62,7 +62,7 @@ async function ows(key, method, path, body) {
   const data = await answer.json().catch(() => null);
   if (!answer.ok) {
     throw new Error(
-      `${method} ${path} -> HTTP ${answer.status}: ${JSON.stringify(data)?.slice(0, 400)}`
+      `${method} ${path} -> HTTP ${answer.status}: ${JSON.stringify(data)?.slice(0, 400)}`,
     );
   }
   return data;
@@ -71,15 +71,12 @@ async function ows(key, method, path, body) {
 async function findPresentationDefinition(key, label) {
   const list = await ows(
     key,
-    'GET',
-    `/v2/config/digital-wallet/openid/sdjwt/presentation-definitions?search=${encodeURIComponent(label)}&limit=50`
+    "GET",
+    `/v2/config/digital-wallet/openid/sdjwt/presentation-definitions?search=${encodeURIComponent(label)}&limit=50`,
   );
   // The list answer nests the array under the singular key.
-  const items =
-    list?.presentationDefinition ?? list?.presentationDefinitions ?? [];
-  return items.find(
-    (item) => (item.label ?? item.presentationDefinition?.label) === label
-  );
+  const items = list?.presentationDefinition ?? list?.presentationDefinitions ?? [];
+  return items.find((item) => (item.label ?? item.presentationDefinition?.label) === label);
 }
 
 async function ensurePresentationDefinition(key, definition) {
@@ -92,9 +89,9 @@ async function ensurePresentationDefinition(key, definition) {
   }
   const created = await ows(
     key,
-    'POST',
-    '/v2/config/digital-wallet/openid/sdjwt/presentation-definition',
-    definition
+    "POST",
+    "/v2/config/digital-wallet/openid/sdjwt/presentation-definition",
+    definition,
   );
   const record = created?.presentationDefinition ?? created;
   const id = record?.presentationDefinitionId ?? record?.id;
@@ -105,11 +102,10 @@ async function ensurePresentationDefinition(key, definition) {
 async function findCredentialDefinition(key, label) {
   const list = await ows(
     key,
-    'GET',
-    `/v2/config/digital-wallet/openid/sdjwt/credential-definitions?search=${encodeURIComponent(label)}&limit=50`
+    "GET",
+    `/v2/config/digital-wallet/openid/sdjwt/credential-definitions?search=${encodeURIComponent(label)}&limit=50`,
   );
-  const items =
-    list?.credentialDefinition ?? list?.credentialDefinitions ?? [];
+  const items = list?.credentialDefinition ?? list?.credentialDefinitions ?? [];
   return items.find((item) => item.label === label);
 }
 
@@ -122,9 +118,9 @@ async function ensureCredentialDefinition(key, definition) {
   }
   const created = await ows(
     key,
-    'POST',
-    '/v2/config/digital-wallet/openid/sdjwt/credential-definition',
-    definition
+    "POST",
+    "/v2/config/digital-wallet/openid/sdjwt/credential-definition",
+    definition,
   );
   const record = created?.credentialDefinition ?? created;
   const id = record?.credentialDefinitionId ?? record?.id;
@@ -139,64 +135,62 @@ function sd(path) {
 
 // The registry claim path pointers for VerifiableStudentID (2025.7.1).
 const STUDENT_ID_CLAIMS = [
-  ['commonName'],
-  ['dateOfBirth'],
-  ['displayName'],
-  ['eduPersonAffiliation', null],
-  ['eduPersonAssurance', null],
-  ['eduPersonPrimaryAffiliation'],
-  ['eduPersonPrincipalName'],
-  ['eduPersonScopedAffiliation', null],
-  ['familyName'],
-  ['firstName'],
-  ['id'],
-  ['identifier'],
-  ['mail'],
-  ['schacHomeOrganization'],
-  ['schacPersonalUniqueCode', null],
-  ['schacPersonalUniqueID'],
+  ["commonName"],
+  ["dateOfBirth"],
+  ["displayName"],
+  ["eduPersonAffiliation", null],
+  ["eduPersonAssurance", null],
+  ["eduPersonPrimaryAffiliation"],
+  ["eduPersonPrincipalName"],
+  ["eduPersonScopedAffiliation", null],
+  ["familyName"],
+  ["firstName"],
+  ["id"],
+  ["identifier"],
+  ["mail"],
+  ["schacHomeOrganization"],
+  ["schacPersonalUniqueCode", null],
+  ["schacPersonalUniqueID"],
 ].map(sd);
 
 // The diploma models W3C VC 2.0 / Open Badges education fields semantically,
 // carried as an OWS dc+sd-jwt credential for selective disclosure.
-export const DIPLOMA_VCT = 'urn:education:diploma:1';
+export const DIPLOMA_VCT = "urn:education:diploma:1";
 const DIPLOMA_CLAIMS = [
-  ['learnerName'],
-  ['qualificationName'],
-  ['qualificationCode'],
-  ['awardingInstitution'],
-  ['awardDate'],
-  ['programme'],
-  ['result'],
-  ['ulid'],
-  ['graduationDecisionHash'],
+  ["learnerName"],
+  ["qualificationName"],
+  ["qualificationCode"],
+  ["awardingInstitution"],
+  ["awardDate"],
+  ["programme"],
+  ["result"],
+  ["ulid"],
+  ["graduationDecisionHash"],
 ].map(sd);
 
 const ISSUER_TOPICS = [
-  'openid.credential.offer_received',
-  'openid.credential.token_issued',
-  'openid.credential.credential_acked',
-  'openid.credential.credential_accepted',
+  "openid.credential.offer_received",
+  "openid.credential.token_issued",
+  "openid.credential.credential_acked",
+  "openid.credential.credential_accepted",
 ];
 const VERIFIER_TOPICS = [
-  'openid.presentation.presentation_acked.v3',
-  'digitalwallet.presentation.verified',
+  "openid.presentation.presentation_acked.v3",
+  "digitalwallet.presentation.verified",
 ];
 
 async function ensureWebhook(key, payloadUrl, secretKey, topics) {
-  const list = await ows(key, 'GET', '/v2/config/webhooks?limit=100&offset=0');
+  const list = await ows(key, "GET", "/v2/config/webhooks?limit=100&offset=0");
   const items = list?.webhooks ?? list?.items ?? list?.data ?? [];
-  const exists = items.some(
-    (item) => (item.payloadUrl ?? item.webhook?.payloadUrl) === payloadUrl
-  );
+  const exists = items.some((item) => (item.payloadUrl ?? item.webhook?.payloadUrl) === payloadUrl);
   if (exists) {
     console.log(`= webhook ${payloadUrl} exists`);
     return;
   }
-  await ows(key, 'POST', '/v2/config/webhook', {
+  await ows(key, "POST", "/v2/config/webhook", {
     webhook: {
       payloadUrl,
-      contentType: 'application/json',
+      contentType: "application/json",
       subscribedEvents: { digitalWalletWebhook: topics },
       disabled: false,
       secretKey,
@@ -209,19 +203,19 @@ async function ensureWebhook(key, payloadUrl, secretKey, topics) {
 async function main() {
   const moeKey = env.MOE_IGRANT_API_KEY;
   const cwKey = env.CIVICWORKS_IGRANT_API_KEY;
-  const publicBase = (env.PUBLIC_BASE_URL || '').replace(/\/$/, '');
+  const publicBase = (env.PUBLIC_BASE_URL || "").replace(/\/$/, "");
 
   if (!moeKey || !cwKey) {
     console.error(
-      'MOE_IGRANT_API_KEY and CIVICWORKS_IGRANT_API_KEY must be set in .env.local first.'
+      "MOE_IGRANT_API_KEY and CIVICWORKS_IGRANT_API_KEY must be set in .env.local first.",
     );
     process.exit(1);
   }
 
   // Webhook secrets: generate once when empty.
-  for (const name of ['MOE_WEBHOOK_SECRET', 'CIVICWORKS_WEBHOOK_SECRET']) {
+  for (const name of ["MOE_WEBHOOK_SECRET", "CIVICWORKS_WEBHOOK_SECRET"]) {
     if (!env[name]) {
-      const secret = randomBytes(32).toString('hex');
+      const secret = randomBytes(32).toString("hex");
       saveEnvValue(name, secret);
       env[name] = secret;
       console.log(`+ generated ${name}`);
@@ -230,211 +224,193 @@ async function main() {
 
   // --- Ministry of Education sandbox -------------------------------------
   const pidId = await ensurePresentationDefinition(moeKey, {
-    label: 'Learner PID sign-in',
-    version: 'version_01',
-    responseType: 'vp_token',
-    responseMode: 'direct_post',
+    label: "Learner PID sign-in",
+    version: "version_01",
+    responseType: "vp_token",
+    responseMode: "direct_post",
     // x509 with a dedicated key: the request is signed with this
     // definition's own certificate, granted on the NXD WRPAC trust list.
-    clientIdScheme: 'x509_hash',
-    trustAnchor: 'x509',
+    clientIdScheme: "x509_hash",
+    trustAnchor: "x509",
     kid: env.PID_VERIFY_KID || undefined,
     dcqlQuery: {
       credentials: [
         {
-          id: 'pid-login',
-          format: 'dc+sd-jwt',
-          meta: { vct_values: ['urn:eu.europa.ec.eudi:pid:1'] },
+          id: "pid-login",
+          format: "dc+sd-jwt",
+          meta: { vct_values: ["urn:eu.europa.ec.eudi:pid:1"] },
           claims: [
-            { path: ['given_name'] },
-            { path: ['family_name'] },
-            { path: ['birthdate'] },
+            { path: ["given_name"] },
+            { path: ["family_name"] },
+            { path: ["birthdate"] },
             // Prefill the registration form: contact and address.
-            { path: ['email'] },
-            { path: ['address'] },
+            { path: ["email"] },
+            { path: ["address"] },
           ],
         },
       ],
     },
   });
-  if (pidId) saveEnvValue('PID_PRESENTATION_DEFINITION_ID', pidId);
+  if (pidId) saveEnvValue("PID_PRESENTATION_DEFINITION_ID", pidId);
 
   const paymentId = await ensurePresentationDefinition(moeKey, {
-    label: 'Diploma fee payment confirmation',
-    version: 'version_01',
-    responseType: 'vp_token',
-    responseMode: 'direct_post',
-    clientIdScheme: 'x509_hash',
-    trustAnchor: 'x509',
+    label: "Diploma fee payment confirmation",
+    version: "version_01",
+    responseType: "vp_token",
+    responseMode: "direct_post",
+    clientIdScheme: "x509_hash",
+    trustAnchor: "x509",
     kid: env.PAYMENT_VERIFY_KID || undefined,
     // TS12 payment confirmation. At send time the request must carry
     // transactionData with transaction_id, payee{name,id}, currency, amount.
-    transactionDataDefinitionType: 'payment',
+    transactionDataDefinitionType: "payment",
     dcqlQuery: {
       credentials: [
         {
-          id: 'payment-account',
-          format: 'dc+sd-jwt',
+          id: "payment-account",
+          format: "dc+sd-jwt",
           // The vct of the demo Payment Account Credential issued by
           // igrant.io/demo/ts12-payment-credential-issuance.html (Piggy Bank
           // sandbox issuer on oid4vc.igrant.io).
           meta: {
-            vct_values: [
-              'https://oid4vc.igrant.io/service/vct-metadata/payment_account',
-            ],
+            vct_values: ["https://oid4vc.igrant.io/service/vct-metadata/payment_account"],
           },
-          claims: [
-            { path: ['iban'] },
-            { path: ['bic'] },
-            { path: ['currency'] },
-          ],
+          claims: [{ path: ["iban"] }, { path: ["bic"] }, { path: ["currency"] }],
         },
       ],
     },
   });
-  if (paymentId) saveEnvValue('PAYMENT_PRESENTATION_DEFINITION_ID', paymentId);
+  if (paymentId) saveEnvValue("PAYMENT_PRESENTATION_DEFINITION_ID", paymentId);
 
   const paymentCardId = await ensurePresentationDefinition(moeKey, {
-    label: 'Diploma fee payment confirmation (card)',
-    version: 'version_01',
-    responseType: 'vp_token',
-    responseMode: 'direct_post',
-    clientIdScheme: 'x509_hash',
-    trustAnchor: 'x509',
+    label: "Diploma fee payment confirmation (card)",
+    version: "version_01",
+    responseType: "vp_token",
+    responseMode: "direct_post",
+    clientIdScheme: "x509_hash",
+    trustAnchor: "x509",
     kid: env.PAYMENT_VERIFY_KID || undefined,
-    transactionDataDefinitionType: 'payment',
+    transactionDataDefinitionType: "payment",
     dcqlQuery: {
       credentials: [
         {
           // The TS12 Payment Card Credential of the same demo issuer.
-          id: 'payment-card',
-          format: 'dc+sd-jwt',
+          id: "payment-card",
+          format: "dc+sd-jwt",
           meta: {
-            vct_values: ['https://oid4vc.igrant.io/service/vct-metadata/card'],
+            vct_values: ["https://oid4vc.igrant.io/service/vct-metadata/card"],
           },
-          claims: [
-            { path: ['pan_last_four'] },
-            { path: ['scheme'] },
-            { path: ['scheme_logo'] },
-          ],
+          claims: [{ path: ["pan_last_four"] }, { path: ["scheme"] }, { path: ["scheme_logo"] }],
         },
       ],
     },
   });
-  if (paymentCardId) saveEnvValue('PAYMENT_CARD_PRESENTATION_DEFINITION_ID', paymentCardId);
+  if (paymentCardId) saveEnvValue("PAYMENT_CARD_PRESENTATION_DEFINITION_ID", paymentCardId);
 
   const studentIdDef = await ensureCredentialDefinition(moeKey, {
-    label: 'Verifiable Student ID',
-    version: 'version_01',
+    label: "Verifiable Student ID",
+    version: "version_01",
     // x509 with a dedicated key: credentials are signed with this
     // definition's own certificate, granted on the NXD Pub-EAA trust list.
-    trustAnchor: 'x509',
+    trustAnchor: "x509",
     kid: env.STUDENT_ID_KID || undefined,
     display: {
-      name: 'Student ID',
-      description: 'National Learner Registry student identity',
-      backgroundColor: '#232f56',
-      textColor: '#ffffff',
+      name: "Student ID",
+      description: "National Learner Registry student identity",
+      backgroundColor: "#232f56",
+      textColor: "#ffffff",
     },
     credentialDefinitions: [
       {
-        credentialFormat: 'dc+sd-jwt',
-        vct: 'VerifiableStudentID',
-        validationPath: '$',
+        credentialFormat: "dc+sd-jwt",
+        vct: "VerifiableStudentID",
+        validationPath: "$",
         claims: { claims: STUDENT_ID_CLAIMS },
         supportRevocation: true,
         expirationInDays: 1825,
       },
     ],
   });
-  if (studentIdDef) saveEnvValue('STUDENT_ID_CREDENTIAL_ID', studentIdDef);
+  if (studentIdDef) saveEnvValue("STUDENT_ID_CREDENTIAL_ID", studentIdDef);
 
   const diplomaDef = await ensureCredentialDefinition(moeKey, {
-    label: 'National Diploma',
-    version: 'version_01',
-    trustAnchor: 'x509',
+    label: "National Diploma",
+    version: "version_01",
+    trustAnchor: "x509",
     kid: env.DIPLOMA_KID || undefined,
     // Needed for the dynamic credential request: the payment credential is
     // presented during issuance, and the diploma follows in one session.
     supportInteractiveAuthorisationEndpoint: true,
     display: {
-      name: 'Diploma',
-      description: 'Ministry of Education diploma credential',
-      backgroundColor: '#1d4e89',
-      textColor: '#ffffff',
+      name: "Diploma",
+      description: "Ministry of Education diploma credential",
+      backgroundColor: "#1d4e89",
+      textColor: "#ffffff",
     },
     credentialDefinitions: [
       {
-        credentialFormat: 'dc+sd-jwt',
+        credentialFormat: "dc+sd-jwt",
         vct: DIPLOMA_VCT,
-        validationPath: '$',
+        validationPath: "$",
         claims: { claims: DIPLOMA_CLAIMS },
         supportRevocation: true,
         expirationInDays: 3650,
       },
     ],
   });
-  if (diplomaDef) saveEnvValue('DIPLOMA_CREDENTIAL_ID', diplomaDef);
+  if (diplomaDef) saveEnvValue("DIPLOMA_CREDENTIAL_ID", diplomaDef);
 
   // CivicWorks job application: the PID fills the personal fields, the
   // diploma is the qualification evidence. Five diploma claims only.
   const diplomaVerifyId = await ensurePresentationDefinition(cwKey, {
-    label: 'Diploma qualification check',
-    version: 'version_01',
-    responseType: 'vp_token',
-    responseMode: 'direct_post',
-    clientIdScheme: 'x509_hash',
-    trustAnchor: 'x509',
+    label: "Diploma qualification check",
+    version: "version_01",
+    responseType: "vp_token",
+    responseMode: "direct_post",
+    clientIdScheme: "x509_hash",
+    trustAnchor: "x509",
     kid: env.DIPLOMA_CHECK_KID || undefined,
     dcqlQuery: {
       credentials: [
         {
-          id: 'pid',
-          format: 'dc+sd-jwt',
-          meta: { vct_values: ['urn:eu.europa.ec.eudi:pid:1'] },
-          claims: [
-            { path: ['given_name'] },
-            { path: ['family_name'] },
-            { path: ['email'] },
-          ],
+          id: "pid",
+          format: "dc+sd-jwt",
+          meta: { vct_values: ["urn:eu.europa.ec.eudi:pid:1"] },
+          claims: [{ path: ["given_name"] }, { path: ["family_name"] }, { path: ["email"] }],
         },
         {
-          id: 'diploma',
-          format: 'dc+sd-jwt',
+          id: "diploma",
+          format: "dc+sd-jwt",
           meta: { vct_values: [DIPLOMA_VCT] },
           claims: [
-            { path: ['learnerName'] },
-            { path: ['qualificationName'] },
-            { path: ['qualificationCode'] },
-            { path: ['awardingInstitution'] },
-            { path: ['awardDate'] },
+            { path: ["learnerName"] },
+            { path: ["qualificationName"] },
+            { path: ["qualificationCode"] },
+            { path: ["awardingInstitution"] },
+            { path: ["awardDate"] },
           ],
         },
       ],
     },
   });
-  if (diplomaVerifyId) saveEnvValue('DIPLOMA_PRESENTATION_DEFINITION_ID', diplomaVerifyId);
+  if (diplomaVerifyId) saveEnvValue("DIPLOMA_PRESENTATION_DEFINITION_ID", diplomaVerifyId);
 
-  if (publicBase && !publicBase.includes('localhost')) {
-    await ensureWebhook(
-      moeKey,
-      `${publicBase}/api/webhooks/ows/moe`,
-      env.MOE_WEBHOOK_SECRET,
-      [...ISSUER_TOPICS, ...VERIFIER_TOPICS]
-    );
+  if (publicBase && !publicBase.includes("localhost")) {
+    await ensureWebhook(moeKey, `${publicBase}/api/webhooks/ows/moe`, env.MOE_WEBHOOK_SECRET, [
+      ...ISSUER_TOPICS,
+      ...VERIFIER_TOPICS,
+    ]);
     await ensureWebhook(
       cwKey,
       `${publicBase}/api/webhooks/ows/civicworks`,
       env.CIVICWORKS_WEBHOOK_SECRET,
-      VERIFIER_TOPICS
+      VERIFIER_TOPICS,
     );
   } else {
-    console.log(
-      '! PUBLIC_BASE_URL is localhost: webhooks skipped (use a tunnel, then rerun).'
-    );
+    console.log("! PUBLIC_BASE_URL is localhost: webhooks skipped (use a tunnel, then rerun).");
   }
 
-  console.log('Provisioning finished.');
+  console.log("Provisioning finished.");
 }
 
 main().catch((error) => {

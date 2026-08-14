@@ -1,6 +1,6 @@
-import { auth } from '@/lib/auth';
+import { auth } from "@/lib/auth";
 
-const DEPLOY_PREFIX = process.env.NEXT_PUBLIC_BASE_PATH ?? '';
+const DEPLOY_PREFIX = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 
 /**
  * Hand requests to better-auth at its default /api/auth base. Under the

@@ -1,11 +1,11 @@
-import 'server-only';
+import "server-only";
 
-import { createHash, randomInt } from 'crypto';
+import { createHash, randomInt } from "crypto";
 
-import { getDb } from '@/lib/db';
-import { newId, newUlid } from '@/lib/ids';
-import { audit } from '@/lib/audit';
-import { ows, requiredEnv } from '@/lib/ows';
+import { getDb } from "@/lib/db";
+import { newId, newUlid } from "@/lib/ids";
+import { audit } from "@/lib/audit";
+import { ows, requiredEnv } from "@/lib/ows";
 
 /**
  * The National Learner Registry domain: applications, approvals, ULID
@@ -48,9 +48,9 @@ export type Learner = {
 };
 
 export function getLearnerByUserId(userId: string): Learner | undefined {
-  return getDb()
-    .prepare('SELECT * FROM "learners" WHERE "userId" = ?')
-    .get(userId) as Learner | undefined;
+  return getDb().prepare('SELECT * FROM "learners" WHERE "userId" = ?').get(userId) as
+    | Learner
+    | undefined;
 }
 
 export function getInstitutions(kind?: string) {
@@ -62,8 +62,10 @@ export function getInstitutions(kind?: string) {
   ) as Array<{ id: string; name: string; kind: string; esrRef: string }>;
 }
 
-export function listApplications(statuses: string[]): Array<Application & { learnerName: string; institutionName: string }> {
-  const marks = statuses.map(() => '?').join(',');
+export function listApplications(
+  statuses: string[],
+): Array<Application & { learnerName: string; institutionName: string }> {
+  const marks = statuses.map(() => "?").join(",");
   return getDb()
     .prepare(
       `SELECT a.*, l."displayName" AS "learnerName", i."name" AS "institutionName"
@@ -71,7 +73,7 @@ export function listApplications(statuses: string[]): Array<Application & { lear
        JOIN "learners" l ON l."id" = a."learnerId"
        JOIN "institutions" i ON i."id" = a."institutionId"
        WHERE a."status" IN (${marks})
-       ORDER BY a."updatedAt" DESC`
+       ORDER BY a."updatedAt" DESC`,
     )
     .all(...statuses) as Array<Application & { learnerName: string; institutionName: string }>;
 }
@@ -84,7 +86,7 @@ export function getApplication(id: string) {
        FROM "applications" a
        JOIN "learners" l ON l."id" = a."learnerId"
        JOIN "institutions" i ON i."id" = a."institutionId"
-       WHERE a."id" = ?`
+       WHERE a."id" = ?`,
     )
     .get(id) as
     | (Application & {
@@ -99,9 +101,7 @@ export function getApplication(id: string) {
 
 export function getApplicationForLearner(learnerId: string) {
   return getDb()
-    .prepare(
-      'SELECT * FROM "applications" WHERE "learnerId" = ? ORDER BY "createdAt" DESC LIMIT 1'
-    )
+    .prepare('SELECT * FROM "applications" WHERE "learnerId" = ? ORDER BY "createdAt" DESC LIMIT 1')
     .get(learnerId) as Application | undefined;
 }
 
@@ -113,12 +113,12 @@ export function submitApplication(entry: {
 }): string {
   const db = getDb();
   const now = new Date().toISOString();
-  const id = newId('app');
+  const id = newId("app");
   db.prepare(
     `INSERT INTO "applications"
        ("id", "learnerId", "institutionId", "status", "form", "documents",
         "createdAt", "updatedAt")
-     VALUES (?, ?, ?, 'submitted', ?, ?, ?, ?)`
+     VALUES (?, ?, ?, 'submitted', ?, ?, ?, ?)`,
   ).run(
     id,
     entry.learner.id,
@@ -126,18 +126,19 @@ export function submitApplication(entry: {
     JSON.stringify(entry.form),
     JSON.stringify(entry.documents),
     now,
-    now
+    now,
   );
   // The prefill served its purpose; the confirmed form is the record now.
-  db.prepare(
-    'UPDATE "learners" SET "prefill" = NULL, "updatedAt" = ? WHERE "id" = ?'
-  ).run(now, entry.learner.id);
+  db.prepare('UPDATE "learners" SET "prefill" = NULL, "updatedAt" = ? WHERE "id" = ?').run(
+    now,
+    entry.learner.id,
+  );
 
   audit({
     actorUserId: entry.learner.userId,
-    actorRole: 'learner',
-    action: 'application.submitted',
-    subjectType: 'application',
+    actorRole: "learner",
+    action: "application.submitted",
+    subjectType: "application",
     subjectId: id,
   });
   return id;
@@ -157,16 +158,16 @@ function setStatus(id: string, status: string) {
  */
 export async function schoolValidate(appId: string, actor: { userId: string }) {
   const app = getApplication(appId);
-  if (!app || app.status !== 'submitted') {
-    throw new Error('The application is not awaiting review.');
+  if (!app || app.status !== "submitted") {
+    throw new Error("The application is not awaiting review.");
   }
   audit({
     actorUserId: actor.userId,
-    actorRole: 'school_officer',
-    action: 'application.documents_validated',
-    subjectType: 'application',
+    actorRole: "school_officer",
+    action: "application.documents_validated",
+    subjectType: "application",
     subjectId: appId,
-    payload: { civilRegistryCheck: 'sandbox:passed' },
+    payload: { civilRegistryCheck: "sandbox:passed" },
   });
   await autoEnrol(appId);
 }
@@ -177,24 +178,26 @@ export async function schoolValidate(appId: string, actor: { userId: string }) {
  */
 async function autoEnrol(appId: string): Promise<void> {
   const app = getApplication(appId);
-  if (!app) throw new Error('Unknown application.');
+  if (!app) throw new Error("Unknown application.");
 
   const db = getDb();
   const now = new Date().toISOString();
   const ulid = newUlid();
 
-  db.prepare(
-    'UPDATE "learners" SET "ulid" = ?, "updatedAt" = ? WHERE "id" = ?'
-  ).run(ulid, now, app.learnerRowId);
-  setStatus(appId, 'approved');
+  db.prepare('UPDATE "learners" SET "ulid" = ?, "updatedAt" = ? WHERE "id" = ?').run(
+    ulid,
+    now,
+    app.learnerRowId,
+  );
+  setStatus(appId, "approved");
 
   audit({
     actorUserId: null,
-    actorRole: 'system',
-    action: 'application.approved',
-    subjectType: 'application',
+    actorRole: "system",
+    action: "application.approved",
+    subjectType: "application",
     subjectId: appId,
-    payload: { ulid, processing: 'automatic' },
+    payload: { ulid, processing: "automatic" },
   });
 
   const form = JSON.parse(app.form) as Record<string, unknown>;
@@ -202,40 +205,38 @@ async function autoEnrol(appId: string): Promise<void> {
   // PIN in the wallet when accepting the offer.
   const studentIdPin = String(randomInt(1000, 10000));
   const answer = await ows(
-    'moe',
-    'POST',
-    '/v2/config/digital-wallet/openid/sdjwt/credential/issue',
+    "moe",
+    "POST",
+    "/v2/config/digital-wallet/openid/sdjwt/credential/issue",
     {
-      issuanceMode: 'InTime',
-      credentialDefinitionId: requiredEnv('STUDENT_ID_CREDENTIAL_ID', 'Student ID issuance'),
-      urlScheme: 'openid-credential-offer://',
+      issuanceMode: "InTime",
+      credentialDefinitionId: requiredEnv("STUDENT_ID_CREDENTIAL_ID", "Student ID issuance"),
+      urlScheme: "openid-credential-offer://",
       userPin: studentIdPin,
       credential: {
-        vct: 'VerifiableStudentID',
+        vct: "VerifiableStudentID",
         claims: {
           id: ulid,
           identifier: ulid,
-          firstName: String(form.firstName ?? app.learnerName.split(' ')[0] ?? ''),
+          firstName: String(form.firstName ?? app.learnerName.split(" ")[0] ?? ""),
           familyName: String(
-            form.familyName ?? app.learnerName.split(' ').slice(1).join(' ') ?? ''
+            form.familyName ?? app.learnerName.split(" ").slice(1).join(" ") ?? "",
           ),
           commonName: app.learnerName,
           displayName: app.learnerName,
-          dateOfBirth: String(form.dateOfBirth ?? ''),
-          mail: String(form.email ?? ''),
+          dateOfBirth: String(form.dateOfBirth ?? ""),
+          mail: String(form.email ?? ""),
           eduPersonPrincipalName: `${ulid.toLowerCase()}@nlr.gov.example`,
-          eduPersonPrimaryAffiliation: 'student',
-          eduPersonAffiliation: ['student', 'member'],
-          eduPersonScopedAffiliation: ['student@riverside.school.example'],
-          eduPersonAssurance: ['https://refeds.org/assurance/IAP/medium'],
-          schacHomeOrganization: 'riverside.school.example',
+          eduPersonPrimaryAffiliation: "student",
+          eduPersonAffiliation: ["student", "member"],
+          eduPersonScopedAffiliation: ["student@riverside.school.example"],
+          eduPersonAssurance: ["https://refeds.org/assurance/IAP/medium"],
+          schacHomeOrganization: "riverside.school.example",
           schacPersonalUniqueID: `urn:schac:personalUniqueID:example:ULID:${ulid}`,
-          schacPersonalUniqueCode: [
-            `urn:schac:personalUniqueCode:example:nlr:${ulid}`,
-          ],
+          schacPersonalUniqueCode: [`urn:schac:personalUniqueCode:example:nlr:${ulid}`],
         },
       },
-    }
+    },
   );
 
   const history = Array.isArray(answer?.credentialHistory)
@@ -245,7 +246,7 @@ async function autoEnrol(appId: string): Promise<void> {
     history?.credentialExchangeId ?? history?.CredentialExchangeId;
   const offer: string | undefined = history?.credentialOffer;
   if (!exchangeId || !offer) {
-    throw new Error('The wallet service did not return a credential offer.');
+    throw new Error("The wallet service did not return a credential offer.");
   }
 
   db.prepare(
@@ -253,13 +254,11 @@ async function autoEnrol(appId: string): Promise<void> {
        ("id", "owsExchangeId", "direction", "credentialType", "learnerId",
         "applicationId", "status", "createdAt", "updatedAt")
      VALUES (?, ?, 'issuance', 'student-id', ?, ?, 'offer_sent', ?, ?)
-     ON CONFLICT("owsExchangeId") DO NOTHING`
-  ).run(newId('exc'), exchangeId, app.learnerRowId, appId, now, now);
+     ON CONFLICT("owsExchangeId") DO NOTHING`,
+  ).run(newId("exc"), exchangeId, app.learnerRowId, appId, now, now);
 
   // The learner portal renders the offer as a QR until the wallet accepts it.
-  db.prepare(
-    'UPDATE "applications" SET "form" = ?, "updatedAt" = ? WHERE "id" = ?'
-  ).run(
+  db.prepare('UPDATE "applications" SET "form" = ?, "updatedAt" = ? WHERE "id" = ?').run(
     JSON.stringify({
       ...form,
       studentIdOffer: offer,
@@ -267,14 +266,14 @@ async function autoEnrol(appId: string): Promise<void> {
       studentIdPin,
     }),
     now,
-    appId
+    appId,
   );
 
   audit({
     actorUserId: null,
-    actorRole: 'system',
-    action: 'credential.student_id_offered',
-    subjectType: 'exchange',
+    actorRole: "system",
+    action: "credential.student_id_offered",
+    subjectType: "exchange",
     subjectId: exchangeId,
     payload: { applicationId: appId },
   });
@@ -295,15 +294,13 @@ export function submitGraduation(
     result: string;
     decisionText: string;
   },
-  actor: { userId: string }
+  actor: { userId: string },
 ) {
   const app = getApplication(appId);
-  if (!app || app.status !== 'approved') {
-    throw new Error('The application is not ready for a graduation decision.');
+  if (!app || app.status !== "approved") {
+    throw new Error("The application is not ready for a graduation decision.");
   }
-  const docHash = createHash('sha256')
-    .update(decision.decisionText)
-    .digest('hex');
+  const docHash = createHash("sha256").update(decision.decisionText).digest("hex");
   const now = new Date().toISOString();
   getDb()
     .prepare(
@@ -311,50 +308,43 @@ export function submitGraduation(
          "programme" = ?, "qualificationCode" = ?, "result" = ?,
          "graduationDocHash" = ?, "status" = 'graduation_submitted',
          "updatedAt" = ?
-       WHERE "id" = ?`
+       WHERE "id" = ?`,
     )
-    .run(
-      decision.programme,
-      decision.qualificationCode,
-      decision.result,
-      docHash,
-      now,
-      appId
-    );
+    .run(decision.programme, decision.qualificationCode, decision.result, docHash, now, appId);
   audit({
     actorUserId: actor.userId,
-    actorRole: 'school_officer',
-    action: 'graduation.submitted',
-    subjectType: 'application',
+    actorRole: "school_officer",
+    action: "graduation.submitted",
+    subjectType: "application",
     subjectId: appId,
     payload: {
       programme: decision.programme,
       qualificationCode: decision.qualificationCode,
       documentHash: docHash,
-      institutionSignature: 'sandbox:tsp-signed',
+      institutionSignature: "sandbox:tsp-signed",
     },
   });
 
   // Automatic registry processing: the sandbox Education Service Registry
   // check, then the fee requirement.
-  if (!app.esrRef || !app.esrRef.startsWith('ESR-')) {
-    throw new Error('The institution is not authorised in the Education Service Registry.');
+  if (!app.esrRef || !app.esrRef.startsWith("ESR-")) {
+    throw new Error("The institution is not authorised in the Education Service Registry.");
   }
   audit({
     actorUserId: null,
-    actorRole: 'system',
-    action: 'graduation.institution_validated',
-    subjectType: 'application',
+    actorRole: "system",
+    action: "graduation.institution_validated",
+    subjectType: "application",
     subjectId: appId,
-    payload: { esrRef: app.esrRef, registry: 'sandbox' },
+    payload: { esrRef: app.esrRef, registry: "sandbox" },
   });
 
-  setStatus(appId, 'payment_pending');
+  setStatus(appId, "payment_pending");
   audit({
     actorUserId: null,
-    actorRole: 'system',
-    action: 'graduation.payment_required',
-    subjectType: 'application',
+    actorRole: "system",
+    action: "graduation.payment_required",
+    subjectType: "application",
     subjectId: appId,
   });
 }
@@ -369,28 +359,28 @@ export function submitGraduation(
 export async function startDiplomaPaymentIssuance(
   appId: string,
   actor: { userId: string },
-  method: 'account' | 'card' = 'account'
+  method: "account" | "card" = "account",
 ): Promise<{ exchangeId: string; qrUri: string }> {
   const app = getApplication(appId);
-  if (!app || app.status !== 'payment_pending') {
-    throw new Error('No payment is due for this application.');
+  if (!app || app.status !== "payment_pending") {
+    throw new Error("No payment is due for this application.");
   }
 
   const answer = await ows(
-    'moe',
-    'POST',
-    '/v2/config/digital-wallet/openid/sdjwt/credential/issue',
+    "moe",
+    "POST",
+    "/v2/config/digital-wallet/openid/sdjwt/credential/issue",
     {
-      issuanceMode: 'InTime',
-      credentialDefinitionId: requiredEnv('DIPLOMA_CREDENTIAL_ID', 'Diploma issuance'),
-      urlScheme: 'openid-credential-offer://',
+      issuanceMode: "InTime",
+      credentialDefinitionId: requiredEnv("DIPLOMA_CREDENTIAL_ID", "Diploma issuance"),
+      urlScheme: "openid-credential-offer://",
       // Presentation during issuance: the payment credential of the chosen
       // method must be presented before the diploma is released.
       presentationDefinitionId: requiredEnv(
-        method === 'card'
-          ? 'PAYMENT_CARD_PRESENTATION_DEFINITION_ID'
-          : 'PAYMENT_PRESENTATION_DEFINITION_ID',
-        'Payment confirmation'
+        method === "card"
+          ? "PAYMENT_CARD_PRESENTATION_DEFINITION_ID"
+          : "PAYMENT_PRESENTATION_DEFINITION_ID",
+        "Payment confirmation",
       ),
       // The TS12 payment transaction data lives under `payload`, the shape
       // the platform validates (see the demonstrators' checkout).
@@ -399,33 +389,33 @@ export async function startDiplomaPaymentIssuance(
           transaction_id: appId.slice(0, 36),
           date_time: new Date().toISOString(),
           payee: {
-            name: 'Ministry of Education',
-            id: 'ESR-MOE-0001',
+            name: "Ministry of Education",
+            id: "ESR-MOE-0001",
             // The sandbox organisation's seal, so the wallet shows the
             // Ministry rather than an initial avatar.
-            logo: 'https://demo-api.igrant.io/v2/onboard/image/6a7f19bed22651ae4335d9a9/web',
-            website: 'https://giga-staging.igrant.io/showcase',
+            logo: "https://demo-api.igrant.io/v2/onboard/image/6a7f19bed22651ae4335d9a9/web",
+            website: "https://giga-staging.igrant.io/showcase",
           },
           execution_date: new Date().toISOString().slice(0, 10),
-          currency: 'EUR',
+          currency: "EUR",
           amount: 50,
         },
       },
       credential: {
-        vct: 'urn:education:diploma:1',
+        vct: "urn:education:diploma:1",
         claims: {
           learnerName: app.learnerName,
-          qualificationName: app.programme ?? '',
-          qualificationCode: app.qualificationCode ?? '',
+          qualificationName: app.programme ?? "",
+          qualificationCode: app.qualificationCode ?? "",
           awardingInstitution: app.institutionName,
           awardDate: new Date().toISOString().slice(0, 10),
-          programme: app.programme ?? '',
-          result: app.result ?? '',
-          ulid: app.learnerUlid ?? '',
-          graduationDecisionHash: app.graduationDocHash ?? '',
+          programme: app.programme ?? "",
+          result: app.result ?? "",
+          ulid: app.learnerUlid ?? "",
+          graduationDecisionHash: app.graduationDocHash ?? "",
         },
       },
-    }
+    },
   );
 
   const history = Array.isArray(answer?.credentialHistory)
@@ -435,7 +425,7 @@ export async function startDiplomaPaymentIssuance(
     history?.credentialExchangeId ?? history?.CredentialExchangeId;
   const qrUri: string | undefined = history?.credentialOffer;
   if (!exchangeId || !qrUri) {
-    throw new Error('The wallet service could not start the paid issuance.');
+    throw new Error("The wallet service could not start the paid issuance.");
   }
 
   const db = getDb();
@@ -445,13 +435,11 @@ export async function startDiplomaPaymentIssuance(
        ("id", "owsExchangeId", "direction", "credentialType", "learnerId",
         "applicationId", "status", "createdAt", "updatedAt")
      VALUES (?, ?, 'issuance', 'diploma', ?, ?, 'offer_sent', ?, ?)
-     ON CONFLICT("owsExchangeId") DO NOTHING`
-  ).run(newId('exc'), exchangeId, app.learnerRowId, appId, now, now);
+     ON CONFLICT("owsExchangeId") DO NOTHING`,
+  ).run(newId("exc"), exchangeId, app.learnerRowId, appId, now, now);
 
   const form = JSON.parse(app.form) as Record<string, unknown>;
-  db.prepare(
-    'UPDATE "applications" SET "form" = ?, "updatedAt" = ? WHERE "id" = ?'
-  ).run(
+  db.prepare('UPDATE "applications" SET "form" = ?, "updatedAt" = ? WHERE "id" = ?').run(
     JSON.stringify({
       ...form,
       diplomaOffer: qrUri,
@@ -459,16 +447,16 @@ export async function startDiplomaPaymentIssuance(
       paymentMethod: method,
     }),
     now,
-    appId
+    appId,
   );
 
   audit({
     actorUserId: actor.userId,
-    actorRole: 'learner',
-    action: 'payment.dynamic_issuance_started',
-    subjectType: 'exchange',
+    actorRole: "learner",
+    action: "payment.dynamic_issuance_started",
+    subjectType: "exchange",
     subjectId: exchangeId,
-    payload: { applicationId: appId, amount: 50, currency: 'EUR', method },
+    payload: { applicationId: appId, amount: 50, currency: "EUR", method },
   });
 
   return { exchangeId, qrUri };
@@ -479,41 +467,39 @@ export async function startDiplomaPaymentIssuance(
  * diploma (the payment presentation succeeded inside the same exchange),
  * record the simulated ledger entry and close the application.
  */
-export function completeDynamicDiplomaPayment(
-  credentialExchangeId: string
-): boolean {
+export function completeDynamicDiplomaPayment(credentialExchangeId: string): boolean {
   const db = getDb();
   const exchange = db
     .prepare(
       `SELECT "applicationId" FROM "credential_exchanges"
-       WHERE "owsExchangeId" = ? AND "credentialType" = 'diploma'`
+       WHERE "owsExchangeId" = ? AND "credentialType" = 'diploma'`,
     )
     .get(credentialExchangeId) as { applicationId: string } | undefined;
   if (!exchange?.applicationId) return false;
 
   const app = getApplication(exchange.applicationId);
-  if (!app || app.status !== 'payment_pending') return false;
+  if (!app || app.status !== "payment_pending") return false;
 
   const now = new Date().toISOString();
-  const ledgerRef = `LEDGER-${newId('pay').slice(4, 16)}`;
+  const ledgerRef = `LEDGER-${newId("pay").slice(4, 16)}`;
   db.prepare(
     `UPDATE "applications" SET "paymentExchangeId" = ?, "paymentLedgerRef" = ?,
-       "status" = 'issued', "updatedAt" = ? WHERE "id" = ?`
+       "status" = 'issued', "updatedAt" = ? WHERE "id" = ?`,
   ).run(credentialExchangeId, ledgerRef, now, exchange.applicationId);
 
   audit({
     actorUserId: null,
-    actorRole: 'system',
-    action: 'payment.confirmed',
-    subjectType: 'application',
+    actorRole: "system",
+    action: "payment.confirmed",
+    subjectType: "application",
     subjectId: exchange.applicationId,
-    payload: { credentialExchangeId, ledgerRef, ledger: 'sandbox' },
+    payload: { credentialExchangeId, ledgerRef, ledger: "sandbox" },
   });
   audit({
     actorUserId: null,
-    actorRole: 'system',
-    action: 'credential.diploma_delivered',
-    subjectType: 'exchange',
+    actorRole: "system",
+    action: "credential.diploma_delivered",
+    subjectType: "exchange",
     subjectId: credentialExchangeId,
     payload: { applicationId: exchange.applicationId },
   });
@@ -524,13 +510,11 @@ export function completeDynamicDiplomaPayment(
 /** True when the wallet has accepted the credential of this exchange. */
 export function isExchangeAccepted(owsExchangeId: string): boolean {
   const row = getDb()
-    .prepare(
-      'SELECT "status" FROM "credential_exchanges" WHERE "owsExchangeId" = ?'
-    )
+    .prepare('SELECT "status" FROM "credential_exchanges" WHERE "owsExchangeId" = ?')
     .get(owsExchangeId) as { status: string } | undefined;
   return (
-    row?.status === 'openid.credential.credential_accepted' ||
-    row?.status === 'openid.credential.credential_acked'
+    row?.status === "openid.credential.credential_accepted" ||
+    row?.status === "openid.credential.credential_acked"
   );
 }
 
@@ -540,45 +524,40 @@ export function getDiplomaExchange(appId: string) {
     .prepare(
       `SELECT * FROM "credential_exchanges"
        WHERE "applicationId" = ? AND "credentialType" = 'diploma'
-       ORDER BY "createdAt" DESC LIMIT 1`
+       ORDER BY "createdAt" DESC LIMIT 1`,
     )
-    .get(appId) as
-    | { owsExchangeId: string; revoked: number; revokedAt: string | null }
-    | undefined;
+    .get(appId) as { owsExchangeId: string; revoked: number; revokedAt: string | null } | undefined;
 }
 
 /**
  * Permanently revoke an issued diploma by its credential exchange id.
  * A fresh employer verification must reject the credential afterwards.
  */
-export async function revokeDiploma(
-  appId: string,
-  actor: { userId: string }
-): Promise<void> {
+export async function revokeDiploma(appId: string, actor: { userId: string }): Promise<void> {
   const exchange = getDiplomaExchange(appId);
-  if (!exchange) throw new Error('No issued diploma for this application.');
-  if (exchange.revoked) throw new Error('The diploma is already revoked.');
+  if (!exchange) throw new Error("No issued diploma for this application.");
+  if (exchange.revoked) throw new Error("The diploma is already revoked.");
 
   await ows(
-    'moe',
-    'PUT',
+    "moe",
+    "PUT",
     `/v2/config/digital-wallet/openid/sdjwt/credential/history/${exchange.owsExchangeId}/revocation-status`,
-    { revocationStatus: 'Revoked' }
+    { revocationStatus: "Revoked" },
   );
 
   const now = new Date().toISOString();
   getDb()
     .prepare(
       `UPDATE "credential_exchanges" SET "revoked" = 1, "revokedAt" = ?,
-         "updatedAt" = ? WHERE "owsExchangeId" = ?`
+         "updatedAt" = ? WHERE "owsExchangeId" = ?`,
     )
     .run(now, now, exchange.owsExchangeId);
 
   audit({
     actorUserId: actor.userId,
-    actorRole: 'school_officer',
-    action: 'credential.diploma_revoked',
-    subjectType: 'exchange',
+    actorRole: "school_officer",
+    action: "credential.diploma_revoked",
+    subjectType: "exchange",
     subjectId: exchange.owsExchangeId,
     payload: { applicationId: appId },
   });

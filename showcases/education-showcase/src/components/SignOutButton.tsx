@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { useRouter } from 'next/navigation';
+import { useRouter } from "next/navigation";
 
-import { authClient } from '@/lib/auth-client';
+import { authClient } from "@/lib/auth-client";
 
 export function SignOutButton({
   redirectTo,

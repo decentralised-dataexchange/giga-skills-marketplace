@@ -4,7 +4,7 @@
  * card grid, soft shadows. The furthest look from the government portals.
  */
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap");
 
 .cw {
   min-height: 100vh;
@@ -12,7 +12,11 @@
   flex-direction: column;
   background: var(--surface);
   color: var(--ink);
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family:
+    "Inter",
+    -apple-system,
+    BlinkMacSystemFont,
+    sans-serif;
 }
 
 .cw-header {
@@ -62,7 +66,7 @@
   color: var(--muted);
 }
 
-.cw-nav a[data-active='true'] {
+.cw-nav a[data-active="true"] {
   color: var(--brand);
 }
 
@@ -149,7 +153,7 @@
   filter: brightness(1.06);
 }
 
-.cw-pill[data-variant='ghost'] {
+.cw-pill[data-variant="ghost"] {
   background: var(--brand-soft);
   color: var(--brand);
 }
@@ -568,7 +572,7 @@
   box-shadow: 0 0 0 3px var(--brand-soft);
 }
 
-.cw form button[type='submit'] {
+.cw form button[type="submit"] {
   margin-top: 1.5rem;
   width: 100%;
   background: var(--accent);

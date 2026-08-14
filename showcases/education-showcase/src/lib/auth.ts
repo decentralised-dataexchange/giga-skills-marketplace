@@ -1,16 +1,16 @@
-import { betterAuth } from 'better-auth';
-import { createAuthMiddleware } from 'better-auth/api';
-import { admin } from 'better-auth/plugins';
-import { nextCookies } from 'better-auth/next-js';
+import { betterAuth } from "better-auth";
+import { createAuthMiddleware } from "better-auth/api";
+import { admin } from "better-auth/plugins";
+import { nextCookies } from "better-auth/next-js";
 
-import { getDb } from '@/lib/db';
+import { getDb } from "@/lib/db";
 import {
   cookieAttributes,
   isStashedRole,
   sessionCookieFromSetCookie,
   stashCookieName,
-} from '@/lib/portal-sessions';
-import { walletSignIn } from '@/lib/wallet-sign-in';
+} from "@/lib/portal-sessions";
+import { walletSignIn } from "@/lib/wallet-sign-in";
 
 const db = getDb();
 export { db };
@@ -28,8 +28,7 @@ export { db };
 // monolith deploy prefix, the route handler strips the prefix from the
 // request URL before handing it over. A path-carrying BETTER_AUTH_URL
 // would be misread as the endpoint base, so only its origin is passed.
-const authUrl =
-  process.env.BETTER_AUTH_URL || process.env.PUBLIC_BASE_URL || '';
+const authUrl = process.env.BETTER_AUTH_URL || process.env.PUBLIC_BASE_URL || "";
 let authOrigin: string | undefined;
 try {
   authOrigin = authUrl ? new URL(authUrl).origin : undefined;
@@ -47,19 +46,19 @@ export const auth = betterAuth({
   // in the monolith deployment on the shared marketplace domain (where the
   // base URL carries the /showcase path, so the origin is derived).
   trustedOrigins: [
-    process.env.PUBLIC_BASE_URL ?? '',
-    process.env.BETTER_AUTH_URL ?? '',
+    process.env.PUBLIC_BASE_URL ?? "",
+    process.env.BETTER_AUTH_URL ?? "",
     ...[process.env.PUBLIC_BASE_URL, process.env.BETTER_AUTH_URL]
       .filter((value): value is string => Boolean(value))
       .map((value) => {
         try {
           return new URL(value).origin;
         } catch {
-          return '';
+          return "";
         }
       }),
-    'http://localhost:3000',
-    'http://localhost:3299',
+    "http://localhost:3000",
+    "http://localhost:3299",
   ].filter(Boolean),
   plugins: [admin(), walletSignIn(), nextCookies()],
   // Per-portal session persistence: mirror every new session cookie into a
@@ -71,7 +70,7 @@ export const auth = betterAuth({
     after: createAuthMiddleware(async (ctx) => {
       const fresh = ctx.context.newSession;
       if (!fresh) return;
-      const role = (fresh.user as { role?: string }).role ?? '';
+      const role = (fresh.user as { role?: string }).role ?? "";
       if (!isStashedRole(role)) return;
       const headers = ctx.context.responseHeaders;
       const cookie = headers ? sessionCookieFromSetCookie(headers) : null;
@@ -79,7 +78,7 @@ export const auth = betterAuth({
       ctx.setCookie(
         stashCookieName(role),
         cookie.value,
-        cookieAttributes(cookie.name.startsWith('__Secure'))
+        cookieAttributes(cookie.name.startsWith("__Secure")),
       );
     }),
   },

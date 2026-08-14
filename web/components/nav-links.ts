@@ -10,8 +10,7 @@ export interface NavLink {
 // homepage; the Knowledgebase holds the documentation; Showcases opens the
 // education wallet showcase, served under /showcase on this same domain in
 // the monolith deployment (override for local development).
-export const SHOWCASE_URL =
-  process.env.NEXT_PUBLIC_SHOWCASE_URL ?? "/showcase";
+export const SHOWCASE_URL = process.env.NEXT_PUBLIC_SHOWCASE_URL ?? "/showcase";
 
 export const PUBLIC_LINKS: NavLink[] = [
   { href: "/", label: "Home", show: () => true },

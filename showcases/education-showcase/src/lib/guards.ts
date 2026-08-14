@@ -1,10 +1,10 @@
-import 'server-only';
+import "server-only";
 
-import { headers } from 'next/headers';
-import { redirect } from 'next/navigation';
+import { headers } from "next/headers";
+import { redirect } from "next/navigation";
 
-import { auth } from '@/lib/auth';
-import { PORTALS, type PortalId } from '@/lib/portals';
+import { auth } from "@/lib/auth";
+import { PORTALS, type PortalId } from "@/lib/portals";
 
 /**
  * Server-side role enforcement. The middleware only checks that a session
@@ -40,7 +40,7 @@ export async function requireRole(role: string) {
   const session = await getSession();
   const actual = (session?.user as { role?: string } | undefined)?.role;
   if (!session || actual !== role) {
-    throw new Error('Not authorized for this action.');
+    throw new Error("Not authorized for this action.");
   }
   return session;
 }

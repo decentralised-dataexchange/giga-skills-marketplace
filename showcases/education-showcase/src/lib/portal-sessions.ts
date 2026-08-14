@@ -1,4 +1,4 @@
-import 'server-only';
+import "server-only";
 
 /**
  * Per-portal session persistence.
@@ -13,12 +13,12 @@ import 'server-only';
  */
 
 const SESSION_COOKIE_NAMES = [
-  '__Secure-better-auth.session_token',
-  'better-auth.session_token',
+  "__Secure-better-auth.session_token",
+  "better-auth.session_token",
 ] as const;
 
 /** Only the roles that sign in have a stash. */
-export const STASHED_ROLES = ['learner', 'school_officer'] as const;
+export const STASHED_ROLES = ["learner", "school_officer"] as const;
 export type StashedRole = (typeof STASHED_ROLES)[number];
 
 export function isStashedRole(role: string): role is StashedRole {
@@ -34,11 +34,11 @@ export function stashCookieName(role: StashedRole): string {
  * headers, right after Better Auth set it.
  */
 export function sessionCookieFromSetCookie(
-  headers: Headers
+  headers: Headers,
 ): { name: string; value: string } | null {
   for (const line of headers.getSetCookie()) {
-    const [pair] = line.split(';');
-    const eq = pair.indexOf('=');
+    const [pair] = line.split(";");
+    const eq = pair.indexOf("=");
     if (eq < 0) continue;
     const name = pair.slice(0, eq).trim();
     if ((SESSION_COOKIE_NAMES as readonly string[]).includes(name)) {
@@ -56,21 +56,18 @@ export function sessionCookieFromSetCookie(
  * straight to the portal home instead of signing in again. Read-only: an
  * invalid stash is simply reported false (the next sign-in overwrites it).
  */
-export async function hasRestorableSession(
-  role: StashedRole
-): Promise<boolean> {
-  const { cookies } = await import('next/headers');
+export async function hasRestorableSession(role: StashedRole): Promise<boolean> {
+  const { cookies } = await import("next/headers");
   const stash = (await cookies()).get(stashCookieName(role))?.value;
   if (!stash) return false;
-  const value = stash.includes('%') ? decodeURIComponent(stash) : stash;
+  const value = stash.includes("%") ? decodeURIComponent(stash) : stash;
 
-  const base =
-    process.env.BETTER_AUTH_URL || process.env.PUBLIC_BASE_URL || '';
-  const name = base.startsWith('https://')
-    ? '__Secure-better-auth.session_token'
-    : 'better-auth.session_token';
+  const base = process.env.BETTER_AUTH_URL || process.env.PUBLIC_BASE_URL || "";
+  const name = base.startsWith("https://")
+    ? "__Secure-better-auth.session_token"
+    : "better-auth.session_token";
 
-  const { auth } = await import('@/lib/auth');
+  const { auth } = await import("@/lib/auth");
   const session = await auth.api
     .getSession({
       headers: new Headers({ cookie: `${name}=${encodeURIComponent(value)}` }),
@@ -83,8 +80,8 @@ export async function hasRestorableSession(
 export function cookieAttributes(secure: boolean) {
   return {
     httpOnly: true,
-    sameSite: 'lax' as const,
-    path: '/',
+    sameSite: "lax" as const,
+    path: "/",
     secure,
     maxAge: 60 * 60 * 24 * 7,
   };

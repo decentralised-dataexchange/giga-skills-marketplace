@@ -1,4 +1,4 @@
-import { randomBytes } from 'crypto';
+import { randomBytes } from "crypto";
 
 /**
  * Unique Learner Identifier and general row ids.
@@ -8,11 +8,11 @@ import { randomBytes } from 'crypto';
  * table-specific prefix so every id stays opaque and non-enumerable.
  */
 
-const CROCKFORD = '0123456789ABCDEFGHJKMNPQRSTVWXYZ';
+const CROCKFORD = "0123456789ABCDEFGHJKMNPQRSTVWXYZ";
 
 function crockford(length: number): string {
   const bytes = randomBytes(length);
-  let out = '';
+  let out = "";
   for (let i = 0; i < length; i++) out += CROCKFORD[bytes[i] % 32];
   return out;
 }

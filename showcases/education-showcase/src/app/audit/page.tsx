@@ -1,10 +1,10 @@
-import Link from 'next/link';
+import Link from "next/link";
 
-import { auditTimeline, verifyAuditChain } from '@/lib/audit';
+import { auditTimeline, verifyAuditChain } from "@/lib/audit";
 
-import './audit.css';
+import "./audit.css";
 
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 
 /**
  * The registry audit trail, shown as part of the showcase rather than
@@ -25,7 +25,7 @@ function DetailList({ payload }: { payload: string }) {
       {entries.map(([key, value]) => (
         <div key={key}>
           <dt>{key}</dt>
-          <dd>{typeof value === 'string' ? value : JSON.stringify(value)}</dd>
+          <dd>{typeof value === "string" ? value : JSON.stringify(value)}</dd>
         </div>
       ))}
     </dl>
@@ -44,14 +44,13 @@ export default function AuditTrail() {
       <p className="adt-kicker">National Learner Registry</p>
       <h1>Registry audit trail</h1>
       <p className="adt-intro">
-        The append-only record of every consequential action: registrations,
-        document validations, the automatic enrolment and issuance processing,
-        payments, verifications and revocations. Rows are chained with SHA-256
-        hashes; the chain is{' '}
+        The append-only record of every consequential action: registrations, document validations,
+        the automatic enrolment and issuance processing, payments, verifications and revocations.
+        Rows are chained with SHA-256 hashes; the chain is{" "}
         {broken === null ? (
-          <strong style={{ color: 'var(--ok)' }}>intact</strong>
+          <strong style={{ color: "var(--ok)" }}>intact</strong>
         ) : (
-          <strong style={{ color: 'var(--bad)' }}>broken at #{broken}</strong>
+          <strong style={{ color: "var(--bad)" }}>broken at #{broken}</strong>
         )}
         .
       </p>
@@ -72,7 +71,7 @@ export default function AuditTrail() {
             </thead>
             <tbody>
               {events.map((event) => {
-                const [date, time] = event.createdAt.slice(0, 19).split('T');
+                const [date, time] = event.createdAt.slice(0, 19).split("T");
                 return (
                   <tr key={event.seq}>
                     <td className="adt-num">{event.seq}</td>
@@ -81,9 +80,7 @@ export default function AuditTrail() {
                       <small>{time}</small>
                     </td>
                     <td>
-                      <span className="adt-role-chip">
-                        {event.actorRole.replace(/_/g, ' ')}
-                      </span>
+                      <span className="adt-role-chip">{event.actorRole.replace(/_/g, " ")}</span>
                     </td>
                     <td className="adt-action">{event.action}</td>
                     <td className="adt-subject">

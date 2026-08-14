@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import { createPortal } from 'react-dom';
-import { X } from 'lucide-react';
+import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
+import { X } from "lucide-react";
 
 /**
  * Right-hand side panel, the marketplace treatment: a scrim, a panel that
@@ -41,6 +41,6 @@ export function Drawer({
         {footer ? <footer className="drawer-footer">{footer}</footer> : null}
       </div>
     </div>,
-    document.body
+    document.body,
   );
 }

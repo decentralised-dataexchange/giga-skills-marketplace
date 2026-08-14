@@ -1,8 +1,8 @@
-import Link from 'next/link';
+import Link from "next/link";
 
-import { CivicworksShell } from '@/components/CivicworksShell';
-import { ApplicationForm } from '@/components/ApplicationForm';
-import { getJob } from '@/lib/jobs';
+import { CivicworksShell } from "@/components/CivicworksShell";
+import { ApplicationForm } from "@/components/ApplicationForm";
+import { getJob } from "@/lib/jobs";
 
 /**
  * The job detail and application page, candidate perspective: a full role
@@ -27,7 +27,7 @@ export default async function CivicworksApply({
       <p className="cw-job-meta">
         {job.team} · {job.location} · {job.type} · {job.salary}
       </p>
-      <div className="cw-job-tags" style={{ marginTop: '0.6rem' }}>
+      <div className="cw-job-tags" style={{ marginTop: "0.6rem" }}>
         {job.tags.map((tag) => (
           <span key={tag} className="cw-tag">
             {tag}

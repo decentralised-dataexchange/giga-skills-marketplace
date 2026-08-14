@@ -76,12 +76,12 @@
   border-radius: 8px 8px 0 0;
 }
 
-.sch-tabs a[data-active='true'] {
+.sch-tabs a[data-active="true"] {
   background: var(--brand);
   color: #ffffff;
 }
 
-.sch-tabs a:not([data-active='true']):hover {
+.sch-tabs a:not([data-active="true"]):hover {
   background: var(--brand-soft);
   color: var(--brand-dark);
 }
@@ -283,7 +283,7 @@
   outline-offset: 1px;
 }
 
-.sch form button[type='submit'] {
+.sch form button[type="submit"] {
   margin-top: 1.25rem;
   width: 100%;
   background: var(--brand);
@@ -295,7 +295,7 @@
   font-weight: 700;
 }
 
-.sch form button[type='submit']:hover {
+.sch form button[type="submit"]:hover {
   background: var(--brand-dark);
 }
 

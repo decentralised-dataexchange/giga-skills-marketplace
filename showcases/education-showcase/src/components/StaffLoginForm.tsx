@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 
-import { authClient } from '@/lib/auth-client';
-import type { DemoAccount } from '@/lib/demo-accounts';
+import { authClient } from "@/lib/auth-client";
+import type { DemoAccount } from "@/lib/demo-accounts";
 
 /**
  * Email and password sign-in for staff portals. Purely functional: every
@@ -17,7 +17,7 @@ import type { DemoAccount } from '@/lib/demo-accounts';
 export function StaffLoginForm({
   homePath,
   className,
-  buttonLabel = 'Sign in',
+  buttonLabel = "Sign in",
   demoAccount,
 }: {
   homePath: string;
@@ -26,8 +26,8 @@ export function StaffLoginForm({
   demoAccount?: DemoAccount;
 }) {
   const router = useRouter();
-  const [email, setEmail] = useState(demoAccount?.email ?? '');
-  const [password, setPassword] = useState(demoAccount?.password ?? '');
+  const [email, setEmail] = useState(demoAccount?.email ?? "");
+  const [password, setPassword] = useState(demoAccount?.password ?? "");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -41,7 +41,7 @@ export function StaffLoginForm({
     });
     setBusy(false);
     if (signInError) {
-      setError(signInError.message ?? 'Sign-in failed. Please try again.');
+      setError(signInError.message ?? "Sign-in failed. Please try again.");
       return;
     }
     router.push(homePath);
@@ -72,7 +72,7 @@ export function StaffLoginForm({
       </label>
       {error ? <p className="login-error">{error}</p> : null}
       <button type="submit" disabled={busy}>
-        {busy ? 'Signing in…' : buttonLabel}
+        {busy ? "Signing in…" : buttonLabel}
       </button>
     </form>
   );

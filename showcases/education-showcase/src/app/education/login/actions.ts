@@ -1,8 +1,8 @@
-'use server';
+"use server";
 
-import { getDb } from '@/lib/db';
-import { newId } from '@/lib/ids';
-import { ows, requiredEnv } from '@/lib/ows';
+import { getDb } from "@/lib/db";
+import { newId } from "@/lib/ids";
+import { ows, requiredEnv } from "@/lib/ows";
 
 /**
  * Start a PID wallet login: send the OpenID4VP request from the Ministry
@@ -13,24 +13,21 @@ export async function startPidLogin(): Promise<{
   exchangeId: string;
   qrUri: string;
 }> {
-  const presentationDefinitionId = requiredEnv(
-    'PID_PRESENTATION_DEFINITION_ID',
-    'PID login'
-  );
+  const presentationDefinitionId = requiredEnv("PID_PRESENTATION_DEFINITION_ID", "PID login");
 
   const answer = await ows(
-    'moe',
-    'POST',
-    '/v3/config/digital-wallet/openid/sdjwt/verification/send',
+    "moe",
+    "POST",
+    "/v3/config/digital-wallet/openid/sdjwt/verification/send",
     // By reference: the QR carries a request_uri, not the whole request.
-    { presentationDefinitionId, requestByReference: true }
+    { presentationDefinitionId, requestByReference: true },
   );
 
   const history = answer?.verificationHistory ?? answer;
   const exchangeId: string | undefined = history?.presentationExchangeId;
   const qrUri: string | undefined = history?.vpTokenQrCode;
   if (!exchangeId || !qrUri) {
-    throw new Error('The wallet service could not start the sign-in.');
+    throw new Error("The wallet service could not start the sign-in.");
   }
 
   const now = new Date().toISOString();
@@ -40,9 +37,9 @@ export async function startPidLogin(): Promise<{
          ("id", "owsExchangeId", "direction", "credentialType", "status",
           "createdAt", "updatedAt")
        VALUES (?, ?, 'presentation', 'pid-login', 'request_sent', ?, ?)
-       ON CONFLICT("owsExchangeId") DO NOTHING`
+       ON CONFLICT("owsExchangeId") DO NOTHING`,
     )
-    .run(newId('exc'), exchangeId, now, now);
+    .run(newId("exc"), exchangeId, now, now);
 
   return { exchangeId, qrUri };
 }

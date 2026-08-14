@@ -1,14 +1,14 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { ArrowRight, BookOpen, ExternalLink } from 'lucide-react';
+import { useState } from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { ArrowRight, BookOpen, ExternalLink } from "lucide-react";
 
-import { Drawer } from '@/components/Drawer';
-import type { NextStop } from '@/lib/next-stop';
-import { DEMO_STEPS, PREREQUISITES, WHO_SIGNS_IN, stepColour } from '@/lib/demo-steps';
-import { PORTALS, type PortalConfig } from '@/lib/portals';
+import { Drawer } from "@/components/Drawer";
+import type { NextStop } from "@/lib/next-stop";
+import { DEMO_STEPS, PREREQUISITES, WHO_SIGNS_IN, stepColour } from "@/lib/demo-steps";
+import { PORTALS, type PortalConfig } from "@/lib/portals";
 
 /**
  * The showcase overlay on every portal: one floating button that opens a
@@ -31,16 +31,8 @@ function PortalRow({
 }) {
   const active = activeId === portal.id;
   return (
-    <Link
-      href={portal.homePath}
-      className="guide-portal"
-      data-active={active}
-      onClick={onNavigate}
-    >
-      <span
-        className="guide-portal-mark"
-        style={{ background: portal.brand['brand-soft'] }}
-      >
+    <Link href={portal.homePath} className="guide-portal" data-active={active} onClick={onNavigate}>
+      <span className="guide-portal-mark" style={{ background: portal.brand["brand-soft"] }}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={portal.logo} alt="" />
       </span>
@@ -66,8 +58,7 @@ export function ShowcaseGuide({ nextStop }: { nextStop: NextStop | null }) {
   const [open, setOpen] = useState(false);
 
   const current = Object.values(PORTALS).find(
-    (portal) =>
-      pathname === `/${portal.id}` || pathname.startsWith(`/${portal.id}/`)
+    (portal) => pathname === `/${portal.id}` || pathname.startsWith(`/${portal.id}/`),
   );
   const close = () => setOpen(false);
 
@@ -106,24 +97,24 @@ export function ShowcaseGuide({ nextStop }: { nextStop: NextStop | null }) {
               <span className="guide-heading-n">2</span> The portals
             </h3>
             <p className="guide-lede">
-              Three organisations, one journey. Sessions persist per portal,
-              so you can switch freely.
+              Three organisations, one journey. Sessions persist per portal, so you can switch
+              freely.
             </p>
             <div className="guide-portals">
               <Link
                 href="/"
                 className="guide-portal"
-                data-active={pathname === '/'}
+                data-active={pathname === "/"}
                 onClick={close}
               >
-                <span className="guide-portal-mark" style={{ background: '#eef1f6' }}>
+                <span className="guide-portal-mark" style={{ background: "#eef1f6" }}>
                   <BookOpen size={16} aria-hidden="true" />
                 </span>
                 <span className="guide-portal-text">
                   <strong>Showcase landing</strong>
                   <small>Demo script and journey map</small>
                 </span>
-                {pathname === '/' ? (
+                {pathname === "/" ? (
                   <span className="guide-current">You are here</span>
                 ) : (
                   <ArrowRight size={15} className="guide-portal-go" aria-hidden="true" />
@@ -146,16 +137,13 @@ export function ShowcaseGuide({ nextStop }: { nextStop: NextStop | null }) {
               <span className="guide-heading-n">3</span> The walkthrough
             </h3>
             <p className="guide-lede">
-              Five steps, about 12 minutes. The pulsing highlight on each
-              screen marks the next thing to click.
+              Five steps, about 12 minutes. The pulsing highlight on each screen marks the next
+              thing to click.
             </p>
             <ol className="guide-steps">
               {DEMO_STEPS.map((step, index) => (
                 <li key={step.title}>
-                  <span
-                    className="guide-step-n"
-                    style={{ background: stepColour(step.href) }}
-                  >
+                  <span className="guide-step-n" style={{ background: stepColour(step.href) }}>
                     {index + 1}
                   </span>
                   <span className="guide-step-body">

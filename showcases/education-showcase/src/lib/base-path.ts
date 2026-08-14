@@ -6,7 +6,7 @@
  * NEXT_PUBLIC_ so the value inlines into the client bundle at build time,
  * matching the basePath the build was made with.
  */
-export const BASE_PATH = process.env.NEXT_PUBLIC_BASE_PATH ?? '';
+export const BASE_PATH = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 
 /** Prefix an API route for client-side fetch/EventSource calls. */
 export function apiPath(path: string): string {

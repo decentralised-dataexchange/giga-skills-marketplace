@@ -1,17 +1,17 @@
-import { getDb } from '@/lib/db';
-import { verifySignature } from '@/lib/webhook/verify';
-import { extractExchangeId, isSupportedTopic } from '@/lib/webhook/topics';
-import { storeEvent } from '@/lib/webhook/store';
-import { completePidLogin } from '@/lib/wallet-login';
-import { completeDynamicDiplomaPayment } from '@/lib/registry';
+import { getDb } from "@/lib/db";
+import { verifySignature } from "@/lib/webhook/verify";
+import { extractExchangeId, isSupportedTopic } from "@/lib/webhook/topics";
+import { storeEvent } from "@/lib/webhook/store";
+import { completePidLogin } from "@/lib/wallet-login";
+import { completeDynamicDiplomaPayment } from "@/lib/registry";
 
 // Unauthenticated POST from iGrant.io; HMAC is the authentication.
-export const runtime = 'nodejs';
-export const dynamic = 'force-dynamic';
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 const SECRET_ENV: Record<string, string> = {
-  moe: 'MOE_WEBHOOK_SECRET',
-  civicworks: 'CIVICWORKS_WEBHOOK_SECRET',
+  moe: "MOE_WEBHOOK_SECRET",
+  civicworks: "CIVICWORKS_WEBHOOK_SECRET",
 };
 
 /**
@@ -22,20 +22,17 @@ const SECRET_ENV: Record<string, string> = {
  * the event for SSE/polling. Duplicate deliveries are idempotent; unknown
  * topics are 400; a bad signature is 401.
  */
-export async function POST(
-  req: Request,
-  ctx: { params: Promise<{ org: string }> }
-) {
+export async function POST(req: Request, ctx: { params: Promise<{ org: string }> }) {
   const { org } = await ctx.params;
   const secretEnv = SECRET_ENV[org];
-  if (!secretEnv) return Response.json({ error: 'Unknown receiver' }, { status: 404 });
+  if (!secretEnv) return Response.json({ error: "Unknown receiver" }, { status: 404 });
 
   const rawBody = await req.text();
-  const signature = req.headers.get('x-igrant-signature');
-  const secret = process.env[secretEnv] ?? '';
+  const signature = req.headers.get("x-igrant-signature");
+  const secret = process.env[secretEnv] ?? "";
 
   if (!verifySignature(signature, rawBody, secret)) {
-    return Response.json({ error: 'Invalid signature' }, { status: 401 });
+    return Response.json({ error: "Invalid signature" }, { status: 401 });
   }
 
   let envelope: {
@@ -46,68 +43,65 @@ export async function POST(
   try {
     envelope = JSON.parse(rawBody);
   } catch {
-    return Response.json({ error: 'Invalid JSON' }, { status: 400 });
+    return Response.json({ error: "Invalid JSON" }, { status: 400 });
   }
 
   const topic = envelope.type;
   if (!isSupportedTopic(topic)) {
-    return Response.json({ error: 'Unsupported topic' }, { status: 400 });
+    return Response.json({ error: "Unsupported topic" }, { status: 400 });
   }
 
   const exchangeId = extractExchangeId(topic, envelope.data ?? {});
   if (!exchangeId) {
-    return Response.json({ error: 'No exchange id' }, { status: 400 });
+    return Response.json({ error: "No exchange id" }, { status: 400 });
   }
 
-  const deliveryId =
-    envelope.deliveryID ?? `${topic}:${exchangeId}:${rawBody.length}`;
+  const deliveryId = envelope.deliveryID ?? `${topic}:${exchangeId}:${rawBody.length}`;
 
   const payload: Record<string, unknown> = { topic, org };
 
   // Update the local exchange status and run completion work by exchange kind.
   const db = getDb();
   const exchange = db
-    .prepare(
-      'SELECT "credentialType" FROM "credential_exchanges" WHERE "owsExchangeId" = ?'
-    )
+    .prepare('SELECT "credentialType" FROM "credential_exchanges" WHERE "owsExchangeId" = ?')
     .get(exchangeId) as { credentialType: string } | undefined;
 
   db.prepare(
-    'UPDATE "credential_exchanges" SET "status" = ?, "updatedAt" = ? WHERE "owsExchangeId" = ?'
+    'UPDATE "credential_exchanges" SET "status" = ?, "updatedAt" = ? WHERE "owsExchangeId" = ?',
   ).run(topic, new Date().toISOString(), exchangeId);
 
   const isPresentationDone =
-    topic === 'digitalwallet.presentation.verified' ||
-    topic === 'openid.presentation.presentation_acked.v3';
+    topic === "digitalwallet.presentation.verified" ||
+    topic === "openid.presentation.presentation_acked.v3";
 
   const isCredentialDone =
-    topic === 'openid.credential.credential_acked' ||
-    topic === 'openid.credential.credential_accepted';
+    topic === "openid.credential.credential_acked" ||
+    topic === "openid.credential.credential_accepted";
 
   // Dynamic paid issuance: the wallet holding the diploma means the payment
   // presentation succeeded inside this exchange.
-  if (exchange?.credentialType === 'diploma' && isCredentialDone) {
+  if (exchange?.credentialType === "diploma" && isCredentialDone) {
     try {
       const paid = completeDynamicDiplomaPayment(exchangeId);
-      if (paid) payload.status = 'paid';
+      if (paid) payload.status = "paid";
     } catch (error) {
-      console.error('[Webhook] paid issuance completion failed:', error);
+      console.error("[Webhook] paid issuance completion failed:", error);
     }
   }
 
-  if (exchange?.credentialType === 'pid-login' && isPresentationDone) {
+  if (exchange?.credentialType === "pid-login" && isPresentationDone) {
     try {
       const result = await completePidLogin(exchangeId);
       if (result) {
-        payload.status = 'verified';
+        payload.status = "verified";
         payload.loginToken = result.loginToken;
         payload.displayName = result.displayName;
       } else {
-        payload.status = 'rejected';
+        payload.status = "rejected";
       }
     } catch (error) {
-      console.error('[Webhook] PID login completion failed:', error);
-      payload.status = 'error';
+      console.error("[Webhook] PID login completion failed:", error);
+      payload.status = "error";
     }
   }
 

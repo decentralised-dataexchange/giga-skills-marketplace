@@ -1,4 +1,4 @@
-import Database from 'better-sqlite3';
+import Database from "better-sqlite3";
 
 /**
  * The showcase database: local SQLite, following the demonstrators pattern.
@@ -11,7 +11,7 @@ import Database from 'better-sqlite3';
  * attributes.
  */
 
-const DB_PATH = process.env.SQLITE_PATH || './sqlite.db';
+const DB_PATH = process.env.SQLITE_PATH || "./sqlite.db";
 
 const g = globalThis as typeof globalThis & { __eduDb?: Database.Database };
 
@@ -22,7 +22,7 @@ function open(): Database.Database {
   const db = new Database(DB_PATH, { timeout: 10_000 });
 
   try {
-    db.pragma('journal_mode = WAL');
+    db.pragma("journal_mode = WAL");
   } catch {
     // Another process is setting it; the mode applies to us as well.
   }

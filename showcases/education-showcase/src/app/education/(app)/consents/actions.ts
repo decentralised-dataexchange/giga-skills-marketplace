@@ -1,10 +1,10 @@
-'use server';
+"use server";
 
-import { revalidatePath } from 'next/cache';
-import { redirect } from 'next/navigation';
+import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 
-import { requireRole } from '@/lib/guards';
-import { getLearnerByUserId } from '@/lib/registry';
+import { requireRole } from "@/lib/guards";
+import { getLearnerByUserId } from "@/lib/registry";
 import {
   AGREEMENTS,
   agreementId,
@@ -12,21 +12,21 @@ import {
   ensureIndividual,
   getIndividualId,
   setConsent,
-} from '@/lib/consent';
-import { audit } from '@/lib/audit';
-import { getDb } from '@/lib/db';
+} from "@/lib/consent";
+import { audit } from "@/lib/audit";
+import { getDb } from "@/lib/db";
 
 /** Allow or withdraw one of the two optional agreements. */
 export async function updateConsent(formData: FormData): Promise<void> {
-  const session = await requireRole('learner');
+  const session = await requireRole("learner");
   const learner = getLearnerByUserId(session.user.id);
-  if (!learner) throw new Error('No learner profile.');
+  if (!learner) throw new Error("No learner profile.");
 
-  const key = String(formData.get('agreement') ?? '');
-  const optIn = formData.get('optIn') === 'true';
+  const key = String(formData.get("agreement") ?? "");
+  const optIn = formData.get("optIn") === "true";
   const agreement = AGREEMENTS.find((entry) => entry.key === key);
   if (!agreement || !agreement.optional) {
-    throw new Error('This agreement cannot be changed here.');
+    throw new Error("This agreement cannot be changed here.");
   }
 
   const individualId = await ensureIndividual(learner);
@@ -34,13 +34,13 @@ export async function updateConsent(formData: FormData): Promise<void> {
 
   audit({
     actorUserId: session.user.id,
-    actorRole: 'learner',
-    action: optIn ? 'consent.given' : 'consent.withdrawn',
-    subjectType: 'agreement',
+    actorRole: "learner",
+    action: optIn ? "consent.given" : "consent.withdrawn",
+    subjectType: "agreement",
     subjectId: agreement.key,
   });
 
-  revalidatePath('/education/consents');
+  revalidatePath("/education/consents");
 }
 
 /**
@@ -50,16 +50,16 @@ export async function updateConsent(formData: FormData): Promise<void> {
  * audit event is written before the identity disappears, without naming it.
  */
 export async function deleteMyAccount(): Promise<void> {
-  const session = await requireRole('learner');
+  const session = await requireRole("learner");
   const learner = getLearnerByUserId(session.user.id);
-  if (!learner) throw new Error('No learner profile.');
+  if (!learner) throw new Error("No learner profile.");
 
   const individualId = getIndividualId(learner.id);
   if (individualId) {
     try {
       await deleteAllConsents(individualId, {
         userId: session.user.id,
-        role: 'learner',
+        role: "learner",
       });
     } catch {
       // The account deletion proceeds regardless.
@@ -68,10 +68,10 @@ export async function deleteMyAccount(): Promise<void> {
 
   audit({
     actorUserId: session.user.id,
-    actorRole: 'learner',
-    action: 'learner.account_deleted',
-    subjectType: 'learner',
-    subjectId: 'redacted',
+    actorRole: "learner",
+    action: "learner.account_deleted",
+    subjectType: "learner",
+    subjectId: "redacted",
   });
 
   const db = getDb();
@@ -87,5 +87,5 @@ export async function deleteMyAccount(): Promise<void> {
   });
   wipe();
 
-  redirect('/education');
+  redirect("/education");
 }
