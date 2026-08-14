@@ -34,10 +34,26 @@ const interLatinExt = localFont({
 });
 const jetbrainsMono = JetBrains_Mono({ subsets: ["latin"], variable: "--font-jb-mono" });
 
+const TITLE = "Giga Skills Marketplace";
+const DESCRIPTION =
+  "Provider-published, agent-agnostic skill files for the education wallet building block, part of the ITU / UNICEF Giga initiative. Reviewed app-store style and ready to install into any AI coding agent.";
+
 export const metadata: Metadata = {
-  title: "Giga Skills Marketplace",
-  description:
-    "Provider-published, agent-agnostic skill files for the education wallet building block, part of the ITU / UNICEF Giga initiative. Reviewed app-store style and ready to install into any AI coding agent.",
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "https://giga-staging.igrant.io"),
+  title: TITLE,
+  description: DESCRIPTION,
+  openGraph: {
+    title: TITLE,
+    description: DESCRIPTION,
+    siteName: TITLE,
+    type: "website",
+    locale: "en_GB",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: TITLE,
+    description: DESCRIPTION,
+  },
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {

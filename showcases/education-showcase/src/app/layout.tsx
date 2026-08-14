@@ -8,10 +8,34 @@ import './globals.css';
 
 export const dynamic = 'force-dynamic';
 
+const TITLE = 'National Learner Registry & Education Wallet Showcase';
+const DESCRIPTION =
+  'ITU/Giga education use case showcase: learner registration, credential issuance, wallet storage and third-party verification.';
+
+function siteUrl(): URL {
+  try {
+    return new URL(process.env.PUBLIC_BASE_URL ?? '');
+  } catch {
+    return new URL('http://localhost:3000');
+  }
+}
+
 export const metadata: Metadata = {
-  title: 'National Learner Registry & Education Wallet Showcase',
-  description:
-    'ITU/Giga education use case showcase: learner registration, credential issuance, wallet storage and third-party verification.',
+  metadataBase: siteUrl(),
+  title: TITLE,
+  description: DESCRIPTION,
+  openGraph: {
+    title: TITLE,
+    description: DESCRIPTION,
+    siteName: TITLE,
+    type: 'website',
+    locale: 'en_GB',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: TITLE,
+    description: DESCRIPTION,
+  },
 };
 
 export default async function RootLayout({
