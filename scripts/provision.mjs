@@ -340,7 +340,8 @@ async function main() {
   });
   if (diplomaDef) saveEnvValue('DIPLOMA_CREDENTIAL_ID', diplomaDef);
 
-  // CivicWorks asks for five claims only: privacy by default.
+  // CivicWorks job application: the PID fills the personal fields, the
+  // diploma is the qualification evidence. Five diploma claims only.
   const diplomaVerifyId = await ensurePresentationDefinition(cwKey, {
     label: 'Diploma qualification check',
     version: 'version_01',
@@ -351,6 +352,16 @@ async function main() {
     kid: env.DIPLOMA_CHECK_KID || undefined,
     dcqlQuery: {
       credentials: [
+        {
+          id: 'pid',
+          format: 'dc+sd-jwt',
+          meta: { vct_values: ['urn:eu.europa.ec.eudi:pid:1'] },
+          claims: [
+            { path: ['given_name'] },
+            { path: ['family_name'] },
+            { path: ['email'] },
+          ],
+        },
         {
           id: 'diploma',
           format: 'dc+sd-jwt',

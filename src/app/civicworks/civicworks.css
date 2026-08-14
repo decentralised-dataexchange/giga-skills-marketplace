@@ -338,6 +338,140 @@
   box-shadow: 0 0 0 3px var(--brand-soft);
 }
 
+.cw-wallet-fill {
+  width: 100%;
+  justify-content: center;
+  margin-top: 0.9rem;
+}
+
+.cw-submit {
+  width: 100%;
+  justify-content: center;
+  margin-top: 1.1rem;
+}
+
+.cw-linklike {
+  display: block;
+  margin: 0.75rem auto 0;
+  background: none;
+  border: 0;
+  font-family: inherit;
+  font-size: 0.8rem;
+  color: var(--muted);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+/* The clickable evidence row. */
+.cw-evidence {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  width: 100%;
+  margin-top: 0.6rem;
+  padding: 0.7rem 0.9rem;
+  background: var(--brand-soft);
+  border: 1px solid var(--brand);
+  border-radius: 12px;
+  font-family: inherit;
+  text-align: left;
+  color: var(--ink);
+}
+
+.cw-evidence:hover {
+  filter: brightness(0.98);
+}
+
+.cw-evidence-text strong {
+  display: block;
+  font-size: 0.85rem;
+}
+
+.cw-evidence-text small {
+  display: block;
+  font-size: 0.72rem;
+  color: var(--muted);
+}
+
+/* The attestation preview inside the drawer. */
+.cw-attestation {
+  background: #ffffff;
+  border: 1px solid #e0e0e0;
+  border-radius: 12px;
+  padding: 1.5rem;
+}
+
+.cw-attestation-head {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #ececec;
+}
+
+.cw-attestation-head img {
+  width: 2.6rem;
+  height: 2.6rem;
+}
+
+.cw-attestation-head strong {
+  display: block;
+  font-size: 1.05rem;
+}
+
+.cw-attestation-head small {
+  display: block;
+  font-size: 0.75rem;
+  color: #6b7280;
+}
+
+.cw-attestation-head .integration-badge {
+  margin-left: auto;
+}
+
+.cw-attestation table {
+  width: 100%;
+  margin-top: 1rem;
+  font-size: 0.88rem;
+  border-collapse: collapse;
+}
+
+.cw-attestation td {
+  padding: 0.45rem 0;
+  border-bottom: 1px solid #f1f1f3;
+}
+
+.cw-attestation td:first-child {
+  color: #6b7280;
+  width: 40%;
+}
+
+.cw-attestation td:last-child {
+  font-weight: 600;
+}
+
+.cw-attestation ul {
+  list-style: none;
+  margin-top: 1rem;
+  font-size: 0.85rem;
+  line-height: 1.8;
+}
+
+.cw-attestation > p {
+  margin-top: 1rem;
+  font-size: 0.78rem;
+  color: #6b7280;
+}
+
+.cw-apply-success {
+  text-align: center;
+  padding: 2.5rem 1.5rem;
+}
+
+.cw-apply-success h2 {
+  margin-top: 0.75rem;
+}
+
 @media (max-width: 52rem) {
   .cw-apply-grid {
     grid-template-columns: 1fr;

@@ -12,7 +12,10 @@ export type VerificationResult = {
   status: string;
   verified: boolean;
   answered: boolean;
+  /** The five disclosed diploma claims. */
   claims: Record<string, string>;
+  /** The PID claims that prefill the application form. */
+  pid: { givenName: string; familyName: string; email: string };
   checks: { name: string; passed: boolean; detail?: string }[];
 };
 
@@ -45,6 +48,7 @@ export async function readVerification(
     Array.isArray(history.vpTokenResponse) && history.vpTokenResponse.length > 0;
 
   const claims: Record<string, string> = {};
+  const pid = { givenName: '', familyName: '', email: '' };
   const presentations = Array.isArray(history.presentation)
     ? history.presentation
     : history.presentation
@@ -52,10 +56,14 @@ export async function readVerification(
       : [];
   for (const entry of presentations) {
     if (!entry || typeof entry !== 'object') continue;
+    const record = entry as Record<string, unknown>;
     for (const name of SHOWN_CLAIMS) {
-      const value = (entry as Record<string, unknown>)[name];
+      const value = record[name];
       if (typeof value === 'string' && value) claims[name] = value;
     }
+    if (typeof record.given_name === 'string') pid.givenName = record.given_name;
+    if (typeof record.family_name === 'string') pid.familyName = record.family_name;
+    if (typeof record.email === 'string') pid.email = record.email;
   }
 
   const validity = history.presentationValidity;
@@ -85,6 +93,7 @@ export async function readVerification(
     verified,
     answered,
     claims,
+    pid,
     checks,
   };
 }
