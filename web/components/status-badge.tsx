@@ -18,7 +18,7 @@ const STYLES: Record<string, { label: string; className: string }> = {
   rejected: { label: "Rejected", className: BAD },
   suspended: { label: "Suspended", className: BAD },
   superseded: { label: "Superseded", className: NEUTRAL },
-  delisted: { label: "Delisted", className: NEUTRAL },
+  archived: { label: "Archived", className: NEUTRAL },
   in_submission: { label: "In submission", className: NEUTRAL },
 };
 

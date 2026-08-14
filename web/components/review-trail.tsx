@@ -15,7 +15,9 @@ const NODE: Record<string, { label: string; dot: string }> = {
   "review.approve": { label: "Approved & published", dot: "bg-emerald-500" },
   "review.request_changes": { label: "Changes requested", dot: "bg-amber-500" },
   "review.reject": { label: "Rejected", dot: "bg-red-500" },
-  "skill.delisted": { label: "Delisted", dot: "bg-red-500" },
+  "skill.archived": { label: "Archived", dot: "bg-red-500" },
+  // Pre-rename events keep their stored type and read with the current word.
+  "skill.delisted": { label: "Archived", dot: "bg-red-500" },
 };
 
 function nodeInfo(t: any) {
@@ -110,9 +112,9 @@ export function ReviewTrail({
       <div className="mt-3 border-b border-border pb-5">
         <div className="flex flex-wrap items-center gap-3">
           <h1 className="text-3xl font-bold tracking-tight text-ink">Review trail</h1>
-          {data.skill?.status === "delisted" && (
+          {data.skill?.status === "archived" && (
             <span className="rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-semibold text-red-700">
-              Delisted - no longer in the catalog; the record below stays as history
+              Archived - no longer in the catalog; the record below stays as history
             </span>
           )}
         </div>

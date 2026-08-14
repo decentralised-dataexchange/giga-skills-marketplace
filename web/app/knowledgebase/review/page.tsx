@@ -54,7 +54,7 @@ export default function ReviewPage() {
             <td>Approve</td>
             <td>
               Every version in the submission is <code>published</code>. Previously published
-              versions of the same skills are superseded, and a delisted source returns to the
+              versions of the same skills are superseded, and an archived source returns to the
               catalog.
             </td>
           </tr>
@@ -83,10 +83,11 @@ export default function ReviewPage() {
 
       <h2>After publication</h2>
       <p>
-        The owning provider - or a super admin - can delist a whole source in one action: the source
-        record and every published skill it carries leave the catalog together, without rewriting
-        their history (the review trail stays public). Resubmitting the source relists it through a
-        fresh review. See <Link href="/knowledgebase/roles">Roles and statuses</Link>.
+        The owning provider - or a super admin - can archive a whole source in one action: the
+        source record and every published skill it carries leave the catalog together, and any
+        submission of the source still waiting in this queue is withdrawn. History is not rewritten
+        (the review trail stays public). Resubmitting the source relists it through a fresh review.
+        See <Link href="/knowledgebase/roles">Roles and statuses</Link>.
       </p>
     </>
   );

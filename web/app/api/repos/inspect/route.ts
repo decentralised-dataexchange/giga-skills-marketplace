@@ -64,7 +64,7 @@ export const POST = route(
       ]),
     );
 
-    // The caller's source record for this repository, if any: a delisted one
+    // The caller's source record for this repository, if any: an archived one
     // signals that an approved resubmission relists it.
     const [mySource] = await sql`
       SELECT status FROM sources WHERE org_id = ANY(${orgIds}) AND url = ${tree.meta.url}`;

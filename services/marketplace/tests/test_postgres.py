@@ -16,7 +16,7 @@ SECOND_PROVIDER_ID = UUID("0b9f9c37-93e5-4f0f-8b6f-2c8b3f1a6f21")
 EMPTY_PROVIDER_ID = UUID("7c0a4a06-9a37-4dfb-9c2b-4a8f4a4a1c11")
 SOURCE_A_ID = UUID("aaaa1111-0000-4000-8000-000000000001")
 SOURCE_B_ID = UUID("aaaa1111-0000-4000-8000-000000000002")
-SOURCE_DELISTED_ID = UUID("aaaa1111-0000-4000-8000-000000000003")
+SOURCE_ARCHIVED_ID = UUID("aaaa1111-0000-4000-8000-000000000003")
 SKILL_ID = UUID("531b5b2f-66cb-409f-a1c6-b7a203b062b6")
 VERSION_ID = UUID("fe864e24-6d51-435a-9446-5eec92dde747")
 SHARED_A_SKILL_ID = UUID("531b5b2f-66cb-409f-a1c6-b7a203b062b7")
@@ -182,14 +182,14 @@ async def repository() -> AsyncIterator[PostgresCatalogRepository]:
                 INSERT INTO sources (id, org_id, url, owner, repo, status) VALUES
                 (%s, %s, 'https://github.com/igrant/skills', 'igrant', 'skills', 'active'),
                 (%s, %s, 'https://github.com/educhain/skills', 'educhain', 'skills', 'active'),
-                (%s, %s, 'https://github.com/educhain/hidden', 'educhain', 'hidden', 'delisted')
+                (%s, %s, 'https://github.com/educhain/hidden', 'educhain', 'hidden', 'archived')
                 """,
                 (
                     SOURCE_A_ID,
                     PROVIDER_ID,
                     SOURCE_B_ID,
                     SECOND_PROVIDER_ID,
-                    SOURCE_DELISTED_ID,
+                    SOURCE_ARCHIVED_ID,
                     SECOND_PROVIDER_ID,
                 ),
             )
@@ -219,16 +219,16 @@ async def repository() -> AsyncIterator[PostgresCatalogRepository]:
                 org_id=SECOND_PROVIDER_ID,
                 source_id=SOURCE_B_ID,
             )
-            # A published row under a delisted source: the source status
+            # A published row under an archived source: the source status
             # alone keeps it out of the catalog (belt and braces - the app
-            # also delists the skills when the source is delisted).
+            # also archives the skills when the source is archived).
             await _add_skill(
                 connection,
                 skill_id=HIDDEN_SKILL_ID,
                 version_id=HIDDEN_VERSION_ID,
                 slug="hidden-skill",
                 org_id=SECOND_PROVIDER_ID,
-                source_id=SOURCE_DELISTED_ID,
+                source_id=SOURCE_ARCHIVED_ID,
             )
 
         yield PostgresCatalogRepository(pool)
@@ -313,7 +313,7 @@ async def test_same_slug_under_two_orgs_is_isolated(
     assert b is not None and b["org"]["slug"] == "educhain-labs"
 
 
-async def test_delisted_source_hides_its_skills(repository: PostgresCatalogRepository) -> None:
+async def test_archived_source_hides_its_skills(repository: PostgresCatalogRepository) -> None:
     listed = await repository.list_skills(query="hidden", provider="", page=1, page_size=12)
     assert listed["total"] == 0
     assert await repository.get_skill("hidden-skill") is None

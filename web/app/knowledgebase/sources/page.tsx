@@ -14,8 +14,8 @@ export default function SourcesPage() {
         A source is a public GitHub repository that a provider submits. The repository is the single
         source of truth: the marketplace fetches it server-side, pins the submission to a commit,
         and installs published skills straight from it. Each source is a first-class record owned by
-        one organisation - it is submitted, reviewed, and delisted as a whole, and it is either{" "}
-        <code>active</code> or <code>delisted</code>. Two organisations can publish the same
+        one organisation - it is submitted, reviewed, and archived as a whole, and it is either{" "}
+        <code>active</code> or <code>archived</code>. Two organisations can publish the same
         repository; each gets its own independent source.
       </p>
 

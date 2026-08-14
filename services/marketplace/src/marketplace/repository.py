@@ -158,7 +158,7 @@ class PostgresCatalogRepository:
         page_size: int,
     ) -> dict[str, Any]:
         # A suspended or rejected organisation takes its skills off the
-        # catalog; so does a delisted source.
+        # catalog; so does an archived source.
         conditions = [
             "s.status = 'published'",
             "o.status = 'approved'",

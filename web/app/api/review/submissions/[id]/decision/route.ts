@@ -1,6 +1,6 @@
 // Decide a source submission as a whole: one decision covers every skill in
-// it, in one transaction. Approval publishes every version (and relists a
-// delisted source); rejection and change requests park them together.
+// it, in one transaction. Approval publishes every version (and relists an
+// archived source); rejection and change requests park them together.
 import { sql, logEvent } from "@/lib/db";
 import { GOVERNANCE_ROLES } from "@/lib/auth";
 import { check, route } from "@/lib/handler";
@@ -83,7 +83,7 @@ export const POST = route<{ id: string }>(
       }
 
       if (decision === "approve") {
-        // Approval is also the road back for a delisted source, and it
+        // Approval is also the road back for an archived source, and it
         // retires any earlier approved submission of the same source.
         await tx`UPDATE sources SET status = 'active' WHERE id = ${sub.source_id}`;
         await tx`

@@ -151,7 +151,7 @@ test("moved bundle route and skill API siblings do not conflict", async ({ reque
   for (const [path, status] of getChecks) {
     expect((await request.get(path)).status(), path).toBe(status);
   }
-  for (const path of ["/api/skills/1/delist", "/api/sources/1/delist"]) {
+  for (const path of ["/api/skills/1/archive", "/api/sources/1/archive"]) {
     expect((await request.post(path)).status(), path).toBe(401);
   }
 });
@@ -224,8 +224,8 @@ test("organisations without published skills stay out of the public directory", 
 test("malformed ids are rejected as not-found rather than erroring", async ({ request }) => {
   const admin = await signIn(request, "superadmin@govbuild.test", "super123");
   const checks: [path: string, body: object][] = [
-    ["/api/skills/not-a-uuid/delist", {}],
-    ["/api/sources/not-a-uuid/delist", {}],
+    ["/api/skills/not-a-uuid/archive", {}],
+    ["/api/sources/not-a-uuid/archive", {}],
     ["/api/review/submissions/not-a-uuid/claim", {}],
     ["/api/review/submissions/not-a-uuid/decision", { decision: "approve" }],
   ];
@@ -269,7 +269,7 @@ test("public, provider, reviewer, and admin API smoke matrix", async ({ request 
   expect((await request.get("/api/admin/orgs", { headers: admin })).status()).toBe(200);
 });
 
-// A self-contained submit -> claim -> approve -> delist cycle, so the suite can
+// A self-contained submit -> claim -> approve -> archive cycle, so the suite can
 // be re-run against the same database without depending on the seeded queue.
 const E2E_SKILL = "e2e-regression-skill";
 const E2E_BUNDLE = [
@@ -356,6 +356,6 @@ test("a submission moves through review to a provider-scoped published page", as
     "review.approve",
   );
 
-  const delisted = await request.post(`/api/skills/${skill.id}/delist`, { headers: provider });
-  expect(delisted.status()).toBe(200);
+  const archived = await request.post(`/api/skills/${skill.id}/archive`, { headers: provider });
+  expect(archived.status()).toBe(200);
 });

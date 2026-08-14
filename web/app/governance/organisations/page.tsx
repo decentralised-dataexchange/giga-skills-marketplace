@@ -6,6 +6,7 @@ import { toast } from "@/components/toast";
 import { Button } from "@/components/ui/button";
 import { DataTable } from "@/components/data-table";
 import { StatusBadge } from "@/components/status-badge";
+import { TableFilter } from "@/components/table-filter";
 import { DashboardMain, useDashboardGuard } from "@/components/dashboard-shell";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -13,6 +14,8 @@ import { DashboardMain, useDashboardGuard } from "@/components/dashboard-shell";
 export default function OrganisationsPage() {
   const { denied } = useDashboardGuard("/governance/organisations", ["superadmin"]);
   const [orgs, setOrgs] = useState<any[]>([]);
+  // Approved is the active state of an organisation; the filter widens the view.
+  const [filter, setFilter] = useState<"all" | "approved" | "suspended" | "rejected">("approved");
 
   const load = useCallback(async () => {
     const o = await api("/api/admin/orgs");
@@ -34,12 +37,27 @@ export default function OrganisationsPage() {
       })
       .catch((e) => toast.error(e.message));
 
+  const visible = orgs.filter((o) => filter === "all" || o.status === filter);
+
   return (
     <DashboardMain
       title="Organisations"
       subtitle="Provider organisations register instantly; only their skills go through review."
       denied={denied}
     >
+      <div className="flex justify-end">
+        <TableFilter
+          label="Filter organisations by status"
+          value={filter}
+          options={[
+            { value: "approved", label: "Approved" },
+            { value: "suspended", label: "Suspended" },
+            { value: "rejected", label: "Rejected" },
+            { value: "all", label: "All statuses" },
+          ]}
+          onChange={setFilter}
+        />
+      </div>
       <DataTable
         columns={[
           {
@@ -80,9 +98,14 @@ export default function OrganisationsPage() {
               ) : null,
           },
         ]}
-        rows={orgs}
+        rows={visible}
         rowKey={(o: any) => o.id}
       />
+      {orgs.length > 0 && visible.length === 0 && (
+        <p className="py-4 text-center text-sm text-muted-foreground">
+          No {filter} organisations. Switch the filter to All statuses to see everything.
+        </p>
+      )}
     </DashboardMain>
   );
 }

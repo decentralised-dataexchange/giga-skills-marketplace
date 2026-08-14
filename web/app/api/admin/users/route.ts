@@ -9,10 +9,19 @@ export const GET = route(
     const url = new URL(req.url);
     const page = Math.max(1, Number(url.searchParams.get("page")) || 1);
     const pageSize = Math.min(100, Math.max(1, Number(url.searchParams.get("pageSize")) || 12));
+    // The table is server-paginated, so the status filter must shape the page
+    // query and the count together or the page numbers lie.
+    const status = url.searchParams.get("status") ?? "";
+    check(
+      !status || ["active", "suspended"].includes(status),
+      400,
+      "status must be active or suspended",
+    );
+    const cond = status ? sql`WHERE status = ${status}` : sql``;
     const rows = await sql`
-      SELECT * FROM users ORDER BY created_at
+      SELECT * FROM users ${cond} ORDER BY created_at
       LIMIT ${pageSize} OFFSET ${(page - 1) * pageSize}`;
-    const [{ n: total }] = await sql`SELECT count(*)::int AS n FROM users`;
+    const [{ n: total }] = await sql`SELECT count(*)::int AS n FROM users ${cond}`;
     return { users: rows.map(publicUser), total, page, pageSize };
   },
   { roles: ["superadmin"] },

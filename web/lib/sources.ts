@@ -1,5 +1,5 @@
 // Skill sources: one record per (organisation, repository url). The record is
-// the aggregate that submissions, review decisions, and delisting act on.
+// the aggregate that submissions, review decisions, and archiving act on.
 // A NULL url is the organisation's pseudo-source for direct file submissions
 // (public catalog segment "bundles").
 import { sql } from "@/lib/db";
@@ -12,7 +12,7 @@ export interface SourceMeta {
 
 /**
  * Find the organisation's source for this repository (or its pseudo-source
- * when meta is null), creating it when missing. A delisted source is reused,
+ * when meta is null), creating it when missing. An archived source is reused,
  * not recreated: resubmission is the road back to the catalog.
  */
 export async function findOrCreateSource(db: typeof sql, orgId: string, meta: SourceMeta | null) {

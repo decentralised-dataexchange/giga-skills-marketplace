@@ -1,10 +1,10 @@
-// Source-level review, source-level delisting, and per-organisation isolation.
+// Source-level review, source-level archiving, and per-organisation isolation.
 //
 // Run against a freshly seeded stack (see README):
 //   make db-reset && make marketplace && make web
 //   cd web && npm run test:e2e
 //
-// Every test is self-cleaning (sources end delisted or rejected), so the suite
+// Every test is self-cleaning (sources end archived or rejected), so the suite
 // can re-run against the same database. Each scenario uses its own named
 // source via the dev-only sourceUrl field of POST /api/skills - never the
 // iGrant pseudo-source, which carries the seeded catalog.
@@ -107,7 +107,7 @@ async function decide(
   return response.json();
 }
 
-test("a multi-skill source submission is one queue row, reviewed in a nested drawer, approved and delisted as a whole", async ({
+test("a multi-skill source submission is one queue row, reviewed in a nested drawer, approved and archived as a whole", async ({
   page,
   request,
 }) => {
@@ -182,37 +182,42 @@ test("a multi-skill source submission is one queue row, reviewed in a nested dra
     "review.approve",
   );
 
-  // ONE call delists the source and every published skill in it.
-  const delisted = await request.post(`/api/sources/${source.id}/delist`, { headers: provider });
-  expect(delisted.status()).toBe(200);
-  expect((await delisted.json()).delisted).toBe(2);
+  // ONE call archives the source and every published skill in it.
+  const archived = await request.post(`/api/sources/${source.id}/archive`, { headers: provider });
+  expect(archived.status()).toBe(200);
+  expect((await archived.json()).archived).toBe(2);
   for (const slug of SLUGS) {
     expect((await request.get(`/api/marketplace/${slug}`)).status(), slug).toBe(404);
   }
 
-  // Delisting removes from the catalog without rewriting history: the trail
-  // stays public, marked delisted.
+  // Archiving removes from the catalog without rewriting history: the trail
+  // stays public, marked archived.
   const trailAfter = await request.get(`/api/marketplace/${SLUGS[0]}/review`);
   expect(trailAfter.status()).toBe(200);
-  expect((await trailAfter.json()).skill.status).toBe("delisted");
+  expect((await trailAfter.json()).skill.status).toBe("archived");
 
   // The audit log records the source-level action.
   const events = await (await request.get("/api/admin/events", { headers: reviewer })).json();
   const sourceEvent = events.events.find(
     (e: { type: string; subject: { sourceId?: string } }) =>
-      e.type === "source.delisted" && e.subject?.sourceId === source.id,
+      e.type === "source.archived" && e.subject?.sourceId === source.id,
   );
   expect(sourceEvent).toBeTruthy();
   expect(sourceEvent.detail.skillCount).toBe(2);
 
-  // The provider dashboard shows the source as delisted.
+  // The provider dashboard hides the archived source by default; the status
+  // filter reveals it.
   const mine = await (await request.get("/api/sources/mine", { headers: provider })).json();
   const mineAlpha = mine.sources.find((s: { id: string }) => s.id === source.id);
-  expect(mineAlpha.status).toBe("delisted");
+  expect(mineAlpha.status).toBe("archived");
   await injectSession(page, request, "provider@igrant.io", "provider123");
   await page.goto("/provider/submissions");
+  await expect(page.getByText("Skill Sources").first()).toBeVisible();
+  await expect(page.getByRole("row").filter({ hasText: "e2e/source-alpha" })).toHaveCount(0);
+  await page.getByRole("combobox", { name: "Filter sources by status" }).click();
+  await page.getByRole("option", { name: "Archived" }).click();
   await expect(
-    page.getByRole("row").filter({ hasText: "e2e/source-alpha" }).getByText("Delisted"),
+    page.getByRole("row").filter({ hasText: "e2e/source-alpha" }).getByText("Archived"),
   ).toBeVisible();
 });
 
@@ -293,7 +298,9 @@ test("request changes on the whole source; the resubmission re-enters the queue"
 
   // Self-cleaning: the source leaves the catalog again.
   expect(
-    (await request.post(`/api/sources/${second.source.id}/delist`, { headers: provider })).status(),
+    (
+      await request.post(`/api/sources/${second.source.id}/archive`, { headers: provider })
+    ).status(),
   ).toBe(200);
 });
 
@@ -356,18 +363,18 @@ test("two organisations publish the same skill name without conflict, and a bare
   await page.getByRole("link", { name: /EduChain Labs/ }).click();
   await expect(page).toHaveURL(`/marketplace/${SECOND_PROVIDER}/shared-b/${SLUG}`);
 
-  // One organisation cannot delist another organisation's source.
+  // One organisation cannot archive another organisation's source.
   expect(
-    (await request.post(`/api/sources/${b.source.id}/delist`, { headers: igrant })).status(),
+    (await request.post(`/api/sources/${b.source.id}/archive`, { headers: igrant })).status(),
   ).toBe(403);
 
   // Self-cleaning: both sources leave the catalog, and the second
   // organisation drops out of the public directory again.
   expect(
-    (await request.post(`/api/sources/${a.source.id}/delist`, { headers: igrant })).status(),
+    (await request.post(`/api/sources/${a.source.id}/archive`, { headers: igrant })).status(),
   ).toBe(200);
   expect(
-    (await request.post(`/api/sources/${b.source.id}/delist`, { headers: educhain })).status(),
+    (await request.post(`/api/sources/${b.source.id}/archive`, { headers: educhain })).status(),
   ).toBe(200);
   expect((await request.get(`/api/marketplace/${SLUG}`)).status()).toBe(404);
   const after = await (await request.get("/api/providers?page=1&pageSize=48")).json();
@@ -495,11 +502,11 @@ test("claims are exclusive; only the claimant or a super admin decides", async (
 
   // Self-cleaning.
   expect(
-    (await request.post(`/api/sources/${source.id}/delist`, { headers: provider })).status(),
+    (await request.post(`/api/sources/${source.id}/archive`, { headers: provider })).status(),
   ).toBe(200);
 });
 
-test("resubmitting a delisted source relists it through a fresh review", async ({ request }) => {
+test("resubmitting an archived source relists it through a fresh review", async ({ request }) => {
   const SOURCE_URL = "https://github.com/e2e/source-eta";
   const SLUG = "e2e-eta-skill";
   const provider = await signIn(request, "provider@igrant.io", "provider123");
@@ -511,7 +518,7 @@ test("resubmitting a delisted source relists it through a fresh review", async (
   expect((await request.get(`/api/marketplace/${SLUG}`)).status()).toBe(200);
 
   expect(
-    (await request.post(`/api/sources/${first.source.id}/delist`, { headers: provider })).status(),
+    (await request.post(`/api/sources/${first.source.id}/archive`, { headers: provider })).status(),
   ).toBe(200);
   expect((await request.get(`/api/marketplace/${SLUG}`)).status()).toBe(404);
 
@@ -528,6 +535,87 @@ test("resubmitting a delisted source relists it through a fresh review", async (
 
   // Self-cleaning.
   expect(
-    (await request.post(`/api/sources/${first.source.id}/delist`, { headers: provider })).status(),
+    (await request.post(`/api/sources/${first.source.id}/archive`, { headers: provider })).status(),
   ).toBe(200);
+});
+
+test("archiving a source withdraws its waiting submission from the review queue", async ({
+  request,
+}) => {
+  const SLUG = "e2e-theta-skill";
+  const provider = await signIn(request, "provider@igrant.io", "provider123");
+  const org = await approvedOrg(request, provider);
+  const admin = await signIn(request, "superadmin@govbuild.test", "super123");
+
+  const { submission, source } = await submitSource(
+    request,
+    provider,
+    org.id,
+    "https://github.com/e2e/source-theta",
+    [SLUG],
+  );
+
+  const statsBefore = await (await request.get("/api/admin/stats", { headers: admin })).json();
+
+  // Nothing is published yet, so the archive removes 0 skills - but it
+  // withdraws the waiting submission.
+  const archived = await request.post(`/api/sources/${source.id}/archive`, { headers: provider });
+  expect(archived.status()).toBe(200);
+  const archivedBody = await archived.json();
+  expect(archivedBody.archived).toBe(0);
+  expect(archivedBody.submissionsArchived).toBe(1);
+
+  // The submission is out of the queue, and the stats tile follows.
+  const queue = await (await request.get("/api/review/queue", { headers: admin })).json();
+  expect(queue.queue.map((s: { id: string }) => s.id)).not.toContain(submission.id);
+  const statsAfter = await (await request.get("/api/admin/stats", { headers: admin })).json();
+  expect(statsAfter.stats.reviewQueue).toBe(statsBefore.stats.reviewQueue - 1);
+
+  // The record keeps its snapshot, marked archived down to the versions.
+  const detail = await (
+    await request.get(`/api/submissions/${submission.id}`, { headers: admin })
+  ).json();
+  expect(detail.submission.status).toBe("archived");
+  expect(detail.skills.map((s: { version: { status: string } }) => s.version.status)).toEqual([
+    "archived",
+  ]);
+
+  // A decision on a withdrawn submission is refused, even for a super admin.
+  const decision = await request.post(`/api/review/submissions/${submission.id}/decision`, {
+    headers: admin,
+    data: { decision: "approve" },
+  });
+  expect(decision.status()).toBe(409);
+  expect((await decision.json()).error).toContain("archived");
+});
+
+test("archiving while a review is open kills the claim", async ({ request }) => {
+  const provider = await signIn(request, "provider@igrant.io", "provider123");
+  const org = await approvedOrg(request, provider);
+  const reviewer = await signIn(request, "reviewer@govbuild.test", "review123");
+
+  const { submission, source } = await submitSource(
+    request,
+    provider,
+    org.id,
+    "https://github.com/e2e/source-iota",
+    ["e2e-iota-skill"],
+  );
+  expect(
+    (
+      await request.post(`/api/review/submissions/${submission.id}/claim`, { headers: reviewer })
+    ).status(),
+  ).toBe(200);
+
+  // The provider archives mid-review: the claim dies with the submission.
+  expect(
+    (await request.post(`/api/sources/${source.id}/archive`, { headers: provider })).status(),
+  ).toBe(200);
+  const queue = await (await request.get("/api/review/queue", { headers: reviewer })).json();
+  expect(queue.queue.map((s: { id: string }) => s.id)).not.toContain(submission.id);
+  const decision = await request.post(`/api/review/submissions/${submission.id}/decision`, {
+    headers: reviewer,
+    data: { decision: "approve", notes: "too late" },
+  });
+  expect(decision.status()).toBe(409);
 });

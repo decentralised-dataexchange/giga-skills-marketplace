@@ -11,10 +11,10 @@ export const POST = route<{ id: string }>(
     check(
       user!.role === "superadmin" || skill.owner_id === user!.id,
       403,
-      "Only the owning provider or a super admin can delist",
+      "Only the owning provider or a super admin can archive",
     );
-    await sql`UPDATE skills SET status = 'delisted' WHERE id = ${skill.id}`;
-    await logEvent("skill.delisted", user!.id, { skillId: skill.id }, { slug: skill.slug });
+    await sql`UPDATE skills SET status = 'archived' WHERE id = ${skill.id}`;
+    await logEvent("skill.archived", user!.id, { skillId: skill.id }, { slug: skill.slug });
     return { ok: true };
   },
   { auth: true },

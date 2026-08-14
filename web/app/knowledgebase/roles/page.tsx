@@ -47,7 +47,7 @@ export default function RolesPage() {
             </td>
             <td>
               Everything a reviewer can, plus manage organisations, users and roles, suspend
-              accounts, and delist skills.
+              accounts, and archive skills.
             </td>
           </tr>
         </tbody>
@@ -108,9 +108,9 @@ export default function RolesPage() {
       <h2>Skill and source statuses</h2>
       <p>
         The skill itself is <code>in_submission</code> until its first version is approved,{" "}
-        <code>published</code> while a version is live, and <code>delisted</code> when it is removed
+        <code>published</code> while a version is live, and <code>archived</code> when it is removed
         from the catalog. The source that carries the skills is <code>active</code> or{" "}
-        <code>delisted</code>; the owning provider (or a super admin) delists a source in one
+        <code>archived</code>; the owning provider (or a super admin) archives a source in one
         action, and every published skill in it leaves the catalog together. Skill names are unique
         per organisation, so two providers can publish the same name without conflict.
       </p>

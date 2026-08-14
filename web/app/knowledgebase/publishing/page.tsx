@@ -60,14 +60,15 @@ export default function PublishingPage() {
         resubmit; the review trail keeps the history.
       </p>
 
-      <h2>Update or delist a source</h2>
+      <h2>Update or archive a source</h2>
       <p>
-        Updates and delisting act on the source, not on individual skills. Resubmit the repository
+        Updates and archiving act on the source, not on individual skills. Resubmit the repository
         at a new commit or tag and every skill it carries gets a new version through a fresh review;
         your published versions stay live and installable the whole time, superseded only on
-        approval. Delisting is one action on the source record itself: the source and every
-        published skill it carries leave the catalog together, while the review history stays
-        public. Resubmitting a delisted source relists it - approval brings every skill back.
+        approval. Archiving is one action on the source record itself: the source and every
+        published skill it carries leave the catalog together, and any submission of the source
+        still waiting in the review queue is withdrawn. The review history stays public.
+        Resubmitting an archived source relists it - approval brings every skill back.
       </p>
 
       <h2>What happens on approval</h2>

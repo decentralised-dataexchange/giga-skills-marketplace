@@ -16,6 +16,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { StatusBadge } from "@/components/status-badge";
+import { TableFilter } from "@/components/table-filter";
 import { Tip } from "@/components/tip";
 import { DashboardMain, useDashboardGuard } from "@/components/dashboard-shell";
 import { ASSIGNABLE_ROLES, DEFAULT_SELF_SERVICE_ROLE } from "@/lib/roles";
@@ -29,13 +30,17 @@ export default function UsersPage() {
   const [users, setUsers] = useState<any[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
+  // Active accounts by default; the filter widens the view. Server-side,
+  // because the table is server-paginated.
+  const [status, setStatus] = useState<"all" | "active" | "suspended">("active");
   const [addOpen, setAddOpen] = useState(false);
 
   const load = useCallback(async () => {
-    const u = await api(`/api/admin/users?page=${page}&pageSize=${PAGE}`);
+    const filter = status === "all" ? "" : `&status=${status}`;
+    const u = await api(`/api/admin/users?page=${page}&pageSize=${PAGE}${filter}`);
     setUsers(u.users);
     setTotal(u.total);
-  }, [page]);
+  }, [page, status]);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- initial data fetch; setState after await
@@ -66,6 +71,21 @@ export default function UsersPage() {
         </Tip>
       }
     >
+      <div className="flex justify-end">
+        <TableFilter
+          label="Filter users by status"
+          value={status}
+          options={[
+            { value: "active", label: "Active" },
+            { value: "suspended", label: "Suspended" },
+            { value: "all", label: "All statuses" },
+          ]}
+          onChange={(v) => {
+            setStatus(v);
+            setPage(1);
+          }}
+        />
+      </div>
       <DataTable
         columns={[
           {
@@ -160,6 +180,11 @@ export default function UsersPage() {
         rowKey={(u: any) => u.id}
         pagination={{ page, pageSize: PAGE, total, onPage: setPage }}
       />
+      {total === 0 && status !== "all" && (
+        <p className="py-4 text-center text-sm text-muted-foreground">
+          No {status} users. Switch the filter to All statuses to see everyone.
+        </p>
+      )}
 
       {addOpen && (
         <AddUserDrawer

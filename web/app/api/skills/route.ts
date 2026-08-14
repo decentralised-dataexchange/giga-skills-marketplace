@@ -20,7 +20,7 @@ export const POST = route(
       files?: BundleFile[];
       skills?: { files: BundleFile[]; version?: string }[];
       /** Names the source record instead of the org's pseudo-source, so the
-       * e2e suite can exercise source-level review and delisting without a
+       * e2e suite can exercise source-level review and archiving without a
        * live GitHub fetch. Like the whole endpoint: never in production. */
       sourceUrl?: string;
     }>();

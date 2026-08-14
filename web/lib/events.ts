@@ -26,8 +26,12 @@ const LABELS: Record<string, string> = {
   "review.request_changes": "Changes requested",
   "skill.submitted": "Skill submitted",
   "skill.checks_failed": "Checks failed",
-  "skill.delisted": "Skill delisted",
-  "source.delisted": "Source delisted",
+  "skill.archived": "Skill archived",
+  "source.archived": "Source archived",
+  // "Archived" was called "delisted" before; stored events keep their original
+  // type and read with the current wording.
+  "skill.delisted": "Skill archived",
+  "source.delisted": "Source archived",
   "skill.official_set": "Endorsement changed",
   "seed.completed": "Demo data seeded",
 };
@@ -106,12 +110,18 @@ export function describeEvent(type: string, detail: Detail): string {
     }
     case "skill.checks_failed":
       return `Submitted ${q(d.slug)} version ${d.version}, but the automated checks failed.`;
+    case "skill.archived":
     case "skill.delisted":
-      return `Delisted ${q(d.slug)} from the catalog.`;
+      return `Archived ${q(d.slug)}; it left the catalog.`;
+    case "source.archived":
     case "source.delisted": {
       const label = d.repo ?? d.url ?? "the direct-submission source";
       const n = Number(d.skillCount ?? 0);
-      return `Delisted the source ${q(label)}; ${n} published skill${n === 1 ? "" : "s"} left the catalog.`;
+      let sentence = `Archived the source ${q(label)}; ${n} published skill${n === 1 ? "" : "s"} left the catalog`;
+      if (d.submissionCount) {
+        sentence += ` and ${d.submissionCount} waiting submission${d.submissionCount === 1 ? "" : "s"} left the review queue`;
+      }
+      return `${sentence}.`;
     }
     case "skill.official_set":
       return d.official ? `Endorsed ${q(d.slug)} as Official.` : `Moved ${q(d.slug)} to Community.`;

@@ -54,7 +54,7 @@ CREATE TABLE IF NOT EXISTS sources (
   url        TEXT,
   owner      TEXT,
   repo       TEXT,
-  status     TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active','delisted')),
+  status     TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active','archived')),
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 CREATE TABLE IF NOT EXISTS submissions (
@@ -62,7 +62,7 @@ CREATE TABLE IF NOT EXISTS submissions (
   source_id    UUID NOT NULL REFERENCES sources(id),
   repo         JSONB,
   status       TEXT NOT NULL DEFAULT 'submitted'
-               CHECK (status IN ('submitted','in_review','approved','rejected','changes_requested','superseded')),
+               CHECK (status IN ('submitted','in_review','approved','rejected','changes_requested','superseded','archived')),
   submitted_by UUID REFERENCES users(id),
   submitted_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   reviewer_id  UUID REFERENCES users(id),
@@ -141,6 +141,20 @@ END $$;
 ALTER TABLE orgs DROP CONSTRAINT IF EXISTS orgs_status_check;
 ALTER TABLE orgs ADD CONSTRAINT orgs_status_check
   CHECK (status IN ('pending','approved','rejected','suspended'));
+-- Removal from the catalog is called "archived" (it was "delisted"). Statuses
+-- migrate; event rows are history and keep their original types. The old
+-- CHECK must go before the data moves, and returns with the new vocabulary.
+-- Archiving a source also withdraws its waiting submissions from the review
+-- queue, so the submissions CHECK gains the 'archived' value.
+ALTER TABLE sources DROP CONSTRAINT IF EXISTS sources_status_check;
+UPDATE sources SET status = 'archived' WHERE status = 'delisted';
+ALTER TABLE sources ADD CONSTRAINT sources_status_check
+  CHECK (status IN ('active','archived'));
+UPDATE skills SET status = 'archived' WHERE status = 'delisted';
+UPDATE versions SET status = 'archived' WHERE status = 'delisted';
+ALTER TABLE submissions DROP CONSTRAINT IF EXISTS submissions_status_check;
+ALTER TABLE submissions ADD CONSTRAINT submissions_status_check
+  CHECK (status IN ('submitted','in_review','approved','rejected','changes_requested','superseded','archived'));
 -- Organisation approval is gone (only skills are reviewed); registrations from
 -- before that change stop waiting.
 UPDATE orgs SET status = 'approved', decided_at = COALESCE(decided_at, now()) WHERE status = 'pending';
@@ -151,14 +165,14 @@ UPDATE users SET role = 'provider' WHERE role = 'builder';
 -- submissions that were parked as checks_failed join the queue.
 UPDATE versions SET status = 'submitted' WHERE status = 'checks_failed';
 -- Use cases are removed as a catalog surface. An older database carries them
--- as skills rows with type='usecase'; delist them so they stay stored but
+-- as skills rows with type='usecase'; archive them so they stay stored but
 -- never resurface in the public catalog.
 DO $$ BEGIN
   IF EXISTS (
     SELECT 1 FROM information_schema.columns
     WHERE table_schema = current_schema() AND table_name = 'skills' AND column_name = 'type'
   ) THEN
-    UPDATE skills SET status = 'delisted' WHERE type = 'usecase' AND status <> 'delisted';
+    UPDATE skills SET status = 'archived' WHERE type = 'usecase' AND status <> 'archived';
   END IF;
 END $$;
 CREATE UNIQUE INDEX IF NOT EXISTS idx_orgs_slug ON orgs(slug);
@@ -260,10 +274,10 @@ async function backfillSources(): Promise<boolean> {
       AND src.org_id = sk.org_id
       AND COALESCE(src.url, 'direct') = COALESCE(last.url, 'direct')`;
   await sql`
-    UPDATE sources src SET status = 'delisted'
+    UPDATE sources src SET status = 'archived'
     WHERE src.status = 'active'
       AND EXISTS (SELECT 1 FROM skills k WHERE k.source_id = src.id)
-      AND NOT EXISTS (SELECT 1 FROM skills k WHERE k.source_id = src.id AND k.status <> 'delisted')`;
+      AND NOT EXISTS (SELECT 1 FROM skills k WHERE k.source_id = src.id AND k.status <> 'archived')`;
 
   const sources = await sql`SELECT id, org_id, url FROM sources`;
   const sourceByKey = new Map<string, string>(
@@ -293,7 +307,14 @@ async function backfillSources(): Promise<boolean> {
   }
 
   // The group's review state is its most demanding member's.
-  const PRECEDENCE = ["in_review", "submitted", "published", "changes_requested", "rejected", "superseded"];
+  const PRECEDENCE = [
+    "in_review",
+    "submitted",
+    "published",
+    "changes_requested",
+    "rejected",
+    "superseded",
+  ];
   for (const group of groups.values()) {
     const rows = group.versions;
     const versionStatus =

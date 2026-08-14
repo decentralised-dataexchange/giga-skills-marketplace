@@ -10,11 +10,12 @@ const TRAIL_TYPES = [
   "review.reject",
   "review.request_changes",
   "skill.official_set",
-  "skill.delisted",
+  "skill.archived",
+  "skill.delisted", // pre-rename events; history keeps its stored type
 ];
 
 export const GET = route<{ slug: string }>(async ({ req, params }) => {
-  // Delisting removes a skill from the catalog without rewriting its history:
+  // Archiving removes a skill from the catalog without rewriting its history:
   // the trail stays public. Skill names are unique per organisation, so a
   // ?provider= qualifier picks the owner when several publish the same name.
   const provider = new URL(req.url).searchParams.get("provider") ?? "";
@@ -26,7 +27,7 @@ export const GET = route<{ slug: string }>(async ({ req, params }) => {
   const skills = await sql`
     SELECT s.id, s.slug, s.status, s.published_version_id FROM skills s
     JOIN orgs o ON o.id = s.org_id
-    WHERE s.slug = ${params.slug} AND s.status IN ('published','delisted')
+    WHERE s.slug = ${params.slug} AND s.status IN ('published','archived')
       AND s.published_version_id IS NOT NULL ${provCond}`;
   check(skills.length, 404, "Skill not found or not published");
   check(

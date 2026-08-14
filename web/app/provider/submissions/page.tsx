@@ -20,6 +20,7 @@ import { CheckList, type Check } from "@/components/check-list";
 import { Drawer } from "@/components/drawer";
 import { RepoCard, type RepoInfo } from "@/components/repo-card";
 import { StatusBadge } from "@/components/status-badge";
+import { TableFilter } from "@/components/table-filter";
 import { toast } from "@/components/toast";
 import { Notice } from "@/components/notice";
 import { DashboardMain, useDashboardGuard } from "@/components/dashboard-shell";
@@ -30,7 +31,7 @@ import { cn } from "@/lib/utils";
 interface SourceView {
   id: string;
   url: string | null;
-  status: "active" | "delisted";
+  status: "active" | "archived";
   skills: { id: string; slug: string; status: string; versions: any[] }[];
   submissions: { id: string; status: string; submittedAt: string }[];
 }
@@ -55,7 +56,9 @@ function SkillSourcesInner() {
   const [org, setOrg] = useState<any>(null);
 
   const [openSourceId, setOpenSourceId] = useState<string | null>(null);
-  const [confirmDelist, setConfirmDelist] = useState(false);
+  const [confirmArchive, setConfirmArchive] = useState(false);
+  // Active sources by default; the filter widens the view to archived ones.
+  const [filter, setFilter] = useState<"all" | "active" | "archived">("active");
   const [auditVersion, setAuditVersion] = useState<{ title: string; checks: Check[] } | null>(null);
   const [publishOpen, setPublishOpen] = useState(false);
   const [publishUrl, setPublishUrl] = useState("");
@@ -89,28 +92,34 @@ function SkillSourcesInner() {
     [sources],
   );
 
+  const visible = useMemo(
+    () => ordered.filter((s) => filter === "all" || s.status === filter),
+    [ordered, filter],
+  );
+
   const openSource = ordered.find((s) => s.id === openSourceId) ?? null;
 
-  // Delisting acts on the whole source in one call: the source record and
-  // every published skill it carries come off the marketplace together.
-  async function delistSource(source: SourceView) {
+  // Archiving acts on the whole source in one call: the source record, every
+  // published skill it carries, and any submission still waiting for review
+  // come off together.
+  async function archiveSource(source: SourceView) {
     try {
-      const d = await api(`/api/sources/${source.id}/delist`, { method: "POST" });
+      const d = await api(`/api/sources/${source.id}/archive`, { method: "POST" });
       toast.success(
-        `Delisted ${sourceLabel(source)} - ${d.delisted} published skill${
-          d.delisted === 1 ? "" : "s"
-        } left the catalog. Resubmitting the source relists it through a fresh review.`,
+        `Archived ${sourceLabel(source)} - ${d.archived} published skill${
+          d.archived === 1 ? "" : "s"
+        } left the catalog and pending submissions were withdrawn from review. Resubmitting the source relists it through a fresh review.`,
       );
-      setConfirmDelist(false);
+      setConfirmArchive(false);
       load();
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : String(e), "Could not delist the source");
+      toast.error(e instanceof Error ? e.message : String(e), "Could not archive the source");
     }
   }
 
   function openSourceDrawer(id: string | null) {
     setOpenSourceId(id);
-    setConfirmDelist(false);
+    setConfirmArchive(false);
   }
 
   function startPublish(url?: string | null) {
@@ -137,7 +146,21 @@ function SkillSourcesInner() {
         </Tip>
       }
     >
-      {ordered.length ? (
+      {ordered.length > 0 && (
+        <div className="flex justify-end">
+          <TableFilter
+            label="Filter sources by status"
+            value={filter}
+            options={[
+              { value: "active", label: "Active" },
+              { value: "archived", label: "Archived" },
+              { value: "all", label: "All statuses" },
+            ]}
+            onChange={setFilter}
+          />
+        </div>
+      )}
+      {visible.length ? (
         <DataTable
           columns={[
             {
@@ -173,12 +196,16 @@ function SkillSourcesInner() {
               ),
             },
           ]}
-          rows={ordered}
+          rows={visible}
           rowKey={(g: SourceView) => g.id}
           minWidth={560}
           onRowClick={(g: SourceView) => openSourceDrawer(g.id)}
           rowTitle="Open this source"
         />
+      ) : ordered.length ? (
+        <p className="text-sm text-muted-foreground">
+          No {filter} sources. Switch the filter to All statuses to see everything.
+        </p>
       ) : (
         <p className="text-sm text-muted-foreground">
           No sources yet. Use the + button to publish your first skill repository.
@@ -203,18 +230,18 @@ function SkillSourcesInner() {
               <div className="flex gap-2">
                 {openSource.status === "active" &&
                   openSource.skills.some((skill) => skill.status === "published") &&
-                  (confirmDelist ? (
+                  (confirmArchive ? (
                     <>
-                      <Button variant="outline" onClick={() => setConfirmDelist(false)}>
+                      <Button variant="outline" onClick={() => setConfirmArchive(false)}>
                         Cancel
                       </Button>
-                      <Button variant="destructive" onClick={() => delistSource(openSource)}>
-                        Confirm delist
+                      <Button variant="destructive" onClick={() => archiveSource(openSource)}>
+                        Confirm archive
                       </Button>
                     </>
                   ) : (
-                    <Button variant="destructive" onClick={() => setConfirmDelist(true)}>
-                      Delist source
+                    <Button variant="destructive" onClick={() => setConfirmArchive(true)}>
+                      Archive source
                     </Button>
                   ))}
                 <Button onClick={() => startPublish(openSource.url)}>Submit update</Button>
@@ -233,17 +260,17 @@ function SkillSourcesInner() {
               <ExternalLink className="size-3.5" aria-hidden="true" />
             </a>
           )}
-          {confirmDelist && (
+          {confirmArchive && (
             <Notice severity="warning">
-              This removes every published skill in this source from the catalog in one action.
-              The review history stays public. Resubmitting the source relists it through a fresh
-              review.
+              This removes every published skill in this source from the catalog in one action, and
+              any submission still waiting for review is withdrawn from the queue. The review
+              history stays public. Resubmitting the source relists it through a fresh review.
             </Notice>
           )}
-          {openSource.status === "delisted" && (
+          {openSource.status === "archived" && (
             <Notice severity="info">
-              This source is delisted: none of its skills appear in the catalog. Submit an update
-              to relist it - approval brings every skill back.
+              This source is archived: none of its skills appear in the catalog. Submit an update to
+              relist it - approval brings every skill back.
             </Notice>
           )}
           {openSource.skills.map((skill) => (
