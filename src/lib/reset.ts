@@ -1,16 +1,15 @@
 import 'server-only';
 
 import { getDb } from '@/lib/db';
-import { PAYMENT_REQUIRED_KEY, setPolicy } from '@/lib/policy';
 
 /**
  * The demo reset: wipe every journey artefact so the showcase starts clean.
  *
  * Removes learners and their wallet-created accounts, applications,
  * credential exchange records, webhook events, login tokens, consent
- * mappings (with a best-effort delete of the Consent BB records), the audit
- * log, and puts the payment policy back to its default. Staff accounts and
- * institutions stay, so the demo is immediately usable again.
+ * mappings (with a best-effort delete of the Consent BB records), and the
+ * audit log. Staff accounts and institutions stay, so the demo is
+ * immediately usable again.
  */
 export async function resetDemoData(): Promise<void> {
   const db = getDb();
@@ -66,6 +65,4 @@ export async function resetDemoData(): Promise<void> {
     db.prepare('DELETE FROM "policy_settings"').run();
   });
   wipe();
-
-  setPolicy(PAYMENT_REQUIRED_KEY, 'false', { userId: 'reset', role: 'seed' });
 }

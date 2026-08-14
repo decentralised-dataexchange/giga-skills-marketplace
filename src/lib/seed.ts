@@ -3,7 +3,6 @@ import 'server-only';
 import { auth } from '@/lib/auth';
 import { getDb } from '@/lib/db';
 import { newId } from '@/lib/ids';
-import { PAYMENT_REQUIRED_KEY, getPolicy, setPolicy } from '@/lib/policy';
 import { DEMO_ACCOUNTS } from '@/lib/demo-accounts';
 
 /**
@@ -52,16 +51,6 @@ async function seed(): Promise<void> {
     ).run(newId('ins'), inst.name, inst.kind, inst.esrRef, now);
   }
 
-  // Default policy: payment not required until the demo turns it on.
-  if (getPolicy(PAYMENT_REQUIRED_KEY, '') === '') {
-    const registrar = db
-      .prepare('SELECT "id" FROM "user" WHERE "email" = ?')
-      .get('registrar@moe.gov') as { id: string } | undefined;
-    setPolicy(PAYMENT_REQUIRED_KEY, 'false', {
-      userId: registrar?.id ?? 'seed',
-      role: 'seed',
-    });
-  }
 }
 
 const g = globalThis as typeof globalThis & { __eduSeed?: Promise<void> };

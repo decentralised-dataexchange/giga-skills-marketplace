@@ -1,7 +1,6 @@
 import { MoeShell } from '@/components/MoeShell';
 import { getSession } from '@/lib/guards';
 import { getDiplomaExchange, listApplications } from '@/lib/registry';
-import { PAYMENT_REQUIRED_KEY, getPolicy } from '@/lib/policy';
 
 import { processGraduation, revokeIssuedDiploma } from './actions';
 
@@ -10,7 +9,6 @@ export default async function MoeIssuance() {
   const pending = listApplications(['graduation_submitted']);
   const awaitingPayment = listApplications(['payment_pending']);
   const issued = listApplications(['issued']);
-  const paymentRequired = getPolicy(PAYMENT_REQUIRED_KEY, 'false') === 'true';
 
   return (
     <MoeShell
@@ -22,10 +20,9 @@ export default async function MoeIssuance() {
       <p className="moe-page-intro">
         Graduation decisions are validated against the Education Service
         Registry <span className="integration-badge sandbox">Sandbox</span>.
-        Payment confirmation is currently{' '}
-        <strong>{paymentRequired ? 'required' : 'not required'}</strong> by
-        policy. Issued diplomas are revocable credentials{' '}
-        <span className="integration-badge real">Real</span>.
+        The diploma fee is always due: the learner pays with the wallet and
+        receives the diploma in the same step. Issued diplomas are revocable
+        credentials <span className="integration-badge real">Real</span>.
       </p>
 
       <div className="moe-panel">
@@ -58,7 +55,7 @@ export default async function MoeIssuance() {
                     <form action={processGraduation}>
                       <input type="hidden" name="applicationId" value={app.id} />
                       <button className="moe-action" type="submit">
-                        Validate{paymentRequired ? ' (payment will be required)' : ' and issue'}
+                        Validate and require payment
                       </button>
                     </form>
                   </td>

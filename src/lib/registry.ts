@@ -6,7 +6,6 @@ import { getDb } from '@/lib/db';
 import { newId, newUlid } from '@/lib/ids';
 import { audit } from '@/lib/audit';
 import { ows, requiredEnv } from '@/lib/ows';
-import { PAYMENT_REQUIRED_KEY, getPolicy } from '@/lib/policy';
 
 /**
  * The National Learner Registry domain: applications, approvals, ULID
@@ -325,13 +324,14 @@ export function submitGraduation(
 
 /**
  * The Ministry processes a graduation decision: validates the institution
- * against the sandbox Education Service Registry, then either requires
- * payment (policy) or issues the diploma at once.
+ * against the sandbox Education Service Registry and places the diploma
+ * behind the fee. Payment is always required; the learner pays with the
+ * wallet and receives the diploma in the same step.
  */
 export async function moeProcessGraduation(
   appId: string,
   actor: { userId: string }
-): Promise<'payment_pending' | 'issued'> {
+): Promise<'payment_pending'> {
   const app = getApplication(appId);
   if (!app || app.status !== 'graduation_submitted') {
     throw new Error('The application has no pending graduation decision.');
@@ -350,21 +350,15 @@ export async function moeProcessGraduation(
     payload: { esrRef: app.esrRef, registry: 'sandbox' },
   });
 
-  const paymentRequired = getPolicy(PAYMENT_REQUIRED_KEY, 'false') === 'true';
-  if (paymentRequired) {
-    setStatus(appId, 'payment_pending');
-    audit({
-      actorUserId: actor.userId,
-      actorRole: 'registrar',
-      action: 'graduation.payment_required',
-      subjectType: 'application',
-      subjectId: appId,
-    });
-    return 'payment_pending';
-  }
-
-  await issueDiploma(appId, { userId: actor.userId, role: 'registrar' });
-  return 'issued';
+  setStatus(appId, 'payment_pending');
+  audit({
+    actorUserId: actor.userId,
+    actorRole: 'registrar',
+    action: 'graduation.payment_required',
+    subjectType: 'application',
+    subjectId: appId,
+  });
+  return 'payment_pending';
 }
 
 /**
@@ -520,90 +514,6 @@ export function completeDynamicDiplomaPayment(
   });
 
   return true;
-}
-
-/** Issue the revocable diploma credential over OpenID4VCI. */
-export async function issueDiploma(
-  appId: string,
-  actor: { userId: string | null; role: string }
-): Promise<void> {
-  const app = getApplication(appId);
-  if (!app) throw new Error('Unknown application.');
-  if (app.status !== 'payment_pending' && app.status !== 'graduation_submitted') {
-    throw new Error('The application is not ready for issuance.');
-  }
-
-  // Pre-authorised code flow with a transaction code, as for the Student ID.
-  const diplomaPin = String(randomInt(1000, 10000));
-  const answer = await ows(
-    'moe',
-    'POST',
-    '/v2/config/digital-wallet/openid/sdjwt/credential/issue',
-    {
-      issuanceMode: 'InTime',
-      credentialDefinitionId: requiredEnv('DIPLOMA_CREDENTIAL_ID', 'Diploma issuance'),
-      urlScheme: 'openid-credential-offer://',
-      userPin: diplomaPin,
-      credential: {
-        vct: 'urn:education:diploma:1',
-        claims: {
-          learnerName: app.learnerName,
-          qualificationName: app.programme ?? '',
-          qualificationCode: app.qualificationCode ?? '',
-          awardingInstitution: app.institutionName,
-          awardDate: new Date().toISOString().slice(0, 10),
-          programme: app.programme ?? '',
-          result: app.result ?? '',
-          ulid: app.learnerUlid ?? '',
-          graduationDecisionHash: app.graduationDocHash ?? '',
-        },
-      },
-    }
-  );
-
-  const history = Array.isArray(answer?.credentialHistory)
-    ? answer.credentialHistory[0]
-    : answer?.credentialHistory;
-  const exchangeId: string | undefined =
-    history?.credentialExchangeId ?? history?.CredentialExchangeId;
-  const offer: string | undefined = history?.credentialOffer;
-  if (!exchangeId || !offer) {
-    throw new Error('The wallet service did not return a diploma offer.');
-  }
-
-  const db = getDb();
-  const now = new Date().toISOString();
-  db.prepare(
-    `INSERT INTO "credential_exchanges"
-       ("id", "owsExchangeId", "direction", "credentialType", "learnerId",
-        "applicationId", "status", "createdAt", "updatedAt")
-     VALUES (?, ?, 'issuance', 'diploma', ?, ?, 'offer_sent', ?, ?)
-     ON CONFLICT("owsExchangeId") DO NOTHING`
-  ).run(newId('exc'), exchangeId, app.learnerRowId, appId, now, now);
-
-  const form = JSON.parse(app.form) as Record<string, unknown>;
-  db.prepare(
-    `UPDATE "applications" SET "form" = ?, "status" = 'issued', "updatedAt" = ?
-     WHERE "id" = ?`
-  ).run(
-    JSON.stringify({
-      ...form,
-      diplomaOffer: offer,
-      diplomaExchangeId: exchangeId,
-      diplomaPin,
-    }),
-    now,
-    appId
-  );
-
-  audit({
-    actorUserId: actor.userId,
-    actorRole: actor.role,
-    action: 'credential.diploma_offered',
-    subjectType: 'exchange',
-    subjectId: exchangeId,
-    payload: { applicationId: appId },
-  });
 }
 
 /** True when the wallet has accepted the credential of this exchange. */

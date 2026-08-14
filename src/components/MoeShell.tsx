@@ -6,7 +6,6 @@ import { SignOutButton } from '@/components/SignOutButton';
 const NAV = [
   { href: '/moe/approvals', key: 'approvals', label: 'Enrolment approvals' },
   { href: '/moe/issuance', key: 'issuance', label: 'Diploma issuance' },
-  { href: '/moe/policy', key: 'policy', label: 'Policy settings' },
   { href: '/moe/audit', key: 'audit', label: 'Audit timeline' },
 ] as const;
 

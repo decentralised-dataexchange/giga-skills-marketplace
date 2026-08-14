@@ -14,12 +14,6 @@ import './landing.css';
 
 const STEPS = [
   {
-    title: 'Turn on the payment rule',
-    text: 'Open the Registrar Back Office, go to Policy settings, and turn on "payment confirmation required for diploma issuance". The sign-in form is prefilled.',
-    href: '/moe/policy',
-    linkText: 'Registrar Back Office',
-  },
-  {
     title: 'Register as a learner',
     text: 'Open the National Education Portal and sign in with your wallet: scan the code with your EUDI Wallet and share your PID. Then complete and submit the registration form.',
     href: '/education',
@@ -32,8 +26,8 @@ const STEPS = [
     linkText: 'Riverside Admissions',
   },
   {
-    title: 'Graduate and pay the diploma fee',
-    text: 'In Riverside Admissions, submit the graduation decision. Validate it in the Registrar Back Office. In the Education Portal, confirm the payment by presenting your payment credential, then scan the diploma offer.',
+    title: 'Graduate, pay, and receive the diploma',
+    text: 'In Riverside Admissions, submit the graduation decision. Validate it in the Registrar Back Office. In the Education Portal, choose to pay from your account or by card: one scan pays the EUR 50 fee with your payment credential and delivers the diploma to your wallet.',
     href: '/school/graduation',
     linkText: 'Graduation decisions',
   },
@@ -149,10 +143,9 @@ export default function Landing() {
         <p className="landing-section-lede">
           Reset the demo before a new run: this deletes the learner, the
           application, all exchange records, the consent records and the
-          audit log, and puts the payment policy back to off. Staff accounts
-          stay. Credentials already in a wallet are not touched; revoke a
-          diploma in the Registrar Back Office first if you want a clean
-          wallet story.
+          audit log. Staff accounts stay. Credentials already in a wallet are
+          not touched; revoke a diploma in the Registrar Back Office first if
+          you want a clean wallet story.
         </p>
         <form action={resetDemo}>
           <button type="submit" className="landing-reset-button">
