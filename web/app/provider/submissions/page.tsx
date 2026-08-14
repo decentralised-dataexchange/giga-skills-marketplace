@@ -32,6 +32,9 @@ interface SourceView {
   id: string;
   url: string | null;
   status: "active" | "archived";
+  /** Where the source stands now: a waiting submission reads as submitted /
+   * in_review, ahead of the stored active/archived record state. */
+  effectiveStatus: string;
   skills: { id: string; slug: string; status: string; versions: any[] }[];
   submissions: { id: string; status: string; submittedAt: string }[];
 }
@@ -92,8 +95,19 @@ function SkillSourcesInner() {
     [sources],
   );
 
+  // The Active bucket is everything still in play - listed, submitted, in
+  // review, or waiting on changes; Archived is only sources with nothing
+  // pending. A resubmitted archived source therefore surfaces in the default
+  // view, wearing its review status.
   const visible = useMemo(
-    () => ordered.filter((s) => filter === "all" || s.status === filter),
+    () =>
+      ordered.filter((s) =>
+        filter === "all"
+          ? true
+          : filter === "archived"
+            ? s.effectiveStatus === "archived"
+            : s.effectiveStatus !== "archived",
+      ),
     [ordered, filter],
   );
 
@@ -182,8 +196,8 @@ function SkillSourcesInner() {
             {
               key: "status",
               header: "Status",
-              width: 120,
-              render: (g: SourceView) => <StatusBadge status={g.status} />,
+              width: 140,
+              render: (g: SourceView) => <StatusBadge status={g.effectiveStatus} />,
             },
             {
               key: "last",
@@ -218,7 +232,7 @@ function SkillSourcesInner() {
           title={
             <span className="inline-flex items-center gap-2">
               {sourceLabel(openSource)}
-              <StatusBadge status={openSource.status} />
+              <StatusBadge status={openSource.effectiveStatus} />
             </span>
           }
           onClose={() => openSourceDrawer(null)}
@@ -267,10 +281,16 @@ function SkillSourcesInner() {
               history stays public. Resubmitting the source relists it through a fresh review.
             </Notice>
           )}
-          {openSource.status === "archived" && (
+          {openSource.effectiveStatus === "archived" && (
             <Notice severity="info">
               This source is archived: none of its skills appear in the catalog. Submit an update to
               relist it - approval brings every skill back.
+            </Notice>
+          )}
+          {openSource.status === "archived" && openSource.effectiveStatus !== "archived" && (
+            <Notice severity="info">
+              This source was archived and has been resubmitted: the new submission waits for
+              review, and approval relists every skill.
             </Notice>
           )}
           {openSource.skills.map((skill) => (

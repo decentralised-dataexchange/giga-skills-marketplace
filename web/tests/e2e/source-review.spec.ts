@@ -506,7 +506,10 @@ test("claims are exclusive; only the claimant or a super admin decides", async (
   ).toBe(200);
 });
 
-test("resubmitting an archived source relists it through a fresh review", async ({ request }) => {
+test("resubmitting an archived source relists it through a fresh review", async ({
+  page,
+  request,
+}) => {
   const SOURCE_URL = "https://github.com/e2e/source-eta";
   const SLUG = "e2e-eta-skill";
   const provider = await signIn(request, "provider@igrant.io", "provider123");
@@ -522,16 +525,32 @@ test("resubmitting an archived source relists it through a fresh review", async 
   ).toBe(200);
   expect((await request.get(`/api/marketplace/${SLUG}`)).status()).toBe(404);
 
-  // The resubmission reuses the same source record; approval relists it.
+  // The resubmission reuses the same source record - and the Skill Sources
+  // view immediately shows the review state, not the stale archived record:
+  // effectiveStatus reads "submitted" and the row is back in the default
+  // Active view with a Submitted badge.
   const second = await submitSource(request, provider, org.id, SOURCE_URL, [SLUG], "1.0.1");
   expect(second.source.id).toBe(first.source.id);
+  const pending = await (await request.get("/api/sources/mine", { headers: provider })).json();
+  const pendingEta = pending.sources.find((s: { id: string }) => s.id === first.source.id);
+  expect(pendingEta.status).toBe("archived");
+  expect(pendingEta.effectiveStatus).toBe("submitted");
+  await injectSession(page, request, "provider@igrant.io", "provider123");
+  await page.goto("/provider/submissions");
+  await expect(
+    page.getByRole("row").filter({ hasText: "e2e/source-eta" }).getByText("Submitted"),
+  ).toBeVisible();
+
+  // Approval relists it.
   await decide(request, admin, second.submission.id, "approve");
 
   const relisted = await request.get(`/api/marketplace/${SLUG}`);
   expect(relisted.status()).toBe(200);
   expect((await relisted.json()).version.version).toBe("1.0.1");
   const mine = await (await request.get("/api/sources/mine", { headers: provider })).json();
-  expect(mine.sources.find((s: { id: string }) => s.id === first.source.id).status).toBe("active");
+  const eta = mine.sources.find((s: { id: string }) => s.id === first.source.id);
+  expect(eta.status).toBe("active");
+  expect(eta.effectiveStatus).toBe("active");
 
   // Self-cleaning.
   expect(
