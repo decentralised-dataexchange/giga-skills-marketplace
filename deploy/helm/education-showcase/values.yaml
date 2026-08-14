@@ -2,9 +2,10 @@
 #
 # Non-secret configuration (OWS base URLs, sandbox organisation ids,
 # credential and presentation definition ids, consent agreement ids) is safe
-# to commit and lives here. Every secret is intentionally blank: supply them
-# at deploy time via a gitignored values-secret.yaml or --set flags, never in
-# this file. The deploy workflow injects them from GitHub Actions secrets.
+# to commit and lives here. Sensitive values never pass through this chart or
+# CI: create the cluster secret once, directly in the cluster, with
+# showcases/education-showcase/scripts/create-k8s-secret.sh, and the
+# deployment references it by name.
 
 domain: education-showcase.eubw.dev
 
@@ -37,20 +38,11 @@ config:
   AGREEMENT_ANALYTICS_ID: "6a7e4d1dd22651ae4335d5fb"
   AGREEMENT_EMPLOYER_ID: "6a7e4d1ed22651ae4335d603"
 
-# Secrets: REQUIRED at deploy time, blank here on purpose.
-secrets:
-  # Main-tenant OWS key (Consent BB and provisioning).
-  igrantApiKey: ""
-  # Config-scoped keys bound to the two sandbox organisations.
-  moeIgrantApiKey: ""
-  civicworksIgrantApiKey: ""
-  # HMAC secrets of the two registered webhooks.
-  moeWebhookSecret: ""
-  civicworksWebhookSecret: ""
-  # Better Auth session signing secret (32+ random characters).
-  betterAuthSecret: ""
-  # Pepper for the learner pseudonym derivation.
-  learnerPseudonymPepper: ""
+# The pre-existing cluster secret with IGRANT_API_KEY, MOE_IGRANT_API_KEY,
+# CIVICWORKS_IGRANT_API_KEY, MOE_WEBHOOK_SECRET, CIVICWORKS_WEBHOOK_SECRET,
+# BETTER_AUTH_SECRET and LEARNER_PSEUDONYM_PEPPER. Created directly in the
+# cluster; never templated and never in CI.
+existingSecret: education-showcase-secrets
 
 ingress:
   className: nginx

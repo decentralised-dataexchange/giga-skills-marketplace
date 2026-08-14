@@ -98,31 +98,18 @@ jobs:
           POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
 
       # The education showcase: its own release and namespace, one replica
-      # (SQLite), secrets injected from GitHub Actions secrets. Skips with a
-      # notice until the EDU_* repository secrets are configured.
+      # (SQLite). Sensitive values live only in the cluster secret
+      # education-showcase-secrets, created directly in the cluster; CI only
+      # rolls out images and Helm changes, and skips with a notice until an
+      # operator has created that secret.
       - name: Deploy education showcase with Helm
         run: |
-          if [ -z "$EDU_IGRANT_API_KEY" ]; then
-            echo "::notice::EDU_* secrets are not configured; skipping the education showcase deploy."
+          if ! kubectl -n education-showcase get secret education-showcase-secrets >/dev/null 2>&1; then
+            echo "::notice::Cluster secret education-showcase-secrets does not exist yet; skipping the education showcase deploy."
             exit 0
           fi
           helm upgrade --install education-showcase ./deploy/helm/education-showcase \
-            --namespace education-showcase --create-namespace \
+            --namespace education-showcase \
             --set image.tag=${{ steps.vars.outputs.tag }} \
-            --set secrets.igrantApiKey="$EDU_IGRANT_API_KEY" \
-            --set secrets.moeIgrantApiKey="$EDU_MOE_IGRANT_API_KEY" \
-            --set secrets.civicworksIgrantApiKey="$EDU_CIVICWORKS_IGRANT_API_KEY" \
-            --set secrets.moeWebhookSecret="$EDU_MOE_WEBHOOK_SECRET" \
-            --set secrets.civicworksWebhookSecret="$EDU_CIVICWORKS_WEBHOOK_SECRET" \
-            --set secrets.betterAuthSecret="$EDU_BETTER_AUTH_SECRET" \
-            --set secrets.learnerPseudonymPepper="$EDU_LEARNER_PSEUDONYM_PEPPER" \
             --wait --timeout 6m
           kubectl -n education-showcase rollout status deploy/education-showcase --timeout=5m
-        env:
-          EDU_IGRANT_API_KEY: ${{ secrets.EDU_IGRANT_API_KEY }}
-          EDU_MOE_IGRANT_API_KEY: ${{ secrets.EDU_MOE_IGRANT_API_KEY }}
-          EDU_CIVICWORKS_IGRANT_API_KEY: ${{ secrets.EDU_CIVICWORKS_IGRANT_API_KEY }}
-          EDU_MOE_WEBHOOK_SECRET: ${{ secrets.EDU_MOE_WEBHOOK_SECRET }}
-          EDU_CIVICWORKS_WEBHOOK_SECRET: ${{ secrets.EDU_CIVICWORKS_WEBHOOK_SECRET }}
-          EDU_BETTER_AUTH_SECRET: ${{ secrets.EDU_BETTER_AUTH_SECRET }}
-          EDU_LEARNER_PSEUDONYM_PEPPER: ${{ secrets.EDU_LEARNER_PSEUDONYM_PEPPER }}

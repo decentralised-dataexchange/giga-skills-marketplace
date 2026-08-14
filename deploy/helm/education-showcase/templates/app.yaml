@@ -41,7 +41,7 @@ spec:
             - configMapRef:
                 name: {{ .Values.app.name }}-config
             - secretRef:
-                name: {{ .Values.app.name }}-secrets
+                name: {{ .Values.existingSecret }}
           volumeMounts:
             - name: data
               mountPath: /data

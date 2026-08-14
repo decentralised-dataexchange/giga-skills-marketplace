@@ -86,9 +86,17 @@ The Dockerfile builds a standalone Next.js server (node:20-alpine, SQLite on a
 mounted volume at `/data`). The Helm chart lives in
 `deploy/helm/education-showcase`: one replica with a Recreate strategy (SQLite
 is single-writer), a PersistentVolumeClaim, an nginx ingress with cert-manager
-TLS, non-secret configuration in a ConfigMap and secrets supplied at deploy
-time. The repository deploy workflow builds the image and rolls the release
-out alongside the marketplace.
+TLS and non-secret configuration in a ConfigMap.
+
+Sensitive values never pass through the repository or CI. An operator creates
+the cluster secret once, directly in the cluster:
+
+```bash
+./scripts/create-k8s-secret.sh   # reads .env.local, applies education-showcase-secrets
+```
+
+The repository deploy workflow then only builds the image and rolls out Helm
+changes; it skips the showcase with a notice until that secret exists.
 
 ## Data model notes
 
