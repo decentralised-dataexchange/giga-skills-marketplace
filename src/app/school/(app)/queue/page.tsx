@@ -61,11 +61,65 @@ export default async function SchoolQueue({
             <>
               <h1>{selected.learnerName}</h1>
               <p>
-                Applied to {selected.institutionName} ·{' '}
-                {String(form.priorEducation || 'no prior education given')}
-                {form.specialSupport ? ` · support: ${String(form.specialSupport)}` : ''}
+                Applied to {selected.institutionName} · submitted{' '}
+                {selected.createdAt.slice(0, 10)}
               </p>
-              <h2 style={{ marginTop: '1rem', fontSize: '0.95rem' }}>Documents</h2>
+
+              <h2 style={{ marginTop: '1.25rem', fontSize: '0.95rem' }}>
+                Application as submitted
+              </h2>
+              <form className="sch-review-form">
+                <div className="sch-review-grid">
+                  <label>
+                    <span>First name</span>
+                    <input disabled value={String(form.firstName ?? '')} />
+                  </label>
+                  <label>
+                    <span>Family name</span>
+                    <input disabled value={String(form.familyName ?? '')} />
+                  </label>
+                  <label>
+                    <span>Date of birth</span>
+                    <input disabled value={String(form.dateOfBirth ?? '')} />
+                  </label>
+                  <label>
+                    <span>Contact email</span>
+                    <input disabled value={String(form.email ?? '')} />
+                  </label>
+                  <label className="sch-review-wide">
+                    <span>Home address</span>
+                    <input disabled value={String(form.address ?? '')} />
+                  </label>
+                  <label>
+                    <span>School</span>
+                    <input disabled value={selected.institutionName} />
+                  </label>
+                  <label>
+                    <span>Prior education</span>
+                    <input disabled value={String(form.priorEducation || 'None given')} />
+                  </label>
+                  <label className="sch-review-wide">
+                    <span>Disability or special support needs</span>
+                    <input disabled value={String(form.specialSupport || 'None given')} />
+                  </label>
+                </div>
+                <div className="sch-review-consents">
+                  <label className="sch-review-check">
+                    <input type="checkbox" disabled checked={form.consentAnalytics === true} />
+                    Anonymised analytics for policy planning (optional)
+                  </label>
+                  <label className="sch-review-check">
+                    <input
+                      type="checkbox"
+                      disabled
+                      checked={form.consentEmployerSharing === true}
+                    />
+                    Later qualification sharing with an employer (optional)
+                  </label>
+                </div>
+              </form>
+
+              <h2 style={{ marginTop: '1.25rem', fontSize: '0.95rem' }}>Documents</h2>
               <ul style={{ margin: '0.5rem 0 1rem 1.2rem', fontSize: '0.85rem' }}>
                 {documents.map((doc) => (
                   <li key={doc}>

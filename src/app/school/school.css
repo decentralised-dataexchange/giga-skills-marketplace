@@ -154,6 +154,56 @@
   color: var(--muted);
 }
 
+/* The submitted application, read-only for the officer's review. */
+.sch-review-form {
+  margin-top: 0.6rem;
+}
+
+.sch-review-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0 1rem;
+}
+
+.sch-review-wide {
+  grid-column: 1 / -1;
+}
+
+.sch-review-form input:disabled {
+  background: var(--surface);
+  color: var(--ink);
+  opacity: 1;
+  cursor: default;
+}
+
+.sch-review-consents {
+  margin-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.sch-review-check {
+  display: flex !important;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0 !important;
+  font-weight: 500 !important;
+  color: var(--ink) !important;
+  font-size: 0.85rem !important;
+}
+
+.sch-review-check input {
+  width: auto !important;
+  accent-color: var(--brand);
+}
+
+@media (max-width: 40rem) {
+  .sch-review-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 .sch-footer {
   padding: 1rem 1.25rem;
   font-size: 0.75rem;
