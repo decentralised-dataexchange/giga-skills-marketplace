@@ -331,7 +331,7 @@ export default function ShowcaseCredentialsPage() {
             <td>
               Payment account credential
               <br />
-              <code>…/vct-metadata/payment_account</code>
+              <code>https://oid4vc.igrant.io/service/vct-metadata/payment_account</code>
             </td>
             <td>
               <code>iban</code>, <code>bic</code>, <code>currency</code>
@@ -341,7 +341,7 @@ export default function ShowcaseCredentialsPage() {
             <td>
               Payment card credential
               <br />
-              <code>…/vct-metadata/card</code>
+              <code>https://oid4vc.igrant.io/service/vct-metadata/card</code>
             </td>
             <td>
               <code>pan_last_four</code>, <code>scheme</code>, <code>scheme_logo</code>
