@@ -22,11 +22,21 @@ export const auth = betterAuth({
   emailAndPassword: {
     enabled: true,
   },
-  // The app is reached both on localhost and through the public tunnel
-  // domain; both must pass Better Auth's origin check.
+  // The app is reached on localhost, through the public tunnel domain, and
+  // in the monolith deployment on the shared marketplace domain (where the
+  // base URL carries the /showcase path, so the origin is derived).
   trustedOrigins: [
     process.env.PUBLIC_BASE_URL ?? '',
     process.env.BETTER_AUTH_URL ?? '',
+    ...[process.env.PUBLIC_BASE_URL, process.env.BETTER_AUTH_URL]
+      .filter((value): value is string => Boolean(value))
+      .map((value) => {
+        try {
+          return new URL(value).origin;
+        } catch {
+          return '';
+        }
+      }),
     'http://localhost:3000',
     'http://localhost:3299',
   ].filter(Boolean),

@@ -4,6 +4,7 @@ import { useCallback, useRef, useState } from 'react';
 import { CheckCircle2, FileText, Wallet } from 'lucide-react';
 
 import { Drawer } from '@/components/Drawer';
+import { assetPath } from '@/lib/base-path';
 import { WalletInvite } from '@/components/WalletInvite';
 import { useExchangeStatus } from '@/components/useExchangeStatus';
 import {
@@ -268,7 +269,7 @@ export function ApplicationForm({ job }: { job: Job }) {
             <div className="cw-attestation">
               <div className="cw-attestation-head">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src="/portals/moe/logo.svg" alt="" />
+                <img src={assetPath('/portals/moe/logo.svg')} alt="" />
                 <div>
                   <strong>National Diploma</strong>
                   <small>Issued by the Ministry of Education</small>

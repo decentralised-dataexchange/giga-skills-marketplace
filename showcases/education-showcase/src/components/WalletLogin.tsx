@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 
 import { WalletInvite } from '@/components/WalletInvite';
 import { useExchangeStatus } from '@/components/useExchangeStatus';
+import { apiPath } from '@/lib/base-path';
 import { startPidLogin } from '@/app/education/login/actions';
 
 type Phase = 'starting' | 'waiting' | 'signing-in' | 'rejected' | 'error';
@@ -40,7 +41,7 @@ export function WalletLogin() {
     async (payload: Record<string, unknown>) => {
       if (payload.status === 'verified' && typeof payload.loginToken === 'string') {
         setPhase('signing-in');
-        const answer = await fetch('/api/auth/wallet/sign-in', {
+        const answer = await fetch(apiPath('/api/auth/wallet/sign-in'), {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ token: payload.loginToken }),

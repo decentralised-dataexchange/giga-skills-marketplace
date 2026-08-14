@@ -4,6 +4,7 @@ import { RefreshCw, Smartphone } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 
 import { useSameDevice } from '@/components/useSameDevice';
+import { assetPath } from '@/lib/base-path';
 
 /**
  * Hand a deep link to the learner's or candidate's EUDI Wallet.
@@ -49,7 +50,7 @@ export function WalletInvite({
               level="H"
               imageSettings={
                 logo
-                  ? { src: logo, height: 44, width: 44, excavate: true }
+                  ? { src: assetPath(logo), height: 44, width: 44, excavate: true }
                   : undefined
               }
             />

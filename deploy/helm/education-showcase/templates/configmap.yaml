@@ -3,8 +3,9 @@ kind: ConfigMap
 metadata:
   name: {{ .Values.app.name }}-config
 data:
-  PUBLIC_BASE_URL: "https://{{ .Values.domain }}"
-  BETTER_AUTH_URL: "https://{{ .Values.domain }}"
+  PUBLIC_BASE_URL: "https://{{ .Values.domain }}{{ .Values.basePath }}"
+  BETTER_AUTH_URL: "https://{{ .Values.domain }}{{ .Values.basePath }}"
+  NEXT_PUBLIC_BASE_PATH: {{ .Values.basePath | quote }}
   SQLITE_PATH: "/data/app.db"
   {{- range $key, $value := .Values.config }}
   {{ $key }}: {{ $value | quote }}

@@ -7,7 +7,11 @@
 # showcases/education-showcase/scripts/create-k8s-secret.sh, and the
 # deployment references it by name.
 
-domain: education-showcase.eubw.dev
+# The showcase deploys as part of the marketplace monolith: same domain,
+# served under basePath. The image must be built with the matching
+# NEXT_PUBLIC_BASE_PATH (the Dockerfile default is /showcase).
+domain: giga-staging.igrant.io
+basePath: /showcase
 
 image:
   # Registry hosting the education-showcase image. Override for your own registry.
@@ -46,5 +50,3 @@ existingSecret: education-showcase-secrets
 
 ingress:
   className: nginx
-  clusterIssuer: letsencrypt-prod
-  tlsSecret: education-showcase-tls

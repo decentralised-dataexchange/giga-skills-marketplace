@@ -13,6 +13,11 @@ FROM base AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
+# The base path inlines into the client bundle at build time. The default
+# is the monolith deployment under /showcase on the marketplace domain;
+# build with --build-arg NEXT_PUBLIC_BASE_PATH= for a root deployment.
+ARG NEXT_PUBLIC_BASE_PATH=/showcase
+ENV NEXT_PUBLIC_BASE_PATH=$NEXT_PUBLIC_BASE_PATH
 # Better Auth refuses to initialise without a secret, and page data is
 # collected during the build. This value is never used at runtime: the
 # running container reads BETTER_AUTH_SECRET from its own environment.

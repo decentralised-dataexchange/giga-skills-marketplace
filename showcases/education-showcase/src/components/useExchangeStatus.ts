@@ -2,6 +2,8 @@
 
 import { useEffect, useRef, useState } from 'react';
 
+import { apiPath } from '@/lib/base-path';
+
 /**
  * Live status of one OWS exchange: opens the SSE stream and drops to
  * two-second polling when SSE errors. Each received payload is handed to the
@@ -21,7 +23,7 @@ export function useExchangeStatus(
     let closed = false;
     let pollTimer: ReturnType<typeof setInterval> | undefined;
 
-    const source = new EventSource(`/api/exchanges/${exchangeId}/events`);
+    const source = new EventSource(apiPath(`/api/exchanges/${exchangeId}/events`));
     setTransport('sse');
 
     source.onmessage = (message) => {
@@ -38,7 +40,7 @@ export function useExchangeStatus(
       setTransport('polling');
       pollTimer = setInterval(async () => {
         try {
-          const answer = await fetch(`/api/exchanges/${exchangeId}/status`);
+          const answer = await fetch(apiPath(`/api/exchanges/${exchangeId}/status`));
           const body = (await answer.json()) as {
             events?: Record<string, unknown>[];
           };
