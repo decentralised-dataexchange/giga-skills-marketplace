@@ -13,8 +13,10 @@ const DESCRIPTION =
   'ITU/Giga education use case showcase: learner registration, credential issuance, wallet storage and third-party verification.';
 
 function siteUrl(): URL {
+  // Origin only: Next applies the deploy base path to asset routes itself,
+  // so a path-carrying base would double the /showcase prefix.
   try {
-    return new URL(process.env.PUBLIC_BASE_URL ?? '');
+    return new URL(new URL(process.env.PUBLIC_BASE_URL ?? '').origin);
   } catch {
     return new URL('http://localhost:3000');
   }

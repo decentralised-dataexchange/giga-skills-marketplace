@@ -80,7 +80,7 @@ export function ShowcaseGuide({ nextStop }: { nextStop: NextStop | null }) {
               <span className="guide-heading-n">1</span> Before you start
             </h3>
             <p className="guide-lede">
-              Load these two credentials into one EUDI Wallet on your phone.
+              Download a Wallet app on your phone, then load these two credentials into it.
             </p>
             <div className="guide-prereqs">
               {PREREQUISITES.map((item) => (

@@ -22,7 +22,7 @@ export default function Landing() {
         <h1>National Learner Registry &amp; Education Wallet</h1>
         <p className="landing-lede">
           One demonstration, three portals. A learner registers with a PID
-          from an EUDI wallet, receives a Student ID and a diploma as
+          from a Wallet, receives a Student ID and a diploma as
           verifiable credentials, confirms payment with a payment credential,
           and applies for a job with selective disclosure. Enrolment,
           issuance and revocation are processed automatically by the
@@ -36,7 +36,7 @@ export default function Landing() {
           <span className="guide-heading-n">1</span> Before you start
         </h2>
         <p className="guide-lede">
-          Load these two credentials into one EUDI Wallet on your phone.
+          Download a Wallet app on your phone, then load these two credentials into it.
         </p>
         <div className="guide-prereqs">
           {PREREQUISITES.map((item) => (

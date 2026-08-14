@@ -29,7 +29,7 @@ type Evidence =
 
 /**
  * The application card: the candidate fills the form manually and uploads a
- * PDF, or fills it with one EUDI Wallet presentation (PID for the personal
+ * PDF, or fills it with one Wallet presentation (PID for the personal
  * fields, diploma as the evidence). Nothing submits automatically: the
  * filled form is the review, the evidence opens in a wide drawer, and the
  * candidate submits when satisfied. The success screen is generic.
@@ -142,7 +142,7 @@ export function ApplicationForm({ job }: { job: Job }) {
           <WalletInvite
             uri={walletRequest.qrUri}
             logo="/portals/civicworks/logo.svg"
-            hint="Scan with the EUDI Wallet on your phone and share your PID and diploma. The PID fills your details; the diploma is your evidence."
+            hint="Scan with the Wallet on your phone and share your PID and diploma. The PID fills your details; the diploma is your evidence."
             onRefresh={beginWalletFill}
           />
           <button
@@ -162,7 +162,7 @@ export function ApplicationForm({ job }: { job: Job }) {
             disabled={walletBusy}
           >
             <Wallet size={15} />
-            {walletBusy ? 'Preparing…' : 'Fill with your EUDI Wallet'}
+            {walletBusy ? 'Preparing…' : 'Fill with your Wallet'}
           </button>
           <p className="cw-apply-note" style={{ marginTop: '0.5rem' }}>
             Your PID fills the details below; your diploma is attached as

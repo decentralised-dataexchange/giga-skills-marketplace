@@ -7,7 +7,7 @@ import { useSameDevice } from '@/components/useSameDevice';
 import { assetPath } from '@/lib/base-path';
 
 /**
- * Hand a deep link to the learner's or candidate's EUDI Wallet.
+ * Hand a deep link to the learner's or candidate's Wallet.
  *
  * On a phone the wallet is on this device, so the link opens it directly and
  * a QR code would be useless. On a desktop the wallet is on another device,
@@ -35,7 +35,7 @@ export function WalletInvite({
         <>
           <a href={uri} className="wallet-link">
             <Smartphone size={17} />
-            Open in your EUDI Wallet
+            Open in your Wallet
           </a>
           <p className="qr-hint">
             {hint ?? 'Your wallet opens on this device. Come back here when it is done.'}
@@ -56,7 +56,7 @@ export function WalletInvite({
             />
           </div>
           <p className="qr-hint">
-            {hint ?? 'Scan this with the EUDI Wallet on your phone.'}
+            {hint ?? 'Scan this with the Wallet on your phone.'}
           </p>
         </>
       )}

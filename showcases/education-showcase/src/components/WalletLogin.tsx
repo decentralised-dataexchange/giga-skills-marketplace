@@ -76,7 +76,7 @@ export function WalletLogin() {
           <WalletInvite
             uri={qrUri}
             logo="/portals/education/logo.svg"
-            hint="Scan this with the EUDI Wallet on your phone and share your PID."
+            hint="Scan this with the Wallet on your phone and share your PID."
             onRefresh={start}
           />
         ) : null}

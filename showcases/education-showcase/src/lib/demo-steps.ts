@@ -8,6 +8,11 @@ import { PORTALS } from '@/lib/portals';
 
 export const PREREQUISITES = [
   {
+    name: 'iGrant.io Data Wallet',
+    detail: 'Download a Wallet app; instructions here',
+    href: 'https://docs.igrant.io/docs/data-wallet-tryitout/',
+  },
+  {
     name: 'PID credential',
     detail: 'Signs you in as the learner',
     href: 'https://igrant.io/demo/pid.html',
@@ -34,7 +39,7 @@ export function stepColour(href: string): string {
 export const DEMO_STEPS = [
   {
     title: 'Register as a learner',
-    text: 'Open the National Education Portal and sign in with your wallet: scan the code with your EUDI Wallet and share your PID. Then complete and submit the registration form.',
+    text: 'Open the National Education Portal and sign in with your wallet: scan the code with your Wallet and share your PID. Then complete and submit the registration form.',
     href: '/education',
     linkText: 'National Education Portal',
   },

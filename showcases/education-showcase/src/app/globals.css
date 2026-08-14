@@ -222,7 +222,7 @@ textarea {
 /* Prerequisites: two compact external-link cards side by side. */
 .guide-prereqs {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
   gap: 0.6rem;
 }
 
