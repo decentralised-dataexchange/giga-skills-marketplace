@@ -27,13 +27,18 @@ import { cn } from "@/lib/utils";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-interface SourceGroup {
-  key: string;
+interface SourceView {
+  id: string;
   url: string | null;
-  label: string;
-  entries: { skill: any; versions: any[] }[];
-  last: string | null;
+  status: "active" | "delisted";
+  skills: { id: string; slug: string; status: string; versions: any[] }[];
+  submissions: { id: string; status: string; submittedAt: string }[];
 }
+
+const sourceLabel = (s: { url: string | null }) =>
+  s.url ? s.url.replace(/^https?:\/\/(www\.)?github\.com\//i, "") : "Direct submissions";
+
+const lastSubmitted = (s: SourceView) => s.submissions.at(-1)?.submittedAt ?? null;
 
 export default function SkillSourcesPage() {
   return (
@@ -46,17 +51,18 @@ export default function SkillSourcesPage() {
 function SkillSourcesInner() {
   const { denied } = useDashboardGuard("/provider/submissions", ["provider"]);
   const params = useSearchParams();
-  const [skills, setSkills] = useState<any[]>([]);
+  const [sources, setSources] = useState<SourceView[]>([]);
   const [org, setOrg] = useState<any>(null);
 
-  const [openSourceKey, setOpenSourceKey] = useState<string | null>(null);
+  const [openSourceId, setOpenSourceId] = useState<string | null>(null);
+  const [confirmDelist, setConfirmDelist] = useState(false);
   const [auditVersion, setAuditVersion] = useState<{ title: string; checks: Check[] } | null>(null);
   const [publishOpen, setPublishOpen] = useState(false);
   const [publishUrl, setPublishUrl] = useState("");
 
   const load = useCallback(async () => {
-    const [s, o] = await Promise.all([api("/api/skills/mine"), api("/api/orgs/mine")]);
-    setSkills(s.skills);
+    const [s, o] = await Promise.all([api("/api/sources/mine"), api("/api/orgs/mine")]);
+    setSources(s.sources);
     setOrg(o.orgs.find((x: any) => x.status === "approved") ?? null);
   }, []);
 
@@ -77,61 +83,34 @@ function SkillSourcesInner() {
     }
   }, [params]);
 
-  // Group every submitted version by its source repository.
-  const sources = useMemo<SourceGroup[]>(() => {
-    const map = new Map<string, SourceGroup & { skillIds: Map<string, number> }>();
-    for (const s of skills) {
-      for (const v of s.versions ?? []) {
-        const url = v.repo?.url ?? null;
-        const key = url ?? "direct";
-        let g = map.get(key);
-        if (!g) {
-          g = {
-            key,
-            url,
-            label: url
-              ? url.replace(/^https?:\/\/(www\.)?github\.com\//i, "")
-              : "Direct submissions",
-            entries: [],
-            last: null,
-            skillIds: new Map(),
-          };
-          map.set(key, g);
-        }
-        let idx = g.skillIds.get(s.id);
-        if (idx === undefined) {
-          idx = g.entries.length;
-          g.skillIds.set(s.id, idx);
-          g.entries.push({ skill: s, versions: [] });
-        }
-        g.entries[idx].versions.push(v);
-        if (!g.last || String(v.submittedAt) > g.last) g.last = String(v.submittedAt);
-      }
-    }
-    return [...map.values()].sort((a, b) => (b.last ?? "").localeCompare(a.last ?? ""));
-  }, [skills]);
+  const ordered = useMemo<SourceView[]>(
+    () =>
+      [...sources].sort((a, b) => (lastSubmitted(b) ?? "").localeCompare(lastSubmitted(a) ?? "")),
+    [sources],
+  );
 
-  const openSource = sources.find((s) => s.key === openSourceKey) ?? null;
+  const openSource = ordered.find((s) => s.id === openSourceId) ?? null;
 
-  // Delisting acts on the whole source: every published skill it carries
-  // comes off the marketplace together.
-  async function delistSource(source: SourceGroup) {
-    const published = source.entries.filter(({ skill }) => skill.status === "published");
-    if (!published.length) {
-      toast.error("This source has no published skills to delist.");
-      return;
-    }
+  // Delisting acts on the whole source in one call: the source record and
+  // every published skill it carries come off the marketplace together.
+  async function delistSource(source: SourceView) {
     try {
-      for (const { skill } of published) {
-        await api(`/api/skills/${skill.id}/delist`, { method: "POST" });
-      }
+      const d = await api(`/api/sources/${source.id}/delist`, { method: "POST" });
       toast.success(
-        `Delisted ${published.length} skill${published.length === 1 ? "" : "s"} from ${source.label}.`,
+        `Delisted ${sourceLabel(source)} - ${d.delisted} published skill${
+          d.delisted === 1 ? "" : "s"
+        } left the catalog. Resubmitting the source relists it through a fresh review.`,
       );
+      setConfirmDelist(false);
       load();
     } catch (e) {
       toast.error(e instanceof Error ? e.message : String(e), "Could not delist the source");
     }
+  }
+
+  function openSourceDrawer(id: string | null) {
+    setOpenSourceId(id);
+    setConfirmDelist(false);
   }
 
   function startPublish(url?: string | null) {
@@ -158,36 +137,46 @@ function SkillSourcesInner() {
         </Tip>
       }
     >
-      {sources.length ? (
+      {ordered.length ? (
         <DataTable
           columns={[
             {
               key: "source",
               header: "Source",
-              render: (g: any) => (
-                <span className="font-mono text-[13px] font-semibold text-ink">{g.label}</span>
+              render: (g: SourceView) => (
+                <span className="font-mono text-[13px] font-semibold text-ink">
+                  {sourceLabel(g)}
+                </span>
               ),
-              title: (g: any) => g.label,
+              title: (g: SourceView) => sourceLabel(g),
             },
             {
               key: "skills",
               header: "Skills",
               width: 110,
-              render: (g: any) => g.entries.length,
+              render: (g: SourceView) => g.skills.length,
+            },
+            {
+              key: "status",
+              header: "Status",
+              width: 120,
+              render: (g: SourceView) => <StatusBadge status={g.status} />,
             },
             {
               key: "last",
               header: "Last submitted",
               width: 160,
-              render: (g: any) => (
-                <span className="text-muted-foreground">{g.last ? fmtDate(g.last) : "-"}</span>
+              render: (g: SourceView) => (
+                <span className="text-muted-foreground">
+                  {lastSubmitted(g) ? fmtDate(lastSubmitted(g)) : "-"}
+                </span>
               ),
             },
           ]}
-          rows={sources}
-          rowKey={(g: any) => g.key}
+          rows={ordered}
+          rowKey={(g: SourceView) => g.id}
           minWidth={560}
-          onRowClick={(g: any) => setOpenSourceKey(g.key)}
+          onRowClick={(g: SourceView) => openSourceDrawer(g.id)}
           rowTitle="Open this source"
         />
       ) : (
@@ -199,19 +188,35 @@ function SkillSourcesInner() {
       {/* Level 1: the source's skills */}
       {openSource && (
         <Drawer
-          title={openSource.label}
-          onClose={() => setOpenSourceKey(null)}
+          title={
+            <span className="inline-flex items-center gap-2">
+              {sourceLabel(openSource)}
+              <StatusBadge status={openSource.status} />
+            </span>
+          }
+          onClose={() => openSourceDrawer(null)}
           footer={
             <>
-              <Button variant="outline" onClick={() => setOpenSourceKey(null)}>
+              <Button variant="outline" onClick={() => openSourceDrawer(null)}>
                 Close
               </Button>
               <div className="flex gap-2">
-                {openSource.entries.some(({ skill }) => skill.status === "published") && (
-                  <Button variant="destructive" onClick={() => delistSource(openSource)}>
-                    Delist source
-                  </Button>
-                )}
+                {openSource.status === "active" &&
+                  openSource.skills.some((skill) => skill.status === "published") &&
+                  (confirmDelist ? (
+                    <>
+                      <Button variant="outline" onClick={() => setConfirmDelist(false)}>
+                        Cancel
+                      </Button>
+                      <Button variant="destructive" onClick={() => delistSource(openSource)}>
+                        Confirm delist
+                      </Button>
+                    </>
+                  ) : (
+                    <Button variant="destructive" onClick={() => setConfirmDelist(true)}>
+                      Delist source
+                    </Button>
+                  ))}
                 <Button onClick={() => startPublish(openSource.url)}>Submit update</Button>
               </div>
             </>
@@ -228,7 +233,20 @@ function SkillSourcesInner() {
               <ExternalLink className="size-3.5" aria-hidden="true" />
             </a>
           )}
-          {openSource.entries.map(({ skill, versions }) => (
+          {confirmDelist && (
+            <Notice severity="warning">
+              This removes every published skill in this source from the catalog in one action.
+              The review history stays public. Resubmitting the source relists it through a fresh
+              review.
+            </Notice>
+          )}
+          {openSource.status === "delisted" && (
+            <Notice severity="info">
+              This source is delisted: none of its skills appear in the catalog. Submit an update
+              to relist it - approval brings every skill back.
+            </Notice>
+          )}
+          {openSource.skills.map((skill) => (
             <section key={skill.id} className="rounded-lg border border-[#e0e0e0] bg-white p-4">
               <div className="flex items-center justify-between gap-2">
                 <Tip content={skill.slug}>
@@ -239,7 +257,7 @@ function SkillSourcesInner() {
                 <StatusBadge status={skill.status} />
               </div>
               <ul className="mt-3 divide-y divide-border">
-                {[...versions].reverse().map((v: any) => (
+                {[...skill.versions].reverse().map((v: any) => (
                   <li key={v.id} className="py-2 text-sm">
                     <div className="flex items-center gap-2">
                       <span className="shrink-0 text-xs text-ink">v{v.version}</span>
@@ -284,7 +302,7 @@ function SkillSourcesInner() {
           onBack={() => setAuditVersion(null)}
           onClose={() => {
             setAuditVersion(null);
-            setOpenSourceKey(null);
+            openSourceDrawer(null);
           }}
           footer={
             <Button variant="outline" onClick={() => setAuditVersion(null)}>
@@ -308,7 +326,7 @@ function SkillSourcesInner() {
           onBack={openSource ? () => setPublishOpen(false) : undefined}
           onClose={() => {
             setPublishOpen(false);
-            setOpenSourceKey(null);
+            openSourceDrawer(null);
           }}
           onSubmitted={() => {
             load().catch((e) => toast.error(e.message, "Could not refresh your sources"));
@@ -428,21 +446,14 @@ function PublishDrawer({
       });
       setResults(d.results);
       setInspection(null);
-      const ok = d.results.filter((r: any) => r.status === "submitted").length;
-      if (ok === 0) {
-        toast.error(
-          `None of the ${d.results.length} skills could be submitted - see the results list for the reasons.`,
-          "Nothing reached review",
-        );
-      } else if (ok < d.results.length) {
-        toast.success(
-          `Submitted ${ok} of ${d.results.length} skills for review (pinned to ${d.repo.commit.slice(0, 7)}); the rest could not be submitted - see the results list.`,
-        );
-      } else {
-        toast.success(
-          `Submitted ${ok} skill${ok === 1 ? "" : "s"} for review, pinned to ${d.repo.commit.slice(0, 7)}.`,
-        );
-      }
+      // The submission is all-or-nothing: reaching here means every skill went
+      // in as one source submission, reviewed and decided as a whole.
+      const ok = d.results.length;
+      toast.success(
+        `Submitted ${sourceLabel({ url: url.trim() })} as one source submission (${ok} skill${
+          ok === 1 ? "" : "s"
+        }), pinned to ${d.repo.commit.slice(0, 7)}. A reviewer decides it as a whole.`,
+      );
       onSubmitted();
     } catch (err) {
       toast.error(
@@ -663,7 +674,7 @@ function PublishDrawer({
                 <ul className="mt-3 space-y-1.5">
                   {inspection.skills.map((s) => {
                     const badge = s.conflict
-                      ? "name owned by another organisation"
+                      ? "name already used by another of your sources"
                       : !s.passed
                         ? "checks failing"
                         : s.existing

@@ -10,7 +10,7 @@ export const GET = route(
       sql`SELECT status AS k, count(*)::int AS n FROM skills GROUP BY status`,
       sql`SELECT status AS k, count(*)::int AS n FROM orgs GROUP BY status`,
       sql`SELECT role AS k, count(*)::int AS n FROM users GROUP BY role`,
-      sql`SELECT count(*)::int AS n FROM versions WHERE status IN ('submitted','in_review')`,
+      sql`SELECT count(*)::int AS n FROM submissions WHERE status IN ('submitted','in_review')`,
     ]);
     return {
       stats: {

@@ -44,20 +44,39 @@ export const POST = route(
       };
     });
 
-    // Which discovered names already exist, and whether the caller owns them.
+    // Which discovered names this organisation already uses, and from which
+    // source. Another organisation using the same name is no conflict: skill
+    // names are unique per organisation, not across the catalog.
+    const orgIds = [...myOrgIds];
     const slugs = inspected.map((s) => s.slug).filter((s): s is string => !!s);
     const existing = slugs.length
-      ? await sql`SELECT slug, org_id FROM skills WHERE slug = ANY(${slugs})`
+      ? await sql`
+          SELECT sk.slug, sk.source_id, src.url AS source_url FROM skills sk
+          LEFT JOIN sources src ON src.id = sk.source_id
+          WHERE sk.org_id = ANY(${orgIds}) AND sk.slug = ANY(${slugs})`
       : [];
-    const bySlug = new Map(existing.map((r) => [r.slug as string, r.org_id as string]));
+    // A row without a source (from before first-class sources) is adoptable
+    // by any of the organisation's sources, so it counts as existing.
+    const bySlug = new Map(
+      existing.map((r) => [
+        r.slug as string,
+        { adoptable: !r.source_id, url: r.source_url as string | null },
+      ]),
+    );
+
+    // The caller's source record for this repository, if any: a delisted one
+    // signals that an approved resubmission relists it.
+    const [mySource] = await sql`
+      SELECT status FROM sources WHERE org_id = ANY(${orgIds}) AND url = ${tree.meta.url}`;
 
     return {
       repo,
-      skills: inspected.map((s) => ({
-        ...s,
-        existing: !!(s.slug && bySlug.has(s.slug)),
-        conflict: !!(s.slug && bySlug.has(s.slug) && !myOrgIds.has(bySlug.get(s.slug)!)),
-      })),
+      sourceStatus: (mySource?.status as string | undefined) ?? null,
+      skills: inspected.map((s) => {
+        const bound = s.slug ? bySlug.get(s.slug) : undefined;
+        const mine = !!bound && (bound.adoptable || bound.url === tree.meta.url);
+        return { ...s, existing: mine, conflict: !!bound && !mine };
+      }),
     };
   },
   { roles: ["provider"] },

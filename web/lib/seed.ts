@@ -53,37 +53,53 @@ async function addOrg(org: {
   return row.id;
 }
 
-async function addSkill(
+// One seed submission = one review unit: every bundle in it is decided as a
+// whole, exactly like the live flow. The org's pseudo-source (url NULL, the
+// public "bundles" segment) is created on first use.
+async function addSubmission(
   orgId: string,
-  bundle: string,
+  bundles: string[],
   submitterId: string,
   publish: boolean,
   reviewerId?: string,
 ) {
-  const files = readBundle(bundle);
-  const { checks, passed, manifest } = runChecks(files);
-  if (!manifest?.name) throw new Error(`Seed bundle ${bundle} has no manifest name`);
-  const [skill] = await sql`
-    INSERT INTO skills (slug, org_id)
-    VALUES (${manifest.name}, ${orgId}) RETURNING id`;
-  const status = publish && passed ? "published" : "submitted";
+  await sql`INSERT INTO sources (org_id) VALUES (${orgId})
+            ON CONFLICT (org_id, COALESCE(url, 'direct')) DO NOTHING`;
+  const [source] = await sql`SELECT id FROM sources WHERE org_id = ${orgId} AND url IS NULL`;
+  const status = publish ? "approved" : "submitted";
   const notes = publish
     ? "Automated checks pass; manifest, OpenAPI surface, schemas and rulebooks reviewed against marketplace guidelines."
     : null;
-  const [version] = await sql`
-    INSERT INTO versions (skill_id, version, manifest, files, checks, status, submitted_by, reviewer_id, review_notes, decided_at)
-    VALUES (${skill.id}, ${String(manifest.version)}, ${json(manifest)}, ${json(files)}, ${json(checks)},
-            ${status}, ${submitterId}, ${publish ? (reviewerId ?? null) : null}, ${notes},
-            ${status === "published" ? sql`now()` : null})
+  const [submission] = await sql`
+    INSERT INTO submissions (source_id, status, submitted_by, reviewer_id, review_notes, decided_at)
+    VALUES (${source.id}, ${status}, ${submitterId}, ${publish ? (reviewerId ?? null) : null},
+            ${notes}, ${publish ? sql`now()` : null})
     RETURNING id`;
-  if (status === "published") {
-    await sql`UPDATE skills SET status = 'published', published_version_id = ${version.id} WHERE id = ${skill.id}`;
-    await logEvent(
-      "review.approve",
-      reviewerId ?? submitterId,
-      { skillId: skill.id, versionId: version.id },
-      { slug: manifest.name, notes },
-    );
+
+  for (const bundle of bundles) {
+    const files = readBundle(bundle);
+    const { checks, manifest } = runChecks(files);
+    if (!manifest?.name) throw new Error(`Seed bundle ${bundle} has no manifest name`);
+    const [skill] = await sql`
+      INSERT INTO skills (slug, org_id, source_id)
+      VALUES (${manifest.name}, ${orgId}, ${source.id}) RETURNING id`;
+    const [version] = await sql`
+      INSERT INTO versions (skill_id, submission_id, version, manifest, files, checks, status,
+                            submitted_by, reviewer_id, review_notes, decided_at)
+      VALUES (${skill.id}, ${submission.id}, ${String(manifest.version)}, ${json(manifest)},
+              ${json(files)}, ${json(checks)}, ${publish ? "published" : "submitted"},
+              ${submitterId}, ${publish ? (reviewerId ?? null) : null}, ${notes},
+              ${publish ? sql`now()` : null})
+      RETURNING id`;
+    if (publish) {
+      await sql`UPDATE skills SET status = 'published', published_version_id = ${version.id} WHERE id = ${skill.id}`;
+      await logEvent(
+        "review.approve",
+        reviewerId ?? submitterId,
+        { skillId: skill.id, versionId: version.id, submissionId: submission.id },
+        { slug: manifest.name, notes },
+      );
+    }
   }
 }
 
@@ -132,10 +148,16 @@ export async function seedIfEmpty(): Promise<boolean> {
     status: "approved",
   });
 
-  // All catalog skills are published by iGrant.io (LCubed AB).
-  await addSkill(orgIgrant, "igrantio-education-issuer", igrant, true, reviewer);
-  await addSkill(orgIgrant, "igrantio-consent-bb", igrant, true, reviewer);
-  await addSkill(orgIgrant, "igrantio-education-verifier", igrant, false); // sits in the review queue
+  // All catalog skills are published by iGrant.io (LCubed AB): one approved
+  // submission with the live skills, one submission waiting in the queue.
+  await addSubmission(
+    orgIgrant,
+    ["igrantio-education-issuer", "igrantio-consent-bb"],
+    igrant,
+    true,
+    reviewer,
+  );
+  await addSubmission(orgIgrant, ["igrantio-education-verifier"], igrant, false);
 
   await logEvent("seed.completed", superadmin, null, { note: "Demo data seeded" });
   return true;

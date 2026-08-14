@@ -48,18 +48,41 @@ CREATE TABLE IF NOT EXISTS orgs (
   decided_by     UUID REFERENCES users(id),
   decision_notes TEXT
 );
+CREATE TABLE IF NOT EXISTS sources (
+  id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  org_id     UUID NOT NULL REFERENCES orgs(id),
+  url        TEXT,
+  owner      TEXT,
+  repo       TEXT,
+  status     TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active','delisted')),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE TABLE IF NOT EXISTS submissions (
+  id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  source_id    UUID NOT NULL REFERENCES sources(id),
+  repo         JSONB,
+  status       TEXT NOT NULL DEFAULT 'submitted'
+               CHECK (status IN ('submitted','in_review','approved','rejected','changes_requested','superseded')),
+  submitted_by UUID REFERENCES users(id),
+  submitted_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  reviewer_id  UUID REFERENCES users(id),
+  review_notes TEXT,
+  decided_at   TIMESTAMPTZ
+);
 CREATE TABLE IF NOT EXISTS skills (
   id                   UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  slug                 TEXT UNIQUE NOT NULL,
+  slug                 TEXT NOT NULL,
   org_id               UUID NOT NULL REFERENCES orgs(id),
+  source_id            UUID REFERENCES sources(id),
   status               TEXT NOT NULL DEFAULT 'in_submission',
   official             BOOLEAN NOT NULL DEFAULT false,
   published_version_id UUID,
   created_at           TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 CREATE TABLE IF NOT EXISTS versions (
-  id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  skill_id     UUID NOT NULL REFERENCES skills(id),
+  id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  skill_id      UUID NOT NULL REFERENCES skills(id),
+  submission_id UUID REFERENCES submissions(id),
   version      TEXT NOT NULL,
   manifest     JSONB,
   files        JSONB NOT NULL,
@@ -84,6 +107,35 @@ ALTER TABLE orgs ADD COLUMN IF NOT EXISTS slug TEXT;
 ALTER TABLE orgs ADD COLUMN IF NOT EXISTS logo TEXT;
 ALTER TABLE orgs ADD COLUMN IF NOT EXISTS cover TEXT;
 ALTER TABLE versions ADD COLUMN IF NOT EXISTS repo JSONB;
+-- Skill sources are first-class records; databases from before that change
+-- carry only the versions.repo blob and get these columns backfilled in
+-- backfillSources().
+ALTER TABLE skills ADD COLUMN IF NOT EXISTS source_id UUID REFERENCES sources(id);
+ALTER TABLE versions ADD COLUMN IF NOT EXISTS submission_id UUID REFERENCES submissions(id);
+-- A skill name is unique inside one organisation, not across the catalog, so
+-- several organisations can publish the same source and the same skill names.
+-- The composite index is created before the old global unique is dropped: it
+-- is strictly weaker, so it always succeeds on data that satisfied the old one.
+CREATE UNIQUE INDEX IF NOT EXISTS idx_skills_org_slug ON skills(org_id, slug);
+DO $$
+DECLARE c RECORD;
+BEGIN
+  FOR c IN
+    SELECT conname FROM pg_constraint
+    WHERE conrelid = 'skills'::regclass AND contype = 'u'
+      AND conkey = ARRAY[(SELECT attnum FROM pg_attribute
+                          WHERE attrelid = 'skills'::regclass AND attname = 'slug')]
+  LOOP
+    EXECUTE format('ALTER TABLE skills DROP CONSTRAINT %I', c.conname);
+  END LOOP;
+  FOR c IN
+    SELECT indexname FROM pg_indexes
+    WHERE schemaname = current_schema() AND tablename = 'skills'
+      AND indexname <> 'idx_skills_org_slug' AND indexdef LIKE 'CREATE UNIQUE INDEX%(slug)'
+  LOOP
+    EXECUTE format('DROP INDEX %I', c.indexname);
+  END LOOP;
+END $$;
 -- A superadmin can suspend an organisation; a database from before that
 -- change carries a status constraint without the 'suspended' value.
 ALTER TABLE orgs DROP CONSTRAINT IF EXISTS orgs_status_check;
@@ -110,6 +162,11 @@ DO $$ BEGIN
   END IF;
 END $$;
 CREATE UNIQUE INDEX IF NOT EXISTS idx_orgs_slug ON orgs(slug);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_sources_org_url ON sources(org_id, COALESCE(url, 'direct'));
+CREATE INDEX IF NOT EXISTS idx_submissions_source ON submissions(source_id, submitted_at DESC);
+CREATE INDEX IF NOT EXISTS idx_submissions_status ON submissions(status, submitted_at);
+CREATE INDEX IF NOT EXISTS idx_skills_source ON skills(source_id);
+CREATE INDEX IF NOT EXISTS idx_versions_submission ON versions(submission_id);
 CREATE INDEX IF NOT EXISTS idx_tokens_user ON tokens(user_id);
 CREATE INDEX IF NOT EXISTS idx_orgs_owner ON orgs(owner_id, created_at);
 CREATE INDEX IF NOT EXISTS idx_skills_org ON skills(org_id, created_at DESC);
@@ -139,6 +196,7 @@ export function ensureReady(): Promise<void> {
       const { seedIfEmpty } = await import("./seed");
       if (await seedIfEmpty()) console.log("Seeded demo users, organisations, and skills.");
       await backfillOrgSlugs();
+      if (await backfillSources()) console.log("Backfilled sources and submissions.");
     } finally {
       await bootstrap`SELECT pg_advisory_unlock(7142026)`;
       bootstrap.release();
@@ -166,6 +224,97 @@ async function backfillOrgSlugs(): Promise<void> {
   }
 }
 
+// A database from before first-class sources carries the source only as the
+// versions.repo blob. Rebuild the aggregate once: a sources row per
+// (organisation, repository url), a submissions row per (source, commit) —
+// one from-repo call — or per repo-less version, and the new foreign keys.
+// Runs each boot; a no-op once no row is missing its source or submission.
+async function backfillSources(): Promise<boolean> {
+  const missingSkill = await sql`SELECT 1 FROM skills WHERE source_id IS NULL LIMIT 1`;
+  const missingVersion = await sql`SELECT 1 FROM versions WHERE submission_id IS NULL LIMIT 1`;
+  if (!missingSkill.length && !missingVersion.length) return false;
+
+  await sql`
+    INSERT INTO sources (org_id, url, owner, repo)
+    SELECT DISTINCT ON (s.org_id, v.repo->>'url')
+           s.org_id, v.repo->>'url', v.repo->>'owner', v.repo->>'repo'
+    FROM versions v JOIN skills s ON s.id = v.skill_id
+    WHERE v.repo IS NOT NULL AND v.submission_id IS NULL
+    ORDER BY s.org_id, v.repo->>'url', v.submitted_at DESC
+    ON CONFLICT (org_id, COALESCE(url, 'direct')) DO NOTHING`;
+  await sql`
+    INSERT INTO sources (org_id, url)
+    SELECT DISTINCT s.org_id, NULL::text
+    FROM versions v JOIN skills s ON s.id = v.skill_id
+    WHERE v.repo IS NULL AND v.submission_id IS NULL
+    ON CONFLICT (org_id, COALESCE(url, 'direct')) DO NOTHING`;
+
+  // A skill belongs to the source its newest version came from.
+  await sql`
+    UPDATE skills sk
+    SET source_id = src.id
+    FROM (SELECT DISTINCT ON (skill_id) skill_id, repo->>'url' AS url
+          FROM versions ORDER BY skill_id, submitted_at DESC) last,
+         sources src
+    WHERE sk.id = last.skill_id AND sk.source_id IS NULL
+      AND src.org_id = sk.org_id
+      AND COALESCE(src.url, 'direct') = COALESCE(last.url, 'direct')`;
+  await sql`
+    UPDATE sources src SET status = 'delisted'
+    WHERE src.status = 'active'
+      AND EXISTS (SELECT 1 FROM skills k WHERE k.source_id = src.id)
+      AND NOT EXISTS (SELECT 1 FROM skills k WHERE k.source_id = src.id AND k.status <> 'delisted')`;
+
+  const sources = await sql`SELECT id, org_id, url FROM sources`;
+  const sourceByKey = new Map<string, string>(
+    sources.map((s) => [`${s.org_id} ${s.url ?? "direct"}`, s.id as string]),
+  );
+  const versions = await sql`
+    SELECT v.id, v.status, v.submitted_by, v.submitted_at, v.reviewer_id,
+           v.review_notes, v.decided_at, v.repo, s.org_id
+    FROM versions v JOIN skills s ON s.id = v.skill_id
+    WHERE v.submission_id IS NULL
+    ORDER BY v.submitted_at`;
+
+  interface Group {
+    sourceId: string;
+    versions: (typeof versions)[number][];
+  }
+  const groups = new Map<string, Group>();
+  for (const v of versions) {
+    const sourceId = sourceByKey.get(`${v.org_id} ${v.repo?.url ?? "direct"}`);
+    if (!sourceId) continue; // defensive; the inserts above cover every version
+    // One from-repo call pinned every skill to one commit; repo-less versions
+    // were each their own submission.
+    const key = v.repo ? `${sourceId} ${v.repo.commit ?? v.id}` : `version ${v.id}`;
+    const group = groups.get(key) ?? { sourceId, versions: [] };
+    group.versions.push(v);
+    groups.set(key, group);
+  }
+
+  // The group's review state is its most demanding member's.
+  const PRECEDENCE = ["in_review", "submitted", "published", "changes_requested", "rejected", "superseded"];
+  for (const group of groups.values()) {
+    const rows = group.versions;
+    const versionStatus =
+      PRECEDENCE.find((s) => rows.some((v) => v.status === s)) ?? rows[0].status;
+    const status = versionStatus === "published" ? "approved" : versionStatus;
+    const first = rows[0];
+    const decided = rows.filter((v) => v.decided_at).at(-1);
+    const newest = rows.at(-1)!;
+    const [submission] = await sql`
+      INSERT INTO submissions (source_id, repo, status, submitted_by, submitted_at,
+                               reviewer_id, review_notes, decided_at)
+      VALUES (${group.sourceId}, ${newest.repo ? json(newest.repo) : null}, ${status},
+              ${first.submitted_by}, ${first.submitted_at}, ${decided?.reviewer_id ?? null},
+              ${decided?.review_notes ?? null}, ${decided?.decided_at ?? null})
+      RETURNING id`;
+    await sql`UPDATE versions SET submission_id = ${submission.id}
+              WHERE id = ANY(${rows.map((v) => v.id as string)})`;
+  }
+  return true;
+}
+
 async function createDatabaseIfMissing(): Promise<void> {
   // Managed DATABASE_URL databases must be provisioned by the platform.
   if (DATABASE_URL) {
@@ -187,7 +336,8 @@ export async function logEvent(
   actorId: string | null,
   subject: object | null,
   detail: object | null,
+  db: typeof sql = sql, // pass the transaction handle so the event rolls back with it
 ): Promise<void> {
-  await sql`INSERT INTO events (type, actor_id, subject, detail)
-            VALUES (${type}, ${actorId}, ${subject ? json(subject) : null}, ${detail ? json(detail) : null})`;
+  await db`INSERT INTO events (type, actor_id, subject, detail)
+           VALUES (${type}, ${actorId}, ${subject ? json(subject) : null}, ${detail ? json(detail) : null})`;
 }
