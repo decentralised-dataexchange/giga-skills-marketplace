@@ -212,12 +212,12 @@ export async function readConsents(individualId: string): Promise<ConsentState[]
 /** Right to be forgotten: delete every consent record of one individual. */
 export async function deleteAllConsents(
   individualId: string,
-  actor: { userId: string }
+  actor: { userId: string; role: string }
 ): Promise<void> {
   await consentApi('DELETE', '/v2/service/individual/record', individualId);
   audit({
     actorUserId: actor.userId,
-    actorRole: 'dpa_admin',
+    actorRole: actor.role,
     action: 'consent.erased_all',
     subjectType: 'individual',
     subjectId: 'redacted',

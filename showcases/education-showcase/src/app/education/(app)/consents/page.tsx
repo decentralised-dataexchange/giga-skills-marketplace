@@ -2,7 +2,7 @@ import { getSession } from '@/lib/guards';
 import { getLearnerByUserId } from '@/lib/registry';
 import { getIndividualId, readConsents, type ConsentState } from '@/lib/consent';
 
-import { updateConsent } from './actions';
+import { deleteMyAccount, updateConsent } from './actions';
 
 export default async function ConsentsPage() {
   const session = await getSession();
@@ -69,13 +69,41 @@ export default async function ConsentsPage() {
                     fontWeight: 600,
                   }}
                 >
-                  {consent.optIn ? 'Withdraw' : 'Allow'}
+                  {consent.optIn ? 'Opt out' : 'Opt in'}
                 </button>
               </form>
             ) : null}
           </div>
         ))
       )}
+
+      {learner ? (
+        <div className="edu-card">
+          <h2>Delete my account</h2>
+          <p>
+            Removes your learner profile, your application, and your consent
+            records from this service, and signs you out. Credentials already
+            in your wallet stay in your wallet; a revoked credential stays
+            revoked.
+          </p>
+          <form action={deleteMyAccount} style={{ marginTop: '0.75rem' }}>
+            <button
+              type="submit"
+              style={{
+                background: 'var(--bad)',
+                color: '#fff',
+                border: 0,
+                borderRadius: 8,
+                padding: '0.5rem 1.1rem',
+                fontWeight: 600,
+              }}
+            >
+              Delete my account
+            </button>
+          </form>
+        </div>
+      ) : null}
+
     </>
   );
 }

@@ -52,7 +52,7 @@ export default function Landing() {
         <p className="landing-kicker">ITU / Giga education use case showcase</p>
         <h1>National Learner Registry &amp; Education Wallet</h1>
         <p className="landing-lede">
-          One demonstration, five portals. A learner registers with a PID from
+          One demonstration, four portals. A learner registers with a PID from
           an EUDI wallet, receives a Student ID and a diploma as verifiable
           credentials, confirms payment with a payment credential, and applies
           for a job with selective disclosure. Revocation closes the loop.
@@ -60,7 +60,7 @@ export default function Landing() {
       </header>
 
       <section className="landing-portals">
-        <h2>The five portals</h2>
+        <h2>The four portals</h2>
         <div className="landing-grid">
           {Object.values(PORTALS).map((portal) => (
             <Link

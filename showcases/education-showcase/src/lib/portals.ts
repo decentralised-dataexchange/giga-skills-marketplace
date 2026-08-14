@@ -9,7 +9,7 @@ import { assetPath } from '@/lib/base-path';
  * All organisations are fictional.
  */
 
-export type PortalId = 'education' | 'school' | 'moe' | 'dpa' | 'civicworks';
+export type PortalId = 'education' | 'school' | 'moe' | 'civicworks';
 
 export type PortalConfig = {
   id: PortalId;
@@ -20,7 +20,7 @@ export type PortalConfig = {
   tagline: string;
   logo: string;
   /** The Better Auth role allowed into this portal. */
-  role: 'learner' | 'school_officer' | 'registrar' | 'dpa_admin' | 'employer_verifier';
+  role: 'learner' | 'school_officer' | 'registrar' | 'employer_verifier';
   loginPath: string;
   homePath: string;
   /** Brand palette injected as CSS variables by the portal layout. */
@@ -96,28 +96,6 @@ export const PORTALS: Record<PortalId, PortalConfig> = {
     },
     footer:
       'Ministry of Education Registrar Back Office. Fictional authority for the education wallet showcase.',
-  },
-  dpa: {
-    id: 'dpa',
-    name: 'Consent Oversight',
-    organisation: 'Data Protection Authority',
-    tagline: 'Supervision of learner data agreements',
-    logo: assetPath('/portals/dpa/logo.svg'),
-    role: 'dpa_admin',
-    loginPath: '/dpa/login',
-    homePath: '/dpa/records',
-    brand: {
-      brand: '#5b3a5e',
-      'brand-dark': '#432b45',
-      'brand-soft': '#f1ecf2',
-      accent: '#5b3a5e',
-      surface: '#f7f6f7',
-      card: '#ffffff',
-      ink: '#2b2430',
-      muted: '#6e6473',
-      line: '#ddd6de',
-    },
-    footer: 'Data Protection Authority. Fictional oversight body. Consent records shown are demo data.',
   },
   civicworks: {
     id: 'civicworks',

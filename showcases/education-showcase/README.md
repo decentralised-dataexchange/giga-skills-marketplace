@@ -6,7 +6,7 @@ Student ID and a diploma as verifiable credentials, pays the diploma fee with a
 TS12 payment credential, and applies for a job with selective disclosure.
 Revocation closes the trust loop.
 
-One Next.js application serves five portals under one domain, each styled as
+One Next.js application serves four portals under one domain, each styled as
 its own product:
 
 | Path | Portal | Who |
@@ -14,7 +14,6 @@ its own product:
 | `/education` | National Education Portal | Learner (wallet sign-in only) |
 | `/school` | Riverside Secondary School, Admissions | School officer |
 | `/moe` | Ministry of Education, Registrar Back Office | Registrar |
-| `/dpa` | Data Protection Authority, Consent Oversight | Privacy supervisor |
 | `/civicworks` | CivicWorks Careers (job board) | Candidate (public) |
 
 The landing page (`/`) carries the demo script, the prerequisites and a
@@ -32,7 +31,7 @@ one-click demo data reset.
   diploma issues in the same session.
 - Consent runs against the iGrant.io Consent Building Block: a public-task
   processing notice plus two optional, withdrawable agreements, and a
-  right-to-be-forgotten procedure in the DPA portal.
+  self-service opt-in/opt-out, consent erasure and account deletion in the Education Portal.
 - Registries, civil-registry checks, the payment ledger and the institution
   signature are prototype or sandbox representations, labelled as such in the
   UI.
