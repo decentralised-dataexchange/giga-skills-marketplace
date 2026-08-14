@@ -98,26 +98,8 @@ export function ShowcaseGuide({ nextStop }: { nextStop: NextStop | null }) {
   );
   const close = () => setOpen(false);
 
-  // Annotate the button whenever the journey continues somewhere else than
-  // the portal on screen, so a finished step always points to the next one.
-  const atNextStop = nextStop
-    ? nextStop.portalId
-      ? pathname === `/${nextStop.portalId}` ||
-        pathname.startsWith(`/${nextStop.portalId}/`)
-      : pathname === nextStop.href
-    : true;
-  const showNext = Boolean(nextStop) && !atNextStop && !open;
-
   return (
     <div className="guide">
-      {showNext && nextStop ? (
-        <Link className="guide-next" href={nextStop.href}>
-          <span className="guide-next-kicker">Next step</span>
-          <span className="guide-next-label">
-            {nextStop.label} <ArrowRight size={13} aria-hidden="true" />
-          </span>
-        </Link>
-      ) : null}
       {open ? (
         <Drawer title="Demo guide" width={560} onClose={close}>
           <section className="guide-section">
@@ -223,7 +205,7 @@ export function ShowcaseGuide({ nextStop }: { nextStop: NextStop | null }) {
       ) : null}
       <button
         type="button"
-        className={showNext ? 'guide-fab hint-pulse' : 'guide-fab'}
+        className="guide-fab"
         onClick={() => setOpen(true)}
         aria-label="Open the demo guide"
       >
