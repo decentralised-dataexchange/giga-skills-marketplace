@@ -205,21 +205,83 @@ textarea {
   background: #2b3247;
 }
 
+.guide-section + .guide-section {
+  margin-top: 1.6rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #ebedf1;
+}
+
 .guide-heading {
-  margin: 0 0 0.6rem;
-  font-size: 0.72rem;
+  margin: 0 0 0.35rem;
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  font-size: 0.78rem;
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
+  color: #1c2130;
+}
+
+.guide-heading-n {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.35rem;
+  height: 1.35rem;
+  border-radius: 999px;
+  border: 1.5px solid #1c2130;
+  font-size: 0.72rem;
+}
+
+.guide-lede {
+  margin: 0 0 0.9rem;
+  font-size: 0.82rem;
+  line-height: 1.5;
   color: #6b7280;
 }
 
-.guide-heading + .guide-heading,
-.guide-steps + .guide-heading,
-.guide-portals + .guide-heading {
-  margin-top: 1.4rem;
+/* Prerequisites: two compact external-link cards side by side. */
+.guide-prereqs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.6rem;
 }
 
+.guide-prereq {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.65rem 0.8rem;
+  border: 1px solid #e3e5ea;
+  border-radius: 10px;
+  text-decoration: none;
+  color: #6b7280;
+  background: #fafbfc;
+}
+
+.guide-prereq:hover {
+  border-color: #c9cdd6;
+  background: #ffffff;
+}
+
+.guide-prereq-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.guide-prereq-text strong {
+  display: block;
+  font-size: 0.8rem;
+  color: #1c2130;
+}
+
+.guide-prereq-text small {
+  display: block;
+  font-size: 0.7rem;
+}
+
+/* Portals: a bordered list with logo marks and a direction indicator. */
 .guide-portals {
   border: 1px solid #e3e5ea;
   border-radius: 12px;
@@ -229,8 +291,8 @@ textarea {
 .guide-portal {
   display: flex;
   align-items: center;
-  gap: 0.7rem;
-  padding: 0.65rem 0.9rem;
+  gap: 0.75rem;
+  padding: 0.7rem 0.9rem;
   text-decoration: none;
   color: inherit;
 }
@@ -243,9 +305,28 @@ textarea {
   background: #f4f6f9;
 }
 
+.guide-portal:hover .guide-portal-go {
+  transform: translateX(2px);
+}
+
 .guide-portal[data-active='true'] {
-  background: #eef1f6;
-  box-shadow: inset 3px 0 0 #1c2130;
+  background: #f7f8fa;
+}
+
+.guide-portal-mark {
+  flex-shrink: 0;
+  width: 2.1rem;
+  height: 2.1rem;
+  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #1c2130;
+}
+
+.guide-portal-mark img {
+  width: 1.35rem;
+  height: 1.35rem;
 }
 
 .guide-portal-text {
@@ -260,8 +341,15 @@ textarea {
 
 .guide-portal-text small {
   display: block;
-  font-size: 0.72rem;
+  margin-top: 0.1rem;
+  font-size: 0.71rem;
   color: #6b7280;
+}
+
+.guide-portal-go {
+  flex-shrink: 0;
+  color: #9aa1ad;
+  transition: transform 120ms ease;
 }
 
 .guide-current {
@@ -277,36 +365,44 @@ textarea {
   padding: 0.15rem 0.5rem;
 }
 
-.guide-dot {
-  width: 0.7rem;
-  height: 0.7rem;
-  border-radius: 999px;
-  flex-shrink: 0;
-}
-
+/* The walkthrough: a timeline with portal-coloured number chips. */
 .guide-steps {
   margin: 0;
   padding: 0;
   list-style: none;
-  display: flex;
-  flex-direction: column;
-  gap: 0.9rem;
 }
 
 .guide-steps li {
+  position: relative;
   display: flex;
-  gap: 0.75rem;
+  gap: 0.8rem;
+  padding-bottom: 1.15rem;
+}
+
+.guide-steps li:last-child {
+  padding-bottom: 0;
+}
+
+.guide-steps li:not(:last-child)::before {
+  content: '';
+  position: absolute;
+  left: 0.8rem;
+  top: 1.8rem;
+  bottom: 0.2rem;
+  width: 2px;
+  background: #ebedf1;
 }
 
 .guide-step-n {
+  position: relative;
+  z-index: 1;
   flex-shrink: 0;
-  width: 1.55rem;
-  height: 1.55rem;
+  width: 1.6rem;
+  height: 1.6rem;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   border-radius: 999px;
-  background: #1c2130;
   color: #ffffff;
   font-size: 0.78rem;
   font-weight: 700;
@@ -316,19 +412,35 @@ textarea {
   display: block;
   font-size: 0.88rem;
   font-weight: 700;
+  padding-top: 0.15rem;
 }
 
 .guide-step-text {
   display: block;
-  margin-top: 0.15rem;
-  font-size: 0.82rem;
+  margin-top: 0.2rem;
+  font-size: 0.81rem;
   line-height: 1.55;
   color: #4b5563;
 }
 
-.guide-step-text a {
-  color: #1c2130;
-  font-weight: 600;
+.guide-step-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  margin-top: 0.4rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.guide-step-link:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 30rem) {
+  .guide-prereqs {
+    grid-template-columns: 1fr;
+  }
 }
 
 /* A subtle pulsing halo on the next-step control of each screen, in the
