@@ -350,6 +350,9 @@ async function main() {
     version: 'version_01',
     trustAnchor: 'x509',
     kid: env.DIPLOMA_KID || undefined,
+    // Needed for the dynamic credential request: the payment credential is
+    // presented during issuance, and the diploma follows in one session.
+    supportInteractiveAuthorisationEndpoint: true,
     display: {
       name: 'Diploma',
       description: 'Ministry of Education diploma credential',

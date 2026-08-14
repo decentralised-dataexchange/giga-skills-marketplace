@@ -14,7 +14,7 @@ const STATUS_TEXT: Record<string, string> = {
   school_validated: 'Documents validated. The Ministry registrar is reviewing your enrolment.',
   approved: 'Enrolment approved. Add your Student ID to your wallet below.',
   graduation_submitted: 'Your school submitted the graduation decision. The Ministry is validating it.',
-  payment_pending: 'The diploma fee is due. Confirm the payment with the payment credential in your wallet.',
+  payment_pending: 'The diploma fee is due. Pay with your wallet, and your diploma is issued in the same step.',
   issued: 'Your diploma has been issued. Add it to your wallet below.',
 };
 
@@ -88,15 +88,24 @@ export default async function EducationHome() {
             <span className="integration-badge real">TS12 payment credential</span>
           </h2>
           <p>
-            The Ministry requires payment confirmation before it issues your
-            diploma. Pay from your account or by card with the payment
-            credential in your wallet.
+            The Ministry requires payment before it issues your diploma. Pay
+            from your account or by card: one scan pays the EUR 50 fee and
+            delivers your diploma in the same step.
           </p>
-          <PaymentConfirm />
+          {typeof form.diplomaOffer === 'string' ? (
+            <ExchangeQr
+              exchangeId={String(form.diplomaExchangeId)}
+              qrUri={form.diplomaOffer}
+              logo="/portals/moe/logo.svg"
+              waitingText="Scan with your wallet: approve the EUR 50 payment and receive your diploma."
+            />
+          ) : (
+            <PaymentConfirm />
+          )}
         </div>
       ) : null}
 
-      {app && typeof form.diplomaOffer === 'string' ? (
+      {app && app.status === 'issued' && typeof form.diplomaOffer === 'string' ? (
         <div className="edu-card">
           <h2>
             Diploma{' '}

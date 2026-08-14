@@ -368,10 +368,13 @@ export async function moeProcessGraduation(
 }
 
 /**
- * Start the TS12 payment confirmation: an OpenID4VP request for the Payment
- * Account Credential with the diploma-fee transaction data. Returns the QR.
+ * Start the paid diploma issuance as a DYNAMIC CREDENTIAL REQUEST: one QR.
+ * The wallet first presents the chosen TS12 payment credential (account or
+ * card) with the diploma-fee transaction data, and the diploma then issues
+ * automatically in the same session. No user PIN: the protocol forbids one
+ * on a dynamic request.
  */
-export async function startPaymentConfirmation(
+export async function startDiplomaPaymentIssuance(
   appId: string,
   actor: { userId: string },
   method: 'account' | 'card' = 'account'
@@ -384,16 +387,19 @@ export async function startPaymentConfirmation(
   const answer = await ows(
     'moe',
     'POST',
-    '/v3/config/digital-wallet/openid/sdjwt/verification/send',
+    '/v2/config/digital-wallet/openid/sdjwt/credential/issue',
     {
+      issuanceMode: 'InTime',
+      credentialDefinitionId: requiredEnv('DIPLOMA_CREDENTIAL_ID', 'Diploma issuance'),
+      urlScheme: 'openid-credential-offer://',
+      // Presentation during issuance: the payment credential of the chosen
+      // method must be presented before the diploma is released.
       presentationDefinitionId: requiredEnv(
         method === 'card'
           ? 'PAYMENT_CARD_PRESENTATION_DEFINITION_ID'
           : 'PAYMENT_PRESENTATION_DEFINITION_ID',
         'Payment confirmation'
       ),
-      // By reference: the QR carries a request_uri, not the whole request.
-      requestByReference: true,
       // The TS12 payment transaction data lives under `payload`, the shape
       // the platform validates (see the demonstrators' checkout).
       transactionData: {
@@ -406,31 +412,61 @@ export async function startPaymentConfirmation(
           amount: 50,
         },
       },
+      credential: {
+        vct: 'urn:education:diploma:1',
+        claims: {
+          learnerName: app.learnerName,
+          qualificationName: app.programme ?? '',
+          qualificationCode: app.qualificationCode ?? '',
+          awardingInstitution: app.institutionName,
+          awardDate: new Date().toISOString().slice(0, 10),
+          programme: app.programme ?? '',
+          result: app.result ?? '',
+          ulid: app.learnerUlid ?? '',
+          graduationDecisionHash: app.graduationDocHash ?? '',
+        },
+      },
     }
   );
 
-  const history = answer?.verificationHistory ?? answer;
-  const exchangeId: string | undefined = history?.presentationExchangeId;
-  const qrUri: string | undefined = history?.vpTokenQrCode;
+  const history = Array.isArray(answer?.credentialHistory)
+    ? answer.credentialHistory[0]
+    : answer?.credentialHistory;
+  const exchangeId: string | undefined =
+    history?.credentialExchangeId ?? history?.CredentialExchangeId;
+  const qrUri: string | undefined = history?.credentialOffer;
   if (!exchangeId || !qrUri) {
-    throw new Error('The wallet service could not start the payment confirmation.');
+    throw new Error('The wallet service could not start the paid issuance.');
   }
 
+  const db = getDb();
   const now = new Date().toISOString();
-  getDb()
-    .prepare(
-      `INSERT INTO "credential_exchanges"
-         ("id", "owsExchangeId", "direction", "credentialType", "learnerId",
-          "applicationId", "status", "createdAt", "updatedAt")
-       VALUES (?, ?, 'presentation', 'payment', ?, ?, 'request_sent', ?, ?)
-       ON CONFLICT("owsExchangeId") DO NOTHING`
-    )
-    .run(newId('exc'), exchangeId, app.learnerRowId, appId, now, now);
+  db.prepare(
+    `INSERT INTO "credential_exchanges"
+       ("id", "owsExchangeId", "direction", "credentialType", "learnerId",
+        "applicationId", "status", "createdAt", "updatedAt")
+     VALUES (?, ?, 'issuance', 'diploma', ?, ?, 'offer_sent', ?, ?)
+     ON CONFLICT("owsExchangeId") DO NOTHING`
+  ).run(newId('exc'), exchangeId, app.learnerRowId, appId, now, now);
+
+  const form = JSON.parse(app.form) as Record<string, unknown>;
+  db.prepare(
+    'UPDATE "applications" SET "form" = ?, "updatedAt" = ? WHERE "id" = ?'
+  ).run(
+    JSON.stringify({
+      ...form,
+      diplomaOffer: qrUri,
+      diplomaExchangeId: exchangeId,
+      paymentMethod: method,
+    }),
+    now,
+    appId
+  );
 
   audit({
     actorUserId: actor.userId,
     actorRole: 'learner',
-    action: 'payment.confirmation_requested',
+    action: 'payment.dynamic_issuance_started',
     subjectType: 'exchange',
     subjectId: exchangeId,
     payload: { applicationId: appId, amount: 50, currency: 'EUR', method },
@@ -440,38 +476,31 @@ export async function startPaymentConfirmation(
 }
 
 /**
- * Webhook completion for a payment presentation: check the OWS record,
- * record the simulated ledger entry, and let the confirmed payment trigger
- * the diploma issuance (the RFQ's automatic trigger).
+ * Webhook completion for the dynamic paid issuance: when the wallet has the
+ * diploma (the payment presentation succeeded inside the same exchange),
+ * record the simulated ledger entry and close the application.
  */
-export async function completePayment(
-  presentationExchangeId: string
-): Promise<boolean> {
+export function completeDynamicDiplomaPayment(
+  credentialExchangeId: string
+): boolean {
   const db = getDb();
   const exchange = db
     .prepare(
-      'SELECT "applicationId" FROM "credential_exchanges" WHERE "owsExchangeId" = ?'
+      `SELECT "applicationId" FROM "credential_exchanges"
+       WHERE "owsExchangeId" = ? AND "credentialType" = 'diploma'`
     )
-    .get(presentationExchangeId) as { applicationId: string } | undefined;
+    .get(credentialExchangeId) as { applicationId: string } | undefined;
   if (!exchange?.applicationId) return false;
 
   const app = getApplication(exchange.applicationId);
   if (!app || app.status !== 'payment_pending') return false;
 
-  const record = await ows(
-    'moe',
-    'GET',
-    `/v3/config/digital-wallet/openid/sdjwt/verification/history/${presentationExchangeId}`
-  );
-  const history = record?.verificationHistory ?? record;
-  if (history?.verified !== true) return false;
-
   const now = new Date().toISOString();
   const ledgerRef = `LEDGER-${newId('pay').slice(4, 16)}`;
   db.prepare(
     `UPDATE "applications" SET "paymentExchangeId" = ?, "paymentLedgerRef" = ?,
-       "updatedAt" = ? WHERE "id" = ?`
-  ).run(presentationExchangeId, ledgerRef, now, exchange.applicationId);
+       "status" = 'issued', "updatedAt" = ? WHERE "id" = ?`
+  ).run(credentialExchangeId, ledgerRef, now, exchange.applicationId);
 
   audit({
     actorUserId: null,
@@ -479,14 +508,17 @@ export async function completePayment(
     action: 'payment.confirmed',
     subjectType: 'application',
     subjectId: exchange.applicationId,
-    payload: {
-      presentationExchangeId,
-      ledgerRef,
-      ledger: 'sandbox',
-    },
+    payload: { credentialExchangeId, ledgerRef, ledger: 'sandbox' },
+  });
+  audit({
+    actorUserId: null,
+    actorRole: 'system',
+    action: 'credential.diploma_delivered',
+    subjectType: 'exchange',
+    subjectId: credentialExchangeId,
+    payload: { applicationId: exchange.applicationId },
   });
 
-  await issueDiploma(exchange.applicationId, { userId: null, role: 'system' });
   return true;
 }
 

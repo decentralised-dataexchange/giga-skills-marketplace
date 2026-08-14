@@ -3,7 +3,7 @@ import { verifySignature } from '@/lib/webhook/verify';
 import { extractExchangeId, isSupportedTopic } from '@/lib/webhook/topics';
 import { storeEvent } from '@/lib/webhook/store';
 import { completePidLogin } from '@/lib/wallet-login';
-import { completePayment } from '@/lib/registry';
+import { completeDynamicDiplomaPayment } from '@/lib/registry';
 
 // Unauthenticated POST from iGrant.io; HMAC is the authentication.
 export const runtime = 'nodejs';
@@ -80,13 +80,18 @@ export async function POST(
     topic === 'digitalwallet.presentation.verified' ||
     topic === 'openid.presentation.presentation_acked.v3';
 
-  if (exchange?.credentialType === 'payment' && isPresentationDone) {
+  const isCredentialDone =
+    topic === 'openid.credential.credential_acked' ||
+    topic === 'openid.credential.credential_accepted';
+
+  // Dynamic paid issuance: the wallet holding the diploma means the payment
+  // presentation succeeded inside this exchange.
+  if (exchange?.credentialType === 'diploma' && isCredentialDone) {
     try {
-      const paid = await completePayment(exchangeId);
-      payload.status = paid ? 'paid' : 'rejected';
+      const paid = completeDynamicDiplomaPayment(exchangeId);
+      if (paid) payload.status = 'paid';
     } catch (error) {
-      console.error('[Webhook] payment completion failed:', error);
-      payload.status = 'error';
+      console.error('[Webhook] paid issuance completion failed:', error);
     }
   }
 

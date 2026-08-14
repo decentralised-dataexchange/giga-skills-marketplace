@@ -7,9 +7,10 @@ import { ExchangeQr } from '@/components/ExchangeQr';
 import { startPayment } from '@/app/education/(app)/home/payment-actions';
 
 /**
- * The diploma-fee confirmation: the learner chooses to pay from their
- * account (TS12 Payment Account Credential) or by card (TS12 Payment Card
- * Credential), then presents the chosen credential from the wallet.
+ * The diploma-fee payment as a dynamic credential request: the learner
+ * chooses account or card, scans once, presents the chosen TS12 payment
+ * credential with the transaction data, and the wallet receives the diploma
+ * in the same session.
  */
 export function PaymentConfirm() {
   const [request, setRequest] = useState<{ exchangeId: string; qrUri: string } | null>(null);
@@ -34,7 +35,7 @@ export function PaymentConfirm() {
         exchangeId={request.exchangeId}
         qrUri={request.qrUri}
         logo="/portals/moe/logo.svg"
-        waitingText="Scan with your wallet and approve the payment of EUR 50 to the Ministry of Education."
+        waitingText="Scan with your wallet: approve the EUR 50 payment and receive your diploma."
       />
     );
   }
