@@ -2,8 +2,6 @@ import Link from 'next/link';
 
 import { PORTALS } from '@/lib/portals';
 
-import { ResetDemoButton } from '@/components/ResetDemoButton';
-
 import './landing.css';
 
 /**
@@ -141,17 +139,6 @@ export default function Landing() {
         </p>
       </section>
 
-      <section className="landing-reset">
-        <h2>Start over</h2>
-        <p className="landing-section-lede">
-          Reset the demo before a new run: this deletes the learner, the
-          application, all exchange records, the consent records and the
-          audit log. Staff accounts stay. Credentials already in a wallet are
-          not touched; revoke a diploma in Riverside Admissions first if you
-          want a clean wallet story.
-        </p>
-        <ResetDemoButton />
-      </section>
     </main>
   );
 }

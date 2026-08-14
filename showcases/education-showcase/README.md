@@ -22,8 +22,7 @@ graduation decision, the institution is validated and the fee falls due;
 revocation requested by the school is processed immediately. Every automatic
 step is written to the public registry audit trail at `/audit`.
 
-The landing page (`/`) carries the demo script, the prerequisites and a
-one-click demo data reset.
+The landing page (`/`) carries the demo script and the prerequisites.
 
 ## What is real
 
