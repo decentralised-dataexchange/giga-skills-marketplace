@@ -17,8 +17,24 @@ export { db };
  * token, which the wallet-sign-in plugin exchanges for a normal session. Every
  * portal then checks the same session and role.
  */
+// Under the monolith base path the auth endpoints live at
+// <basePath>/api/auth; better-auth needs the origin and that path split
+// explicitly, or it would misread a path-carrying BETTER_AUTH_URL as the
+// endpoint base itself.
+const deployBasePath = process.env.NEXT_PUBLIC_BASE_PATH ?? '';
+const authUrl =
+  process.env.BETTER_AUTH_URL || process.env.PUBLIC_BASE_URL || '';
+let authOrigin: string | undefined;
+try {
+  authOrigin = authUrl ? new URL(authUrl).origin : undefined;
+} catch {
+  authOrigin = undefined;
+}
+
 export const auth = betterAuth({
   database: db,
+  ...(authOrigin ? { baseURL: authOrigin } : {}),
+  basePath: `${deployBasePath}/api/auth`,
   emailAndPassword: {
     enabled: true,
   },
