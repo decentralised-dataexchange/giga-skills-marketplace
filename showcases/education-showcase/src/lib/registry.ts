@@ -398,7 +398,14 @@ export async function startDiplomaPaymentIssuance(
         payload: {
           transaction_id: appId.slice(0, 36),
           date_time: new Date().toISOString(),
-          payee: { name: 'Ministry of Education', id: 'ESR-MOE-0001' },
+          payee: {
+            name: 'Ministry of Education',
+            id: 'ESR-MOE-0001',
+            // The sandbox organisation's seal, so the wallet shows the
+            // Ministry rather than an initial avatar.
+            logo: 'https://demo-api.igrant.io/v2/onboard/image/6a7f19bed22651ae4335d9a9/web',
+            website: 'https://giga-staging.igrant.io/showcase',
+          },
           execution_date: new Date().toISOString().slice(0, 10),
           currency: 'EUR',
           amount: 50,
