@@ -20,7 +20,7 @@ export default function CivicworksCareers() {
       </section>
 
       <div className="cw-jobs">
-        {JOBS.map((job) => (
+        {JOBS.map((job, index) => (
           <article key={job.slug} className="cw-job">
             <div className="cw-job-main">
               <h2>{job.title}</h2>
@@ -41,7 +41,10 @@ export default function CivicworksCareers() {
               </div>
             </div>
             <div className="cw-job-apply">
-              <Link className="cw-pill" href={`/civicworks/verify?job=${job.slug}`}>
+              <Link
+                className={index === 0 ? 'cw-pill hint-pulse' : 'cw-pill'}
+                href={`/civicworks/verify?job=${job.slug}`}
+              >
                 Apply now
               </Link>
             </div>

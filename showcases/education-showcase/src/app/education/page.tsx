@@ -24,7 +24,10 @@ export default async function EducationLanding() {
           Sign in with the identity wallet on your phone; no account or
           password is needed.
         </p>
-        <Link className="edu-cta" href={signedIn ? '/education/home' : '/education/login'}>
+        <Link
+          className="edu-cta hint-pulse"
+          href={signedIn ? '/education/home' : '/education/login'}
+        >
           {signedIn ? 'Go to my education' : 'Sign in with your wallet'}
         </Link>
       </section>

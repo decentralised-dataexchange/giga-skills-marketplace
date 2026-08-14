@@ -176,21 +176,18 @@ textarea {
   opacity: 0.65;
 }
 
-/* The floating portal switcher: the one overlay that belongs to the
-   showcase itself, identical on every portal. */
-.switcher {
+/* The floating demo guide: the one overlay that belongs to the showcase
+   itself, identical on every portal. The button opens a wide drawer with
+   the portal switcher and the try-it-out instructions. */
+.guide {
   position: fixed;
   right: 1.1rem;
   bottom: 1.1rem;
   z-index: 60;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 0.6rem;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
-.switcher-fab {
+.guide-fab {
   display: inline-flex;
   align-items: center;
   gap: 0.45rem;
@@ -204,66 +201,70 @@ textarea {
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.28);
 }
 
-.switcher-fab:hover {
+.guide-fab:hover {
   background: #2b3247;
 }
 
-.switcher-panel {
-  width: 19rem;
-  background: #ffffff;
-  border: 1px solid #dfe2e8;
-  border-radius: 14px;
-  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.22);
-  overflow: hidden;
-  color: #1c2130;
-}
-
-.switcher-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0.6rem 0.9rem;
-  background: #1c2130;
-  color: #ffffff;
-  font-size: 0.75rem;
+.guide-heading {
+  margin: 0 0 0.6rem;
+  font-size: 0.72rem;
   font-weight: 700;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
+  color: #6b7280;
 }
 
-.switcher-head button {
-  display: inline-flex;
-  border: 0;
-  background: transparent;
-  color: inherit;
-  padding: 0.1rem;
+.guide-heading + .guide-heading,
+.guide-steps + .guide-heading,
+.guide-portals + .guide-heading {
+  margin-top: 1.4rem;
 }
 
-.switcher-item {
+.guide-portals {
+  border: 1px solid #e3e5ea;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.guide-portal {
   display: flex;
   align-items: center;
   gap: 0.7rem;
-  padding: 0.6rem 0.9rem;
+  padding: 0.65rem 0.9rem;
   text-decoration: none;
   color: inherit;
+}
+
+.guide-portal + .guide-portal {
   border-top: 1px solid #f0f1f4;
 }
 
-.switcher-item:hover {
+.guide-portal:hover {
   background: #f4f6f9;
 }
 
-.switcher-item[data-active='true'] {
+.guide-portal[data-active='true'] {
   background: #eef1f6;
   box-shadow: inset 3px 0 0 #1c2130;
 }
 
-.switcher-text {
+.guide-portal-text {
   flex: 1;
   min-width: 0;
 }
 
-.switcher-current {
+.guide-portal-text strong {
+  display: block;
+  font-size: 0.85rem;
+}
+
+.guide-portal-text small {
+  display: block;
+  font-size: 0.72rem;
+  color: #6b7280;
+}
+
+.guide-current {
   flex-shrink: 0;
   font-size: 0.62rem;
   font-weight: 700;
@@ -276,22 +277,82 @@ textarea {
   padding: 0.15rem 0.5rem;
 }
 
-.switcher-item strong {
-  display: block;
-  font-size: 0.83rem;
-}
-
-.switcher-item small {
-  display: block;
-  font-size: 0.7rem;
-  color: #6b7280;
-}
-
-.switcher-dot {
+.guide-dot {
   width: 0.7rem;
   height: 0.7rem;
   border-radius: 999px;
   flex-shrink: 0;
+}
+
+.guide-steps {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+.guide-steps li {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.guide-step-n {
+  flex-shrink: 0;
+  width: 1.55rem;
+  height: 1.55rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: #1c2130;
+  color: #ffffff;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.guide-step-title {
+  display: block;
+  font-size: 0.88rem;
+  font-weight: 700;
+}
+
+.guide-step-text {
+  display: block;
+  margin-top: 0.15rem;
+  font-size: 0.82rem;
+  line-height: 1.55;
+  color: #4b5563;
+}
+
+.guide-step-text a {
+  color: #1c2130;
+  font-weight: 600;
+}
+
+/* A subtle pulsing halo on the next-step control of each screen, in the
+   portal's own brand colour. Pure guidance; it changes no behaviour. */
+@keyframes hint-pulse {
+  0% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--brand, #1c2130) 40%, transparent);
+  }
+  70% {
+    box-shadow: 0 0 0 10px transparent;
+  }
+  100% {
+    box-shadow: 0 0 0 0 transparent;
+  }
+}
+
+.hint-pulse {
+  animation: hint-pulse 2.4s ease-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hint-pulse {
+    animation: none;
+  }
 }
 
 /* Right-hand drawer, the marketplace treatment. */

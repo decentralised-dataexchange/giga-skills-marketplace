@@ -33,7 +33,7 @@ export default async function EducationHome() {
             : 'Start your learner registration. Your wallet has already confirmed your identity.'}
         </p>
         {!app ? (
-          <Link className="edu-cta" href="/education/register">
+          <Link className="edu-cta hint-pulse" href="/education/register">
             Start registration
           </Link>
         ) : null}

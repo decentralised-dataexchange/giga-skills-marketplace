@@ -68,6 +68,7 @@ export default async function SchoolGraduation() {
               </p>
               <button
                 type="submit"
+                className="hint-pulse"
                 style={{
                   background: 'var(--brand)',
                   color: '#fff',

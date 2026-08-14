@@ -55,7 +55,15 @@ export default async function SchoolQueue({
             </p>
           ) : (
             queue.map((item) => (
-              <Link key={item.id} className="sch-queue-item" href={`/school/queue?app=${item.id}`}>
+              <Link
+                key={item.id}
+                className={
+                  item.status === 'submitted' && !selected
+                    ? 'sch-queue-item hint-pulse'
+                    : 'sch-queue-item'
+                }
+                href={`/school/queue?app=${item.id}`}
+              >
                 <strong>{item.learnerName}</strong>
                 <div style={{ fontSize: '0.75rem', color: 'var(--muted)' }}>
                   {item.status === 'submitted' ? 'Awaiting review' : 'Enrolled'} ·{' '}
@@ -156,6 +164,7 @@ export default async function SchoolQueue({
                   <input type="hidden" name="applicationId" value={selected.id} />
                   <button
                     type="submit"
+                    className="hint-pulse"
                     style={{
                       background: 'var(--brand)',
                       color: '#fff',
