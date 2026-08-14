@@ -248,6 +248,9 @@ async function main() {
             { path: ['given_name'] },
             { path: ['family_name'] },
             { path: ['birthdate'] },
+            // Prefill the registration form: contact and address.
+            { path: ['email'] },
+            { path: ['address'] },
           ],
         },
       ],

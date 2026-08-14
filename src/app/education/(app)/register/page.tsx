@@ -25,6 +25,12 @@ export default async function RegisterPage() {
 
   const schools = getInstitutions('school');
   const [firstName, ...rest] = learner.displayName.split(' ');
+  let prefill: { dateOfBirth?: string; email?: string; address?: string } = {};
+  try {
+    prefill = learner.prefill ? JSON.parse(learner.prefill) : {};
+  } catch {
+    prefill = {};
+  }
 
   return (
     <>
@@ -49,16 +55,26 @@ export default async function RegisterPage() {
             <input name="familyName" defaultValue={rest.join(' ')} required />
           </label>
           <label>
-            <span>Date of birth</span>
-            <input name="dateOfBirth" type="date" required />
+            <span>Date of birth (from your PID)</span>
+            <input
+              name="dateOfBirth"
+              type="date"
+              defaultValue={prefill.dateOfBirth ?? ''}
+              required
+            />
           </label>
           <label>
-            <span>Contact email</span>
-            <input name="email" type="email" required />
+            <span>Contact email (from your PID)</span>
+            <input
+              name="email"
+              type="email"
+              defaultValue={prefill.email ?? ''}
+              required
+            />
           </label>
           <label>
-            <span>Home address</span>
-            <input name="address" required />
+            <span>Home address (from your PID)</span>
+            <input name="address" defaultValue={prefill.address ?? ''} required />
           </label>
           <label>
             <span>School</span>

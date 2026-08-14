@@ -206,7 +206,12 @@ function open(): Database.Database {
  * column" error means the work is already done.
  */
 function migrate(db: Database.Database): void {
-  const statements: string[] = [];
+  const statements: string[] = [
+    // Transient PID prefill for the registration form (date of birth, email,
+    // address). Written at wallet sign-in, cleared when the application is
+    // submitted; never part of the registry record itself.
+    `ALTER TABLE "learners" ADD COLUMN "prefill" TEXT`,
+  ];
 
   for (const statement of statements) {
     try {

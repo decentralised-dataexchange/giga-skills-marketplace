@@ -23,6 +23,8 @@ type PidClaims = {
   givenName: string;
   familyName: string;
   birthdate: string;
+  email: string;
+  address: string;
 };
 
 function claimString(source: Record<string, unknown>, keys: string[]): string {
@@ -31,6 +33,17 @@ function claimString(source: Record<string, unknown>, keys: string[]): string {
     if (typeof value === 'string' && value) return value;
   }
   return '';
+}
+
+/** One readable line out of the PID address object. */
+function formatAddress(value: unknown): string {
+  if (typeof value === 'string') return value;
+  if (!value || typeof value !== 'object') return '';
+  const address = value as Record<string, unknown>;
+  return ['street_address', 'locality', 'region', 'postal_code', 'country']
+    .map((part) => address[part])
+    .filter((part): part is string => typeof part === 'string' && part !== '')
+    .join(', ');
 }
 
 /** Pull the PID claims out of the disclosed presentation array. */
@@ -42,7 +55,11 @@ export function extractPidClaims(presentation: unknown): PidClaims | null {
     const givenName = claimString(claims, ['given_name', 'givenName']);
     const familyName = claimString(claims, ['family_name', 'familyName']);
     const birthdate = claimString(claims, ['birthdate', 'birth_date']);
-    if (givenName || familyName) return { givenName, familyName, birthdate };
+    const email = claimString(claims, ['email', 'email_address']);
+    const address = formatAddress(claims.address ?? claims.resident_address);
+    if (givenName || familyName) {
+      return { givenName, familyName, birthdate, email, address };
+    }
   }
   return null;
 }
@@ -88,6 +105,14 @@ export async function completePidLogin(
     .filter(Boolean)
     .join(' ');
 
+  // Transient form prefill: confirmed by the learner on the form, cleared at
+  // submission, never part of the registry record.
+  const prefill = JSON.stringify({
+    dateOfBirth: claims.birthdate,
+    email: claims.email,
+    address: claims.address,
+  });
+
   // Find or create the Better Auth user + learner row for this pseudonym.
   let learner = db
     .prepare('SELECT "id", "userId" FROM "learners" WHERE "pseudonym" = ?')
@@ -110,9 +135,10 @@ export async function completePidLogin(
     const learnerId = newId('lrn');
     db.prepare(
       `INSERT INTO "learners"
-         ("id", "userId", "pseudonym", "displayName", "createdAt", "updatedAt")
-       VALUES (?, ?, ?, ?, ?, ?)`
-    ).run(learnerId, userId, pseud, displayName || 'Learner', now, now);
+         ("id", "userId", "pseudonym", "displayName", "prefill",
+          "createdAt", "updatedAt")
+       VALUES (?, ?, ?, ?, ?, ?, ?)`
+    ).run(learnerId, userId, pseud, displayName || 'Learner', prefill, now, now);
     learner = { id: learnerId, userId };
 
     audit({
@@ -123,6 +149,11 @@ export async function completePidLogin(
       subjectId: learnerId,
       payload: { presentationExchangeId },
     });
+  } else {
+    // A returning learner refreshes the transient prefill.
+    db.prepare(
+      'UPDATE "learners" SET "prefill" = ?, "updatedAt" = ? WHERE "id" = ?'
+    ).run(prefill, now, learner.id);
   }
 
   const loginToken = randomBytes(32).toString('base64url');

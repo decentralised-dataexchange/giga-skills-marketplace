@@ -41,6 +41,8 @@ export type Learner = {
   pseudonym: string;
   displayName: string;
   ulid: string | null;
+  /** Transient PID prefill JSON; cleared when the application is submitted. */
+  prefill: string | null;
 };
 
 export function getLearnerByUserId(userId: string): Learner | undefined {
@@ -124,6 +126,11 @@ export function submitApplication(entry: {
     now,
     now
   );
+  // The prefill served its purpose; the confirmed form is the record now.
+  db.prepare(
+    'UPDATE "learners" SET "prefill" = NULL, "updatedAt" = ? WHERE "id" = ?'
+  ).run(now, entry.learner.id);
+
   audit({
     actorUserId: entry.learner.userId,
     actorRole: 'learner',
