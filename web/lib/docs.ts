@@ -47,6 +47,7 @@ export const DOCS: DocSection[] = [
       { href: "/knowledgebase/showcase", title: "Try the showcase" },
       { href: "/knowledgebase/showcase-credentials", title: "Credentials and presentations" },
       { href: "/knowledgebase/showcase-data-agreements", title: "Data agreements" },
+      { href: "/knowledgebase/showcase-build-guide", title: "How it was built with skills" },
     ],
   },
   {

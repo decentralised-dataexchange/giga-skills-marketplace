@@ -398,6 +398,17 @@
   background: var(--color-panel);
   font-weight: 700;
 }
+.docs-prose blockquote {
+  margin: 0.9rem 0;
+  padding: 0.6rem 1rem;
+  border-left: 3px solid var(--color-brand);
+  background: var(--color-panel);
+  border-radius: 0 8px 8px 0;
+  font-style: italic;
+}
+.docs-prose blockquote p {
+  margin: 0;
+}
 .docs-prose figure {
   margin: 1.5rem 0;
 }
