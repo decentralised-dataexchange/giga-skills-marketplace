@@ -7,10 +7,15 @@ export interface NavLink {
 }
 
 // Public-facing browsing, shown in the top nav. The catalog lives on the
-// homepage; the Knowledgebase holds the documentation.
+// homepage; the Knowledgebase holds the documentation; Showcases opens the
+// education wallet showcase built from the marketplace skills.
+export const SHOWCASE_URL =
+  process.env.NEXT_PUBLIC_SHOWCASE_URL ?? "https://education-showcase.eubw.dev";
+
 export const PUBLIC_LINKS: NavLink[] = [
   { href: "/", label: "Home", show: () => true },
   { href: "/knowledgebase", label: "Knowledgebase", show: () => true },
+  { href: SHOWCASE_URL, label: "Showcases", show: () => true },
 ];
 
 // The console a user lands on from the top-nav "Dashboard" entry point.

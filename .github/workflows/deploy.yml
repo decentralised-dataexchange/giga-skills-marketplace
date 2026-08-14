@@ -68,6 +68,15 @@ jobs:
           docker push "$REGISTRY/giga-marketplace:${{ steps.vars.outputs.tag }}"
           docker push "$REGISTRY/giga-marketplace:latest"
 
+      - name: Build & push education-showcase
+        run: |
+          docker build \
+            -t "$REGISTRY/education-showcase:${{ steps.vars.outputs.tag }}" \
+            -t "$REGISTRY/education-showcase:latest" \
+            -f showcases/education-showcase/Dockerfile showcases/education-showcase
+          docker push "$REGISTRY/education-showcase:${{ steps.vars.outputs.tag }}"
+          docker push "$REGISTRY/education-showcase:latest"
+
       - name: Get GKE credentials
         uses: google-github-actions/get-gke-credentials@v2
         with:
@@ -87,3 +96,28 @@ jobs:
           kubectl -n "$NAMESPACE" rollout status deploy/giga-web --timeout=5m
         env:
           POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+
+      # The education showcase: its own release and namespace, one replica
+      # (SQLite), secrets injected from GitHub Actions secrets.
+      - name: Deploy education showcase with Helm
+        run: |
+          helm upgrade --install education-showcase ./deploy/helm/education-showcase \
+            --namespace education-showcase --create-namespace \
+            --set image.tag=${{ steps.vars.outputs.tag }} \
+            --set secrets.igrantApiKey="$EDU_IGRANT_API_KEY" \
+            --set secrets.moeIgrantApiKey="$EDU_MOE_IGRANT_API_KEY" \
+            --set secrets.civicworksIgrantApiKey="$EDU_CIVICWORKS_IGRANT_API_KEY" \
+            --set secrets.moeWebhookSecret="$EDU_MOE_WEBHOOK_SECRET" \
+            --set secrets.civicworksWebhookSecret="$EDU_CIVICWORKS_WEBHOOK_SECRET" \
+            --set secrets.betterAuthSecret="$EDU_BETTER_AUTH_SECRET" \
+            --set secrets.learnerPseudonymPepper="$EDU_LEARNER_PSEUDONYM_PEPPER" \
+            --wait --timeout 6m
+          kubectl -n education-showcase rollout status deploy/education-showcase --timeout=5m
+        env:
+          EDU_IGRANT_API_KEY: ${{ secrets.EDU_IGRANT_API_KEY }}
+          EDU_MOE_IGRANT_API_KEY: ${{ secrets.EDU_MOE_IGRANT_API_KEY }}
+          EDU_CIVICWORKS_IGRANT_API_KEY: ${{ secrets.EDU_CIVICWORKS_IGRANT_API_KEY }}
+          EDU_MOE_WEBHOOK_SECRET: ${{ secrets.EDU_MOE_WEBHOOK_SECRET }}
+          EDU_CIVICWORKS_WEBHOOK_SECRET: ${{ secrets.EDU_CIVICWORKS_WEBHOOK_SECRET }}
+          EDU_BETTER_AUTH_SECRET: ${{ secrets.EDU_BETTER_AUTH_SECRET }}
+          EDU_LEARNER_PSEUDONYM_PEPPER: ${{ secrets.EDU_LEARNER_PSEUDONYM_PEPPER }}

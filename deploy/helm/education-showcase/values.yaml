@@ -1,0 +1,58 @@
+# Default values for the education showcase chart.
+#
+# Non-secret configuration (OWS base URLs, sandbox organisation ids,
+# credential and presentation definition ids, consent agreement ids) is safe
+# to commit and lives here. Every secret is intentionally blank: supply them
+# at deploy time via a gitignored values-secret.yaml or --set flags, never in
+# this file. The deploy workflow injects them from GitHub Actions secrets.
+
+domain: education-showcase.eubw.dev
+
+image:
+  # Registry hosting the education-showcase image. Override for your own registry.
+  registry: eu.gcr.io/jenkins-189019
+  tag: "latest"
+  pullPolicy: IfNotPresent
+
+app:
+  name: education-showcase
+  port: 3000
+  # SQLite is single-writer: exactly one replica, Recreate strategy.
+  storage: 2Gi
+  # storageClassName: ""   # unset -> cluster default
+
+# Non-secret runtime configuration, rendered into a ConfigMap.
+config:
+  IGRANT_BASE_URL: "https://demo-api.igrant.io"
+  CONSENT_BB_BASE_URL: "https://demo-api.igrant.io"
+  MOE_SANDBOX_ORG_ID: "6a7e44d2d22651ae4335d5a1"
+  CIVICWORKS_SANDBOX_ORG_ID: "6a7e44dbd22651ae4335d5a4"
+  STUDENT_ID_CREDENTIAL_ID: "b7463013-6d42-4740-9493-740a3367fe84"
+  DIPLOMA_CREDENTIAL_ID: "2eb096f7-9d7a-47d5-9314-f95b6133c874"
+  PID_PRESENTATION_DEFINITION_ID: "773c4107-bf7b-4c7f-8d11-b0c1b7be7131"
+  PAYMENT_PRESENTATION_DEFINITION_ID: "d5965a9b-0c44-49ac-9539-c632acf1f645"
+  PAYMENT_CARD_PRESENTATION_DEFINITION_ID: "0c288364-d472-4c46-a287-c0b355a604d7"
+  DIPLOMA_PRESENTATION_DEFINITION_ID: "727a48d1-49e2-40cd-918b-07dcc9dfef60"
+  AGREEMENT_ENROLMENT_ID: "6a7e4d0dd22651ae4335d5f2"
+  AGREEMENT_ANALYTICS_ID: "6a7e4d1dd22651ae4335d5fb"
+  AGREEMENT_EMPLOYER_ID: "6a7e4d1ed22651ae4335d603"
+
+# Secrets: REQUIRED at deploy time, blank here on purpose.
+secrets:
+  # Main-tenant OWS key (Consent BB and provisioning).
+  igrantApiKey: ""
+  # Config-scoped keys bound to the two sandbox organisations.
+  moeIgrantApiKey: ""
+  civicworksIgrantApiKey: ""
+  # HMAC secrets of the two registered webhooks.
+  moeWebhookSecret: ""
+  civicworksWebhookSecret: ""
+  # Better Auth session signing secret (32+ random characters).
+  betterAuthSecret: ""
+  # Pepper for the learner pseudonym derivation.
+  learnerPseudonymPepper: ""
+
+ingress:
+  className: nginx
+  clusterIssuer: letsencrypt-prod
+  tlsSecret: education-showcase-tls

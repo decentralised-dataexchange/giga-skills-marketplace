@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.app.name }}-config
+data:
+  PUBLIC_BASE_URL: "https://{{ .Values.domain }}"
+  BETTER_AUTH_URL: "https://{{ .Values.domain }}"
+  SQLITE_PATH: "/data/app.db"
+  {{- range $key, $value := .Values.config }}
+  {{ $key }}: {{ $value | quote }}
+  {{- end }}
