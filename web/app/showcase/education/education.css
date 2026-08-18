@@ -79,6 +79,77 @@
   background: rgba(255, 255, 255, 0.14);
 }
 
+/* The hamburger and its dropdown: several nav items do not fit beside the
+   wordmark on a phone, so they collapse into a menu under the header. */
+.edu-menu-btn {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  margin-left: auto;
+  background: transparent;
+  border: 0;
+  color: #ffffff;
+  padding: 0.5rem;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.edu-menu-btn:hover {
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.edu-menu {
+  display: none;
+  flex-direction: column;
+  background: var(--brand-dark);
+  padding: 0.4rem 1rem 0.8rem;
+}
+
+.edu-menu a,
+.edu-menu button {
+  color: #ffffff;
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.14);
+  text-align: left;
+  text-decoration: none;
+  font-size: 0.95rem;
+  padding: 0.7rem 0.5rem;
+  cursor: pointer;
+}
+
+.edu-menu a:last-child,
+.edu-menu button:last-child {
+  border-bottom: 0;
+}
+
+@media (max-width: 36rem) {
+  .edu-statebar {
+    padding: 0.3rem 1rem;
+  }
+  .edu-header {
+    gap: 1rem;
+    padding: 0 1rem;
+    min-height: 3.4rem;
+  }
+  .edu-header-name {
+    font-size: 0.95rem;
+    white-space: nowrap;
+  }
+  .edu-header-org {
+    display: none;
+  }
+  .edu-nav {
+    display: none;
+  }
+  .edu-menu-btn {
+    display: inline-flex;
+  }
+  .edu-menu {
+    display: flex;
+  }
+}
+
 .edu-main {
   flex: 1;
   width: 100%;

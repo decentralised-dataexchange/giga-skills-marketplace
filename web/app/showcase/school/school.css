@@ -313,3 +313,29 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* Compact header on narrow phones: the crest and school name stay on one
+   line, the subtitle and the officer's name hide, and Sign out stays a
+   single-line pill. The tabs already fit. */
+@media (max-width: 36rem) {
+  .sch-header {
+    padding: 0.6rem 1rem 0;
+  }
+  .sch-title {
+    font-size: 0.95rem;
+    white-space: nowrap;
+  }
+  .sch-subtitle {
+    display: none;
+  }
+  .sch-user span {
+    display: none;
+  }
+  .sch-user button {
+    white-space: nowrap;
+  }
+  .sch-tabs a {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.8rem;
+  }
+}
