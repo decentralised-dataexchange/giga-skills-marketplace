@@ -42,8 +42,8 @@ export default function ShowcaseBuildGuidePage() {
         Build a National Learner Registry and Education Wallet showcase: a learner registers with a
         PID from their Wallet, receives a Student ID and a diploma as verifiable credentials, pays
         the diploma fee with a payment credential, and applies for a job with selective disclosure.
-        Separate, real-world-looking portals under one domain. Next.js, browser-local demo state,
-        no low-code machinery.
+        Separate, real-world-looking portals under one domain. Next.js, browser-local demo state, no
+        low-code machinery.
       </Prompt>
 
       <h2>Step 1: orientation</h2>

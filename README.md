@@ -69,14 +69,14 @@ The education showcase needs its own set only for the real wallet flows;
 without them every page renders and only the wallet broker calls fail with
 a safe error. Put them in `web/.env.local` for development:
 
-| Variable                                                                            | Purpose                                            |
-| ----------------------------------------------------------------------------------- | -------------------------------------------------- |
-| `IGRANT_BASE_URL`                                                                    | iGrant.io OWS base URL                             |
-| `IGRANT_API_KEY`, `MOE_IGRANT_API_KEY`, `CIVICWORKS_IGRANT_API_KEY`                  | Main tenant + sandbox API keys                     |
-| `LEARNER_PSEUDONYM_PEPPER`                                                           | Server pepper of the pairwise learner pseudonym    |
-| `STUDENT_ID_CREDENTIAL_ID`, `DIPLOMA_CREDENTIAL_ID`                                  | Credential definition ids                          |
-| `PID/PAYMENT/PAYMENT_CARD/DIPLOMA_PRESENTATION_DEFINITION_ID`                        | Presentation definition ids                        |
-| `AGREEMENT_ENROLMENT_ID`, `AGREEMENT_ANALYTICS_ID`, `AGREEMENT_EMPLOYER_ID`          | Consent Building Block data agreement ids          |
+| Variable                                                                    | Purpose                                         |
+| --------------------------------------------------------------------------- | ----------------------------------------------- |
+| `IGRANT_BASE_URL`                                                           | iGrant.io OWS base URL                          |
+| `IGRANT_API_KEY`, `MOE_IGRANT_API_KEY`, `CIVICWORKS_IGRANT_API_KEY`         | Main tenant + sandbox API keys                  |
+| `LEARNER_PSEUDONYM_PEPPER`                                                  | Server pepper of the pairwise learner pseudonym |
+| `STUDENT_ID_CREDENTIAL_ID`, `DIPLOMA_CREDENTIAL_ID`                         | Credential definition ids                       |
+| `PID/PAYMENT/PAYMENT_CARD/DIPLOMA_PRESENTATION_DEFINITION_ID`               | Presentation definition ids                     |
+| `AGREEMENT_ENROLMENT_ID`, `AGREEMENT_ANALYTICS_ID`, `AGREEMENT_EMPLOYER_ID` | Consent Building Block data agreement ids       |
 
 No webhooks and no tunnel: the showcase polls the OWS exchange records
 directly, so the wallet flows work from plain localhost. Run
