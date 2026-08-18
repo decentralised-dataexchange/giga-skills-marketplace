@@ -18,10 +18,7 @@ export default function ShowcaseLanding() {
       <section className="border-b border-panel-border">
         <div className="mx-auto w-full max-w-7xl px-5 py-16 sm:px-6 lg:px-8 xl:py-20">
           <div>
-            <p className="text-sm font-semibold uppercase tracking-widest text-brand">
-              ITU / Giga education use case showcase
-            </p>
-            <h1 className="mt-3 text-4xl font-bold tracking-tight text-ink sm:text-5xl">
+            <h1 className="text-4xl font-bold tracking-tight text-ink sm:text-5xl">
               National Learner Registry &amp; Education Wallet
             </h1>
             <p className="mt-5 max-w-[920px] text-pretty text-lg leading-relaxed text-[#374151]">
