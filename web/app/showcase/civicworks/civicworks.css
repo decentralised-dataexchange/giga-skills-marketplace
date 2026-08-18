@@ -132,6 +132,7 @@
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
+  white-space: nowrap;
   background: var(--accent);
   color: #ffffff;
   border: 0;
@@ -478,6 +479,31 @@
   }
   .cw-apply-card {
     position: static;
+  }
+}
+
+/* Compact header on narrow phones (e.g. iPhone SE): the wallet pill is the
+   one action; the Careers link hides because the logo already goes home. */
+@media (max-width: 30rem) {
+  .cw-header {
+    gap: 1rem;
+    padding: 0.7rem 1rem;
+  }
+  .cw-nav {
+    gap: 0.75rem;
+  }
+  .cw-nav a[data-active] {
+    display: none;
+  }
+  .cw-pill {
+    padding: 0.5rem 1rem;
+    font-size: 0.8rem;
+  }
+  .cw-main {
+    padding: 1.5rem 1.25rem 3rem;
+  }
+  .cw-main h1 {
+    font-size: 1.5rem;
   }
 }
 
