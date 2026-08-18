@@ -462,6 +462,12 @@
   padding: 2.5rem 1.5rem;
 }
 
+/* The site's base styles make SVGs block-level, so text-align cannot
+   centre the check icon; centre it as a block instead. */
+.cw-apply-success svg {
+  margin-inline: auto;
+}
+
 .cw-apply-success h2 {
   margin-top: 0.75rem;
 }
