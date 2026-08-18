@@ -101,23 +101,3 @@ jobs:
       - name: ESLint
         run: npx eslint app components lib
         working-directory: web
-
-  education-showcase:
-    name: Build (education showcase)
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-node@v5
-        with:
-          node-version: 22
-          cache: npm
-          cache-dependency-path: showcases/education-showcase/package-lock.json
-      - name: Install dependencies
-        run: npm ci
-        working-directory: showcases/education-showcase
-      - name: Build
-        run: npm run build
-        working-directory: showcases/education-showcase
-        env:
-          BETTER_AUTH_SECRET: ci-build-placeholder
-          SQLITE_PATH: /tmp/ci.db

@@ -9,6 +9,11 @@ import { Footer } from "@/components/footer";
 
 const CONSOLE_ROUTES = ["/provider", "/governance", "/settings"];
 
+// The showcase portals present themselves as their own products: each brings
+// its own branded shell, so the marketing masthead stays off them. The
+// showcase landing and audit pages keep the marketing chrome.
+const BARE_SHOWCASE = ["/showcase/education", "/showcase/school", "/showcase/civicworks"];
+
 // Public-facing pages keep the marketing layout (top nav + centered content +
 // footer). The logged-in consoles are a proper dashboard (left admin sidebar +
 // full-width content).
@@ -32,6 +37,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   // The dashboard sign-in is a standalone screen (its own chrome, no marketing
   // nav and no sidebar): the entry point to the dashboard "site".
   if (pathname === "/login") {
+    return (
+      <div id="main-content" className="flex min-h-full flex-1 flex-col">
+        {children}
+      </div>
+    );
+  }
+
+  if (BARE_SHOWCASE.some((p) => pathname === p || pathname.startsWith(p + "/"))) {
     return (
       <div id="main-content" className="flex min-h-full flex-1 flex-col">
         {children}

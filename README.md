@@ -10,19 +10,19 @@
 
 A marketplace of provider-published, agent-agnostic skills for the education
 wallet building block, with an app-store style review pipeline. The
-repository holds three deployables:
+repository holds two deployables:
 
 - `services/marketplace/`: a Python 3.12 FastAPI service (managed with uv)
   that owns public catalogue reads.
-- `web/`: a Next.js application with the public marketplace and the
-  role-based provider and governance consoles.
-- `showcases/education-showcase/`: the National Learner Registry and
-  Education Wallet demonstration. See its
-  [README](showcases/education-showcase/README.md) for its own development
-  and deployment instructions.
+- `web/`: a Next.js application with the public marketplace, the role-based
+  provider and governance consoles, and the National Learner Registry and
+  Education Wallet showcase under `/showcase`.
 
-PostgreSQL is the only datastore for the marketplace; it always runs in
-Docker.
+The showcase is a self-guided demo inside the web app: its portal sessions
+are fake and its demo state lives in the visitor's browser (localStorage);
+the server only brokers the real OWS wallet and consent calls.
+
+PostgreSQL is the only datastore; it always runs in Docker.
 
 ## Run locally for development
 
@@ -59,12 +59,29 @@ the repository or passed through CI.
 
 ### Web application (`web/`)
 
-| Variable                   | Purpose                                                                       |
-| -------------------------- | ----------------------------------------------------------------------------- |
-| `DATABASE_URL`             | PostgreSQL connection string                                                  |
-| `MARKETPLACE_API_URL`      | Base URL of the marketplace service                                           |
-| `GITHUB_TOKEN`             | Optional; raises the GitHub API rate limit for repository submissions         |
-| `NEXT_PUBLIC_SHOWCASE_URL` | Optional; overrides the showcase link in the navigation (default `/showcase`) |
+| Variable              | Purpose                                                               |
+| --------------------- | --------------------------------------------------------------------- |
+| `DATABASE_URL`        | PostgreSQL connection string                                          |
+| `MARKETPLACE_API_URL` | Base URL of the marketplace service                                   |
+| `GITHUB_TOKEN`        | Optional; raises the GitHub API rate limit for repository submissions |
+
+The education showcase needs its own set only for the real wallet flows;
+without them every page renders and only the wallet broker calls fail with
+a safe error. Put them in `web/.env.local` for development:
+
+| Variable                                                                            | Purpose                                            |
+| ----------------------------------------------------------------------------------- | -------------------------------------------------- |
+| `IGRANT_BASE_URL`                                                                    | iGrant.io OWS base URL                             |
+| `IGRANT_API_KEY`, `MOE_IGRANT_API_KEY`, `CIVICWORKS_IGRANT_API_KEY`                  | Main tenant + sandbox API keys                     |
+| `LEARNER_PSEUDONYM_PEPPER`                                                           | Server pepper of the pairwise learner pseudonym    |
+| `STUDENT_ID_CREDENTIAL_ID`, `DIPLOMA_CREDENTIAL_ID`                                  | Credential definition ids                          |
+| `PID/PAYMENT/PAYMENT_CARD/DIPLOMA_PRESENTATION_DEFINITION_ID`                        | Presentation definition ids                        |
+| `AGREEMENT_ENROLMENT_ID`, `AGREEMENT_ANALYTICS_ID`, `AGREEMENT_EMPLOYER_ID`          | Consent Building Block data agreement ids          |
+
+No webhooks and no tunnel: the showcase polls the OWS exchange records
+directly, so the wallet flows work from plain localhost. Run
+`node web/scripts/showcase-provision.mjs` once to create the credential and
+presentation definitions when they do not exist yet.
 
 ### Marketplace service (`services/marketplace/`)
 
@@ -113,9 +130,12 @@ details.
 
 On every push to `main`, [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml)
 builds the images and runs the same upgrade, authenticating to Google Cloud
-with Workload Identity Federation. No long-lived keys. The education
-showcase deploys from the same workflow once its cluster secret exists; see
-its [README](showcases/education-showcase/README.md).
+with Workload Identity Federation. No long-lived keys. The showcase's
+secrets (OWS API keys, pseudonym pepper) never pass through the chart or
+CI: an operator runs
+[`deploy/create-showcase-secret.sh`](deploy/create-showcase-secret.sh) once
+per cluster, and the web deployment mounts the resulting
+`giga-showcase-secrets` secret as optional env.
 
 ## Licensing
 

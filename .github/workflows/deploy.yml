@@ -41,9 +41,7 @@ jobs:
       tag: ${{ steps.vars.outputs.tag }}
       web: ${{ steps.filter.outputs.web }}
       marketplace: ${{ steps.filter.outputs.marketplace }}
-      showcase: ${{ steps.filter.outputs.showcase }}
       giga_release: ${{ steps.filter.outputs.giga_release }}
-      showcase_release: ${{ steps.filter.outputs.showcase_release }}
     steps:
       - uses: actions/checkout@v5
 
@@ -62,16 +60,10 @@ jobs:
               - 'web/**'
             marketplace:
               - 'services/marketplace/**'
-            showcase:
-              - 'showcases/education-showcase/**'
             giga_release:
               - 'web/**'
               - 'services/marketplace/**'
               - 'deploy/helm/giga/**'
-              - '.github/workflows/deploy.yml'
-            showcase_release:
-              - 'showcases/education-showcase/**'
-              - 'deploy/helm/education-showcase/**'
               - '.github/workflows/deploy.yml'
 
   build-web:
@@ -126,32 +118,6 @@ jobs:
           cache-from: type=gha,scope=giga-marketplace
           cache-to: type=gha,scope=giga-marketplace,mode=max
 
-  build-showcase:
-    needs: changes
-    if: needs.changes.outputs.showcase == 'true' || github.event_name == 'workflow_dispatch'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v5
-      - name: Authenticate to Google Cloud (WIF)
-        uses: google-github-actions/auth@v2
-        with:
-          workload_identity_provider: ${{ env.WIF_PROVIDER }}
-          service_account: ${{ env.DEPLOY_SA }}
-      - uses: google-github-actions/setup-gcloud@v2
-      - run: gcloud auth configure-docker eu.gcr.io --quiet
-      - uses: docker/setup-buildx-action@v3
-      - name: Build and push education-showcase
-        uses: docker/build-push-action@v6
-        with:
-          context: showcases/education-showcase
-          file: showcases/education-showcase/Dockerfile
-          push: true
-          tags: |
-            ${{ env.REGISTRY }}/education-showcase:${{ needs.changes.outputs.tag }}
-            ${{ env.REGISTRY }}/education-showcase:latest
-          cache-from: type=gha,scope=education-showcase
-          cache-to: type=gha,scope=education-showcase,mode=max
-
   deploy-giga:
     needs: [changes, build-web, build-marketplace]
     # Runs when anything in the giga release changed; tolerates the build
@@ -201,49 +167,3 @@ jobs:
           kubectl -n "$NAMESPACE" rollout status deploy/giga-web --timeout=5m
         env:
           POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
-
-  # The education showcase: its own release and namespace, one replica
-  # (SQLite). Sensitive values live only in the cluster secret
-  # education-showcase-secrets, created directly in the cluster; CI only
-  # rolls out images and Helm changes, and skips with a notice until an
-  # operator has created that secret.
-  deploy-showcase:
-    needs: [changes, build-showcase]
-    if: >-
-      always() && !failure() && !cancelled() &&
-      (needs.changes.outputs.showcase_release == 'true' || github.event_name == 'workflow_dispatch')
-    concurrency:
-      group: deploy-education-showcase
-      cancel-in-progress: false
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v5
-      - name: Authenticate to Google Cloud (WIF)
-        uses: google-github-actions/auth@v2
-        with:
-          workload_identity_provider: ${{ env.WIF_PROVIDER }}
-          service_account: ${{ env.DEPLOY_SA }}
-      - uses: google-github-actions/setup-gcloud@v2
-      - run: gcloud auth configure-docker eu.gcr.io --quiet
-      - name: Ensure the image carries the release tag
-        run: |
-          if [ "${{ needs.changes.outputs.showcase }}" != "true" ] && [ "${{ github.event_name }}" != "workflow_dispatch" ]; then
-            docker buildx imagetools create -t "$REGISTRY/education-showcase:${{ needs.changes.outputs.tag }}" "$REGISTRY/education-showcase:latest"
-          fi
-      - name: Get GKE credentials
-        uses: google-github-actions/get-gke-credentials@v2
-        with:
-          cluster_name: ${{ env.CLUSTER }}
-          location: ${{ env.CLUSTER_LOCATION }}
-      - uses: azure/setup-helm@v4
-      - name: Deploy education showcase with Helm
-        run: |
-          if ! kubectl -n education-showcase get secret education-showcase-secrets >/dev/null 2>&1; then
-            echo "::notice::Cluster secret education-showcase-secrets does not exist yet; skipping the education showcase deploy."
-            exit 0
-          fi
-          helm upgrade --install education-showcase ./deploy/helm/education-showcase \
-            --namespace education-showcase \
-            --set image.tag=${{ needs.changes.outputs.tag }} \
-            --wait --timeout 6m
-          kubectl -n education-showcase rollout status deploy/education-showcase --timeout=5m

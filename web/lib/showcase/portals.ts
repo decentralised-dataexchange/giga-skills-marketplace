@@ -1,0 +1,119 @@
+/**
+ * The three portal identities of the education showcase. One route subtree
+ * under /showcase serves three portals, and each portal presents itself as
+ * its own product: own name, logo, palette and layout. The Ministry of
+ * Education exists only behind the scenes: enrolment, issuance and
+ * revocation processing run automatically in the registry. The palettes
+ * live here; the layout differences live in each portal's stylesheet and
+ * shell component. Typography is the marketplace's own font stack.
+ *
+ * All organisations are fictional.
+ */
+
+export type PortalId = "education" | "school" | "civicworks";
+
+export type PortalConfig = {
+  id: PortalId;
+  /** The product name shown in the header. */
+  name: string;
+  /** The organisation behind the portal. */
+  organisation: string;
+  tagline: string;
+  logo: string;
+  /** The demo role that signs in to this portal. */
+  role: "learner" | "school_officer" | "employer_verifier";
+  loginPath: string;
+  homePath: string;
+  /**
+   * The portal's public entry page: where a link from outside the portal
+   * lands. Safe without a session - it never bounces through a guard
+   * redirect to a sign-in screen.
+   */
+  publicPath: string;
+  /** Brand palette injected as CSS variables by the portal layout. */
+  brand: Record<string, string>;
+  footer: string;
+};
+
+export const PORTALS: Record<PortalId, PortalConfig> = {
+  education: {
+    id: "education",
+    name: "National Education Portal",
+    organisation: "Government Education Services",
+    tagline: "Enrolment, credentials and lifelong learning in one place",
+    logo: "/showcase/portals/education/logo.svg",
+    role: "learner",
+    loginPath: "/showcase/education/login",
+    homePath: "/showcase/education/home",
+    publicPath: "/showcase/education",
+    brand: {
+      brand: "#1d4e89",
+      "brand-dark": "#143a66",
+      "brand-soft": "#e8f0fa",
+      accent: "#f2b134",
+      surface: "#f7f9fc",
+      card: "#ffffff",
+      ink: "#1a2733",
+      muted: "#5b6b7a",
+      line: "#d8e0e9",
+    },
+    footer:
+      "National Education Portal is a fictional government service built for the ITU/Giga education wallet showcase.",
+  },
+  school: {
+    id: "school",
+    name: "Riverside Admissions",
+    organisation: "Riverside Secondary School",
+    tagline: "Admissions office workbench",
+    logo: "/showcase/portals/school/logo.svg",
+    role: "school_officer",
+    loginPath: "/showcase/school/login",
+    homePath: "/showcase/school/queue",
+    publicPath: "/showcase/school/login",
+    brand: {
+      brand: "#2e7d4f",
+      "brand-dark": "#215c3a",
+      "brand-soft": "#e9f5ee",
+      accent: "#e0a83d",
+      surface: "#f6f8f4",
+      card: "#ffffff",
+      ink: "#22301f",
+      muted: "#63705f",
+      line: "#d9e2d4",
+    },
+    footer: "Riverside Secondary School is a fictional institution. Sandbox data only.",
+  },
+  civicworks: {
+    id: "civicworks",
+    name: "CivicWorks Careers",
+    organisation: "CivicWorks AB",
+    tagline: "Apply with the qualifications in your wallet",
+    logo: "/showcase/portals/civicworks/logo.svg",
+    role: "employer_verifier",
+    loginPath: "/showcase/civicworks",
+    homePath: "/showcase/civicworks",
+    publicPath: "/showcase/civicworks",
+    brand: {
+      brand: "#0e7c7b",
+      "brand-dark": "#0a5958",
+      "brand-soft": "#e6f4f4",
+      accent: "#ff6b4a",
+      surface: "#fafbfc",
+      card: "#ffffff",
+      ink: "#17252a",
+      muted: "#5f7078",
+      line: "#dde5e8",
+    },
+    footer:
+      "CivicWorks AB is a fictional employer. Verification results come from the OWS sandbox.",
+  },
+};
+
+/** The portal palette as CSS custom properties for an inline style attribute. */
+export function brandVars(portal: PortalConfig): Record<string, string> {
+  const vars: Record<string, string> = {};
+  for (const [key, value] of Object.entries(portal.brand)) {
+    vars[`--${key}`] = value;
+  }
+  return vars;
+}

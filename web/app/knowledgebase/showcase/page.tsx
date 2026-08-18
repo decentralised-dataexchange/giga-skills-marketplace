@@ -7,8 +7,6 @@ export const metadata = {
     "A guided walkthrough of the National Learner Registry and Education Wallet showcase: wallet sign-in, verifiable credentials, payment, and selective disclosure.",
 };
 
-const SHOWCASE_URL = process.env.NEXT_PUBLIC_SHOWCASE_URL ?? "/showcase";
-
 function Figure({ src, alt, caption }: { src: string; alt: string; caption: string }) {
   return (
     <figure>
@@ -30,7 +28,7 @@ export default function ShowcaseTryPage() {
         employer asks for. The whole journey takes about 12 minutes.
       </p>
       <p>
-        Open the showcase at <a href={SHOWCASE_URL}>{"the showcase landing page"}</a>. A floating
+        Open the showcase at <a href="/showcase">{"the showcase landing page"}</a>. A floating
         Demo guide on every screen carries the portal switcher and these instructions, and a pulsing
         highlight marks the next thing to click on each screen.
       </p>
@@ -173,7 +171,7 @@ export default function ShowcaseTryPage() {
         In Riverside Admissions, revoke the issued diploma; the registry processes it immediately
         and permanently through a status list. Apply again at CivicWorks: the verification must now
         reject the credential. Close on the{" "}
-        <a href={`${SHOWCASE_URL}/audit`}>registry audit trail</a>, an append-only, hash-chained
+        <a href="/showcase/audit">registry audit trail</a>, an append-only, hash-chained
         record of every step, including the automatic processing.
       </p>
 

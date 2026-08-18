@@ -40,6 +40,27 @@ marketplace:
     maxReplicas: 4
     targetCPUUtilizationPercentage: 70
 
+# Non-secret configuration of the education showcase, served by the web app
+# under /showcase. Safe to commit: OWS base URL, credential and presentation
+# definition ids, consent agreement ids. The secrets (API keys, pseudonym
+# pepper) live in the giga-showcase-secrets cluster
+# secret, created once with deploy/create-showcase-secret.sh; the web
+# deployment mounts it as optional env, so the site deploys fine without it
+# (only the showcase wallet flows need it).
+showcase:
+  config:
+    IGRANT_BASE_URL: "https://demo-api.igrant.io"
+    STUDENT_ID_CREDENTIAL_ID: "b7463013-6d42-4740-9493-740a3367fe84"
+    DIPLOMA_CREDENTIAL_ID: "2eb096f7-9d7a-47d5-9314-f95b6133c874"
+    PID_PRESENTATION_DEFINITION_ID: "773c4107-bf7b-4c7f-8d11-b0c1b7be7131"
+    PAYMENT_PRESENTATION_DEFINITION_ID: "d5965a9b-0c44-49ac-9539-c632acf1f645"
+    PAYMENT_CARD_PRESENTATION_DEFINITION_ID: "0c288364-d472-4c46-a287-c0b355a604d7"
+    DIPLOMA_PRESENTATION_DEFINITION_ID: "727a48d1-49e2-40cd-918b-07dcc9dfef60"
+    AGREEMENT_ENROLMENT_ID: "6a7e4d0dd22651ae4335d5f2"
+    AGREEMENT_ANALYTICS_ID: "6a7e4d1dd22651ae4335d5fb"
+    AGREEMENT_EMPLOYER_ID: "6a7e4d1ed22651ae4335d603"
+  existingSecret: giga-showcase-secrets
+
 postgres:
   # The bundled single-node database is convenient for demos. For production,
   # set enabled=false and provide externalDatabaseUrl from a secret values file.

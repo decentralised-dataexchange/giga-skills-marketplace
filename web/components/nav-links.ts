@@ -8,14 +8,11 @@ export interface NavLink {
 
 // Public-facing browsing, shown in the top nav. The catalog lives on the
 // homepage; the Knowledgebase holds the documentation; Showcases opens the
-// education wallet showcase, served under /showcase on this same domain in
-// the monolith deployment (override for local development).
-export const SHOWCASE_URL = process.env.NEXT_PUBLIC_SHOWCASE_URL ?? "/showcase";
-
+// education wallet showcase, part of this same application.
 export const PUBLIC_LINKS: NavLink[] = [
   { href: "/", label: "Home", show: () => true },
   { href: "/knowledgebase", label: "Knowledgebase", show: () => true },
-  { href: SHOWCASE_URL, label: "Showcases", show: () => true },
+  { href: "/showcase", label: "Showcases", show: () => true },
 ];
 
 // The console a user lands on from the top-nav "Dashboard" entry point.

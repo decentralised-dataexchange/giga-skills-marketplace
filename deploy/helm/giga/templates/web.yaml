@@ -45,6 +45,18 @@ spec:
                   name: giga-secrets
                   key: GITHUB_TOKEN
             {{- end }}
+            {{- range $name, $value := .Values.showcase.config }}
+            - name: {{ $name }}
+              value: {{ $value | quote }}
+            {{- end }}
+          # Showcase secrets (OWS API keys, pseudonym pepper), created
+          # out-of-band by deploy/create-showcase-secret.sh.
+          # Optional: without it the site runs and only the showcase's
+          # wallet broker calls fail with their safe configuration errors.
+          envFrom:
+            - secretRef:
+                name: {{ .Values.showcase.existingSecret }}
+                optional: true
           readinessProbe:
             httpGet:
               path: /

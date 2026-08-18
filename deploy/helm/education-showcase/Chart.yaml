@@ -1,6 +1,0 @@
-apiVersion: v2
-name: education-showcase
-description: National Learner Registry & Education Wallet showcase (ITU/Giga education use case)
-type: application
-version: 0.1.0
-appVersion: "1.0.0"

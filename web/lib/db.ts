@@ -188,6 +188,10 @@ CREATE INDEX IF NOT EXISTS idx_skills_status ON skills(status);
 CREATE INDEX IF NOT EXISTS idx_versions_skill ON versions(skill_id, submitted_at DESC);
 CREATE INDEX IF NOT EXISTS idx_versions_status_submitted ON versions(status, submitted_at);
 CREATE INDEX IF NOT EXISTS idx_events_at ON events(at DESC);
+-- The showcase (under /showcase) keeps no server-side state at all: its
+-- demo data lives in the visitor's browser, and its brokers poll OWS
+-- directly. A database from before that change may carry an unused
+-- showcase_exchange_events relay table; dropping it is an operator call.
 `;
 
 let ready: Promise<void> | null = null;
