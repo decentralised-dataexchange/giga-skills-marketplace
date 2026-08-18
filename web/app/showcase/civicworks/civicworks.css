@@ -482,9 +482,10 @@
   }
 }
 
-/* Compact header on narrow phones (e.g. iPhone SE): the wallet pill is the
-   one action; the Careers link hides because the logo already goes home. */
-@media (max-width: 30rem) {
+/* Compact header on narrow screens (phones up to ~576px): the wallet pill
+   is the one action; the Careers link hides because the logo already goes
+   home. */
+@media (max-width: 36rem) {
   .cw-header {
     gap: 1rem;
     padding: 0.7rem 1rem;
