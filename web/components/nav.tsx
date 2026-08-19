@@ -3,11 +3,11 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
-import { Menu, X } from "@/components/icons";
+import { Github, Menu, X } from "@/components/icons";
 import { api, auth, useSession } from "@/lib/client";
 import { Logo } from "@/components/logo";
 import { AccountMenu } from "@/components/account-menu";
-import { PUBLIC_LINKS, primaryConsole } from "@/components/nav-links";
+import { PUBLIC_LINKS, REPO_URL, primaryConsole } from "@/components/nav-links";
 import { cn } from "@/lib/utils";
 
 // Public masthead in the same subtle-grey treatment as the dashboard topbar;
@@ -63,6 +63,16 @@ export function Nav({ className }: { className?: string }) {
         <div className="flex-1" />
 
         <div className="hidden items-center gap-1 md:flex">
+          <a
+            href={REPO_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Source code on GitHub"
+            title="Source code on GitHub"
+            className="grid size-9 place-items-center rounded-md text-ink/70 transition-colors hover:text-ink"
+          >
+            <Github className="size-5" />
+          </a>
           {user ? (
             <AccountMenu user={user} />
           ) : (
@@ -111,6 +121,15 @@ export function Nav({ className }: { className?: string }) {
               {l.label}
             </Link>
           ))}
+          <a
+            href={REPO_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={() => setOpen(false)}
+            className="block rounded-lg px-3 py-2 text-sm font-medium text-ink/70 hover:bg-accent hover:text-ink"
+          >
+            GitHub
+          </a>
           <div className="border-t border-border pt-2">
             {user ? (
               <>

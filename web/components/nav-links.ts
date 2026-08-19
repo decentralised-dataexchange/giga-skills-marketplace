@@ -6,6 +6,10 @@ export interface NavLink {
   show: (u: SessionUser | null) => boolean;
 }
 
+// The open-source repository that holds this application, linked from the top
+// nav and the knowledgebase.
+export const REPO_URL = "https://github.com/decentralised-dataexchange/giga-skills-marketplace";
+
 // Public-facing browsing, shown in the top nav. The catalog lives on the
 // homepage; the Knowledgebase holds the documentation; Showcases opens the
 // education wallet showcase, part of this same application.

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { REPO_URL } from "@/components/nav-links";
 
 export const metadata = {
   title: "Introduction · Knowledgebase · Giga Skills Marketplace",
@@ -92,6 +93,17 @@ export default function IntroductionPage() {
           <Link href="/knowledgebase/roles">roles and statuses</Link> used across the marketplace.
         </li>
       </ul>
+
+      <h2>Open source</h2>
+      <p>
+        The marketplace and the education showcase are open source under the Apache 2.0 license. The
+        source code, the deployment charts, and the contribution guide live in the{" "}
+        <a href={REPO_URL} target="_blank" rel="noopener">
+          giga-skills-marketplace
+        </a>{" "}
+        repository on GitHub, built for the ITU/UNICEF Giga initiative. Issues and pull requests are
+        welcome there.
+      </p>
     </>
   );
 }
