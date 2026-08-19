@@ -3,14 +3,18 @@
 </h1>
 
 <p align="center">
-    <a href="/../../commits/" title="Last Commit"><img src="https://img.shields.io/github/last-commit/decentralised-dataexchange/ai-integrator?style=flat"></a>
-    <a href="/../../issues" title="Open Issues"><img src="https://img.shields.io/github/issues/decentralised-dataexchange/ai-integrator?style=flat"></a>
+    <a href="/../../commits/" title="Last Commit"><img src="https://img.shields.io/github/last-commit/decentralised-dataexchange/giga-skills-marketplace?style=flat"></a>
+    <a href="/../../issues" title="Open Issues"><img src="https://img.shields.io/github/issues/decentralised-dataexchange/giga-skills-marketplace?style=flat"></a>
     <a href="./LICENSE" title="License"><img src="https://img.shields.io/badge/License-Apache%202.0-yellowgreen?style=flat"></a>
 </p>
 
-A marketplace of provider-published, agent-agnostic skills for the education
-wallet building block, with an app-store style review pipeline. The
-repository holds two deployables:
+A marketplace of provider-published, agent-agnostic AI skills for the
+education wallet building block, with an app-store style review pipeline.
+It is the working outcome of the ITU/UNICEF Giga Knowledge Product
+"AI-Enabled GovBuild Education Wallet Building Block" (RFQ-S-GIGA-2026-036),
+which demonstrates how an AI integration assistant adopts digital identity
+wallets into a National Learner Registry and Digital Credential ecosystem.
+The repository holds two deployables:
 
 - `services/marketplace/`: a Python 3.12 FastAPI service (managed with uv)
   that owns public catalogue reads.

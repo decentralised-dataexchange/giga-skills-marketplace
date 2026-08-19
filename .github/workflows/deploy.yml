@@ -2,8 +2,9 @@ name: Deploy to GKE
 
 # Builds the images that changed and rolls out the affected Helm releases on
 # every merge to main. Authenticates to GCP with Workload Identity Federation
-# (no long-lived keys): the github-pool provider `ai-integrator` lets this
-# repo impersonate the ddx-github service account.
+# (no long-lived keys): the github-pool provider `ai-integrator` (the GCP
+# resource keeps its pre-rename id) lets this repo impersonate the
+# ddx-github service account.
 #
 # Speed comes from three things:
 # - path filtering: only the applications whose sources changed are rebuilt
@@ -40,7 +41,7 @@ env:
 
 jobs:
   changes:
-    if: github.repository == 'decentralised-dataexchange/ai-integrator'
+    if: github.repository == 'decentralised-dataexchange/giga-skills-marketplace'
     runs-on: ubuntu-latest
     outputs:
       tag: ${{ steps.vars.outputs.tag }}
@@ -74,7 +75,7 @@ jobs:
   build-web:
     needs: changes
     if: >-
-      github.repository == 'decentralised-dataexchange/ai-integrator' &&
+      github.repository == 'decentralised-dataexchange/giga-skills-marketplace' &&
       (needs.changes.outputs.web == 'true' || github.event_name == 'workflow_dispatch')
     runs-on: ubuntu-latest
     steps:
@@ -102,7 +103,7 @@ jobs:
   build-marketplace:
     needs: changes
     if: >-
-      github.repository == 'decentralised-dataexchange/ai-integrator' &&
+      github.repository == 'decentralised-dataexchange/giga-skills-marketplace' &&
       (needs.changes.outputs.marketplace == 'true' || github.event_name == 'workflow_dispatch')
     runs-on: ubuntu-latest
     steps:
@@ -133,7 +134,7 @@ jobs:
     # jobs being skipped (unchanged application), never their failure.
     if: >-
       always() && !failure() && !cancelled() &&
-      github.repository == 'decentralised-dataexchange/ai-integrator' &&
+      github.repository == 'decentralised-dataexchange/giga-skills-marketplace' &&
       (needs.changes.outputs.giga_release == 'true' || github.event_name == 'workflow_dispatch')
     # One deploy against the cluster at a time.
     concurrency:
