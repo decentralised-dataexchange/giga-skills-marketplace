@@ -60,7 +60,9 @@ test("removed surfaces are unlinked and unreachable", async ({ page }) => {
   // moderation surface must not.
   await expect(page.getByRole("link", { name: "Showcase", exact: true })).toHaveCount(0);
 
-  for (const path of ["/showcase", "/builder", "/developer", "/governance/applications"]) {
+  // /showcase is NOT in this list: the client-side demo showcase lives there
+  // now (see showcase.spec.ts); only the old moderation surfaces are gone.
+  for (const path of ["/builder", "/developer", "/governance/applications"]) {
     const response = await page.goto(path);
     expect(response?.status(), path).toBe(404);
   }
