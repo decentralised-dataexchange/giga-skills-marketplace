@@ -4,6 +4,8 @@
     "web/public/**",
     "deploy/**",
     "**/.next/**",
+    "**/.next-e2e/**",
+    "**/test-results/**",
     "**/build/**",
     "**/dist/**"
   ]
