@@ -65,12 +65,14 @@ export const POST = route(
       seen.set(p.slug, p.skill.dir);
     }
     const slugs = [...seen.keys()];
+    // GitHub repository identity is case-insensitive, so compare lowercased:
+    // a source stored under another casing is still THIS repository.
     const bound = slugs.length
       ? await sql`
           SELECT sk.slug FROM skills sk
           JOIN sources src ON src.id = sk.source_id
           WHERE sk.org_id = ${org.id} AND sk.slug = ANY(${slugs})
-            AND src.url IS DISTINCT FROM ${snapshot.meta.url}`
+            AND lower(src.url) IS DISTINCT FROM lower(${snapshot.meta.url})`
       : [];
     for (const row of bound) {
       failures.push({

@@ -175,6 +175,31 @@ DO $$ BEGIN
     UPDATE skills SET status = 'archived' WHERE type = 'usecase' AND status <> 'archived';
   END IF;
 END $$;
+-- GitHub owner and repository names are case-insensitive, so a source URL
+-- that differs only by case is the same repository. A database from before
+-- this rule may carry mixed-case URLs (which made a resubmission read as
+-- "another source") and even case-duplicate rows. Merge the duplicates into
+-- the oldest row, then store every URL lowercase; application writes are
+-- lowercased at the seams (parseRepoUrl, findOrCreateSource).
+DO $$
+DECLARE dup RECORD;
+BEGIN
+  FOR dup IN
+    SELECT (array_agg(id ORDER BY created_at))[1] AS keep, array_agg(id) AS ids
+    FROM sources WHERE url IS NOT NULL
+    GROUP BY org_id, lower(url) HAVING count(*) > 1
+  LOOP
+    UPDATE skills SET source_id = dup.keep
+      WHERE source_id = ANY(dup.ids) AND source_id <> dup.keep;
+    UPDATE submissions SET source_id = dup.keep
+      WHERE source_id = ANY(dup.ids) AND source_id <> dup.keep;
+    -- An active duplicate keeps the merged source active.
+    UPDATE sources SET status = 'active' WHERE id = dup.keep AND EXISTS
+      (SELECT 1 FROM sources d WHERE d.id = ANY(dup.ids) AND d.status = 'active');
+    DELETE FROM sources WHERE id = ANY(dup.ids) AND id <> dup.keep;
+  END LOOP;
+  UPDATE sources SET url = lower(url) WHERE url <> lower(url);
+END $$;
 CREATE UNIQUE INDEX IF NOT EXISTS idx_orgs_slug ON orgs(slug);
 CREATE UNIQUE INDEX IF NOT EXISTS idx_sources_org_url ON sources(org_id, COALESCE(url, 'direct'));
 CREATE INDEX IF NOT EXISTS idx_submissions_source ON submissions(source_id, submitted_at DESC);
@@ -254,11 +279,11 @@ async function backfillSources(): Promise<boolean> {
 
   await sql`
     INSERT INTO sources (org_id, url, owner, repo)
-    SELECT DISTINCT ON (s.org_id, v.repo->>'url')
-           s.org_id, v.repo->>'url', v.repo->>'owner', v.repo->>'repo'
+    SELECT DISTINCT ON (s.org_id, lower(v.repo->>'url'))
+           s.org_id, lower(v.repo->>'url'), v.repo->>'owner', v.repo->>'repo'
     FROM versions v JOIN skills s ON s.id = v.skill_id
     WHERE v.repo IS NOT NULL AND v.submission_id IS NULL
-    ORDER BY s.org_id, v.repo->>'url', v.submitted_at DESC
+    ORDER BY s.org_id, lower(v.repo->>'url'), v.submitted_at DESC
     ON CONFLICT (org_id, COALESCE(url, 'direct')) DO NOTHING`;
   await sql`
     INSERT INTO sources (org_id, url)
@@ -271,7 +296,7 @@ async function backfillSources(): Promise<boolean> {
   await sql`
     UPDATE skills sk
     SET source_id = src.id
-    FROM (SELECT DISTINCT ON (skill_id) skill_id, repo->>'url' AS url
+    FROM (SELECT DISTINCT ON (skill_id) skill_id, lower(repo->>'url') AS url
           FROM versions ORDER BY skill_id, submitted_at DESC) last,
          sources src
     WHERE sk.id = last.skill_id AND sk.source_id IS NULL
@@ -300,7 +325,7 @@ async function backfillSources(): Promise<boolean> {
   }
   const groups = new Map<string, Group>();
   for (const v of versions) {
-    const sourceId = sourceByKey.get(`${v.org_id} ${v.repo?.url ?? "direct"}`);
+    const sourceId = sourceByKey.get(`${v.org_id} ${v.repo?.url?.toLowerCase() ?? "direct"}`);
     if (!sourceId) continue; // defensive; the inserts above cover every version
     // One from-repo call pinned every skill to one commit; repo-less versions
     // were each their own submission.

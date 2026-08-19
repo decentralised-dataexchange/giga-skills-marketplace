@@ -16,12 +16,15 @@ export interface SourceMeta {
  * not recreated: resubmission is the road back to the catalog.
  */
 export async function findOrCreateSource(db: typeof sql, orgId: string, meta: SourceMeta | null) {
+  // GitHub owner/repo names are case-insensitive, so the stored URL is always
+  // lowercase - a differently-cased resubmission finds its source again.
+  const url = meta?.url ? meta.url.toLowerCase() : null;
   await db`
     INSERT INTO sources (org_id, url, owner, repo)
-    VALUES (${orgId}, ${meta?.url ?? null}, ${meta?.owner ?? null}, ${meta?.repo ?? null})
+    VALUES (${orgId}, ${url}, ${meta?.owner ?? null}, ${meta?.repo ?? null})
     ON CONFLICT (org_id, COALESCE(url, 'direct')) DO NOTHING`;
   const [source] = await db`
     SELECT * FROM sources
-    WHERE org_id = ${orgId} AND COALESCE(url, 'direct') = ${meta?.url ?? "direct"}`;
+    WHERE org_id = ${orgId} AND COALESCE(url, 'direct') = ${url ?? "direct"}`;
   return source;
 }

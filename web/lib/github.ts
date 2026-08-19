@@ -86,7 +86,10 @@ export function parseRepoUrl(input: string, ref?: string): RepoTarget {
   let parsedRef: string | undefined;
   if (parts[2] === "tree" && parts.length > 3) parsedRef = parts.slice(3).join("/");
   const chosen = (ref ?? "").trim() || parsedRef;
-  return { owner, repo, ref: chosen || undefined };
+  // GitHub owner and repository names are case-insensitive; lowercase is the
+  // canonical form, so a retyped URL always resolves to the same source.
+  // Refs (branches, tags) stay as given - git refs are case-sensitive.
+  return { owner: owner.toLowerCase(), repo: repo.toLowerCase(), ref: chosen || undefined };
 }
 
 async function gh<T>(path: string): Promise<T> {

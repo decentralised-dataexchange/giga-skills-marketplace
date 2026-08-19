@@ -638,3 +638,31 @@ test("archiving while a review is open kills the claim", async ({ request }) => 
   });
   expect(decision.status()).toBe(409);
 });
+
+test("resubmitting an archived source under a differently-cased URL reuses the source", async ({
+  request,
+}) => {
+  // GitHub owner/repo names are case-insensitive, so a differently-cased URL
+  // is the same repository. The resubmission must reuse the source record
+  // instead of refusing every skill with "belongs to another source".
+  const FIRST_URL = "https://github.com/E2E-CaseFold/Skills";
+  const SECOND_URL = "https://github.com/e2e-casefold/skills";
+  const SLUG = "e2e-casefold-skill";
+  const provider = await signIn(request, "provider@igrant.io", "provider123");
+  const org = await approvedOrg(request, provider);
+  const admin = await signIn(request, "superadmin@govbuild.test", "super123");
+
+  const first = await submitSource(request, provider, org.id, FIRST_URL, [SLUG]);
+  await decide(request, admin, first.submission.id, "approve");
+  expect(
+    (await request.post(`/api/sources/${first.source.id}/archive`, { headers: provider })).status(),
+  ).toBe(200);
+
+  const second = await submitSource(request, provider, org.id, SECOND_URL, [SLUG], "1.0.1");
+  expect(second.source.id).toBe(first.source.id);
+
+  // Self-cleaning.
+  expect(
+    (await request.post(`/api/sources/${first.source.id}/archive`, { headers: provider })).status(),
+  ).toBe(200);
+});
