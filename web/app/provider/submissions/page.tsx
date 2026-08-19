@@ -242,8 +242,10 @@ function SkillSourcesInner() {
                 Close
               </Button>
               <div className="flex gap-2">
-                {openSource.status === "active" &&
-                  openSource.skills.some((skill) => skill.status === "published") &&
+                {/* Archiving is offered whenever anything is live: published
+                    skills, or a submission still waiting for review (the
+                    archive withdraws it from the queue). */}
+                {openSource.effectiveStatus !== "archived" &&
                   (confirmArchive ? (
                     <>
                       <Button variant="outline" onClick={() => setConfirmArchive(false)}>

@@ -666,3 +666,28 @@ test("resubmitting an archived source under a differently-cased URL reuses the s
     (await request.post(`/api/sources/${first.source.id}/archive`, { headers: provider })).status(),
   ).toBe(200);
 });
+
+test("a source still waiting for review can be archived from the Skill Sources page", async ({
+  page,
+  request,
+}) => {
+  const SOURCE_URL = "https://github.com/e2e/source-lambda";
+  const SLUG = "e2e-lambda-skill";
+  const provider = await signIn(request, "provider@igrant.io", "provider123");
+  const org = await approvedOrg(request, provider);
+  await submitSource(request, provider, org.id, SOURCE_URL, [SLUG]);
+
+  // Nothing is published yet - the archive action must still be offered so
+  // the provider can withdraw the waiting submission.
+  await injectSession(page, request, "provider@igrant.io", "provider123");
+  await page.goto("/provider/submissions");
+  await page.getByRole("row").filter({ hasText: "e2e/source-lambda" }).click();
+  await page.getByRole("button", { name: "Archive source" }).click();
+  await page.getByRole("button", { name: "Confirm archive" }).click();
+  await expect(page.getByText(/Archived e2e\/source-lambda/)).toBeVisible();
+
+  const mine = await (await request.get("/api/sources/mine", { headers: provider })).json();
+  const lambda = mine.sources.find((s: { url: string | null }) => s.url === SOURCE_URL);
+  expect(lambda.status).toBe("archived");
+  expect(lambda.effectiveStatus).toBe("archived");
+});
