@@ -3,4 +3,4 @@ name: giga
 description: Giga Skills Marketplace (web + marketplace service + PostgreSQL)
 type: application
 version: 0.1.0
-appVersion: "2921957"
+appVersion: "0.1.0"

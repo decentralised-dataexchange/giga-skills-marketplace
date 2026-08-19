@@ -34,8 +34,13 @@ env:
   WIF_PROVIDER: projects/872246932852/locations/global/workloadIdentityPools/github-pool/providers/ai-integrator
   DEPLOY_SA: ddx-github@jenkins-189019.iam.gserviceaccount.com
 
+# Every job checks github.repository so forks of this open-source repo skip
+# the deploy cleanly: the WIF provider only trusts this repository, and forks
+# have neither the federation trust nor the Actions secrets.
+
 jobs:
   changes:
+    if: github.repository == 'decentralised-dataexchange/ai-integrator'
     runs-on: ubuntu-latest
     outputs:
       tag: ${{ steps.vars.outputs.tag }}
@@ -68,7 +73,9 @@ jobs:
 
   build-web:
     needs: changes
-    if: needs.changes.outputs.web == 'true' || github.event_name == 'workflow_dispatch'
+    if: >-
+      github.repository == 'decentralised-dataexchange/ai-integrator' &&
+      (needs.changes.outputs.web == 'true' || github.event_name == 'workflow_dispatch')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
@@ -94,7 +101,9 @@ jobs:
 
   build-marketplace:
     needs: changes
-    if: needs.changes.outputs.marketplace == 'true' || github.event_name == 'workflow_dispatch'
+    if: >-
+      github.repository == 'decentralised-dataexchange/ai-integrator' &&
+      (needs.changes.outputs.marketplace == 'true' || github.event_name == 'workflow_dispatch')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
@@ -124,6 +133,7 @@ jobs:
     # jobs being skipped (unchanged application), never their failure.
     if: >-
       always() && !failure() && !cancelled() &&
+      github.repository == 'decentralised-dataexchange/ai-integrator' &&
       (needs.changes.outputs.giga_release == 'true' || github.event_name == 'workflow_dispatch')
     # One deploy against the cluster at a time.
     concurrency:
@@ -161,6 +171,7 @@ jobs:
         run: |
           helm upgrade --install giga ./deploy/helm/giga \
             --namespace "$NAMESPACE" --create-namespace \
+            -f ./deploy/helm/giga/values-staging.yaml \
             --set image.tag=${{ needs.changes.outputs.tag }} \
             --set postgres.password="$POSTGRES_PASSWORD" \
             --wait --timeout 6m

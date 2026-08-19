@@ -36,6 +36,8 @@ spec:
                   key: DATABASE_URL
             - name: MARKETPLACE_API_URL
               value: "http://{{ .Values.marketplace.name }}:{{ .Values.marketplace.port }}"
+            - name: NEXT_PUBLIC_SITE_URL
+              value: "https://{{ .Values.domain }}"
             - name: DB_MAX_CONNECTIONS
               value: {{ .Values.web.dbMaxConnections | quote }}
             {{- if .Values.githubToken }}

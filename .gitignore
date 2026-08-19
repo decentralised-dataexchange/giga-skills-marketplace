@@ -23,5 +23,5 @@ deploy/**/*.secret.yaml
 
 # Stray artifact from local 'npx skills add' runs
 skills-lock.json
-.claude/
 .weakest-hypothesis/
+.ropeproject/

@@ -59,11 +59,12 @@ the repository or passed through CI.
 
 ### Web application (`web/`)
 
-| Variable              | Purpose                                                               |
-| --------------------- | --------------------------------------------------------------------- |
-| `DATABASE_URL`        | PostgreSQL connection string                                          |
-| `MARKETPLACE_API_URL` | Base URL of the marketplace service                                   |
-| `GITHUB_TOKEN`        | Optional; raises the GitHub API rate limit for repository submissions |
+| Variable               | Purpose                                                                                         |
+| ---------------------- | ----------------------------------------------------------------------------------------------- |
+| `DATABASE_URL`         | PostgreSQL connection string                                                                    |
+| `MARKETPLACE_API_URL`  | Base URL of the marketplace service                                                             |
+| `GITHUB_TOKEN`         | Optional; raises the GitHub API rate limit for repository submissions                           |
+| `NEXT_PUBLIC_SITE_URL` | Optional; canonical site URL for social-preview metadata (the Helm chart sets it from `domain`) |
 
 The education showcase needs its own set only for the real wallet flows;
 without them every page renders and only the wallet broker calls fail with
@@ -104,8 +105,12 @@ Prerequisites: a cluster with
 `letsencrypt-prod`), the `giga-web` and `giga-marketplace` images pushed to
 a registry you control, and DNS pointed at the ingress load balancer.
 
-The database password is blank in `values.yaml` on purpose. Create a local,
-gitignored `deploy/helm/giga/values-secret.yaml`:
+The chart's default values are neutral placeholders. Set `domain`,
+`image.registry` and `ingress.tlsSecret` in an environment values file —
+the maintainers' staging preset,
+[`deploy/helm/giga/values-staging.yaml`](deploy/helm/giga/values-staging.yaml),
+is a complete worked example. The database password is blank in
+`values.yaml` on purpose; put it in a local, gitignored `values-secret.yaml`:
 
 ```yaml
 postgres:
@@ -117,25 +122,29 @@ Install or upgrade:
 ```bash
 helm upgrade --install giga ./deploy/helm/giga \
   -n giga --create-namespace \
-  -f ./deploy/helm/giga/values-secret.yaml \
-  --set domain=marketplace.example.org \
-  --set image.registry=<your-registry> \
+  -f ./my-values.yaml \
+  -f ./values-secret.yaml \
   --set image.tag=<tag>
 ```
 
-Override `domain`, `image.registry`, `ingress.className` and
-`ingress.clusterIssuer` for your environment; everything else has sensible
-defaults in `values.yaml`. See [`deploy/README.md`](deploy/README.md) for
-details.
+Everything else has sensible defaults in `values.yaml`. See
+[`deploy/README.md`](deploy/README.md) for the full walkthrough, the
+external-database option and the capacity notes.
 
 On every push to `main`, [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml)
-builds the images and runs the same upgrade, authenticating to Google Cloud
-with Workload Identity Federation. No long-lived keys. The showcase's
-secrets (OWS API keys, pseudonym pepper) never pass through the chart or
-CI: an operator runs
+builds the images and runs the same upgrade with `values-staging.yaml`
+against the maintainers' cluster, authenticating to Google Cloud with
+Workload Identity Federation. No long-lived keys, and forks do not run it.
+The showcase's secrets (OWS API keys, pseudonym pepper) never pass through
+the chart or CI: an operator runs
 [`deploy/create-showcase-secret.sh`](deploy/create-showcase-secret.sh) once
 per cluster, and the web deployment mounts the resulting
 `giga-showcase-secrets` secret as optional env.
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the development setup, the
+quality gates and the pull-request expectations.
 
 ## Licensing
 

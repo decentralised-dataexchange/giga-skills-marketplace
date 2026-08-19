@@ -1,11 +1,18 @@
 # Default values for the Giga Skills Marketplace chart.
-# The postgres.password secret is intentionally blank here so this file is safe
-# to commit. Supply it at deploy time via either:
+#
+# The defaults here are neutral placeholders so the chart is safe to publish
+# and deploy anywhere. For each environment, override at least `domain`,
+# `image.registry` and `ingress.tlsSecret` with a values file or --set flags.
+# The committed, non-secret staging preset in values-staging.yaml is a
+# complete worked example.
+#
+# The postgres.password secret is intentionally blank here so this file is
+# safe to commit. Supply it at deploy time via either:
 #   helm upgrade ... -f values-secret.yaml            (gitignored local file)
 #   helm upgrade ... --set postgres.password=...
-# External operators should also override `domain` and `image.registry`.
 
-domain: giga-staging.igrant.io
+# Public hostname of the marketplace. Override for your environment.
+domain: marketplace.example.org
 
 # Optional GitHub token for repository submissions; raises GitHub's API rate
 # limit (60/hour per IP unauthenticated). Supply it like the database password,
@@ -13,8 +20,9 @@ domain: giga-staging.igrant.io
 githubToken: ""
 
 image:
-  # Registry hosting giga-web / giga-marketplace images. Override for your own registry.
-  registry: eu.gcr.io/jenkins-189019
+  # Registry that hosts the giga-web and giga-marketplace images. Build them
+  # from the repository Dockerfiles and push them to a registry you control.
+  registry: registry.example.org
   tag: "latest"
   pullPolicy: IfNotPresent
 
@@ -41,24 +49,16 @@ marketplace:
     targetCPUUtilizationPercentage: 70
 
 # Non-secret configuration of the education showcase, served by the web app
-# under /showcase. Safe to commit: OWS base URL, credential and presentation
-# definition ids, consent agreement ids. The secrets (API keys, pseudonym
-# pepper) live in the giga-showcase-secrets cluster
-# secret, created once with deploy/create-showcase-secret.sh; the web
-# deployment mounts it as optional env, so the site deploys fine without it
-# (only the showcase wallet flows need it).
+# under /showcase. Empty by default: the site deploys fine without it, and
+# only the showcase wallet flows need it. To enable them, create the
+# credential and presentation definitions once with
+# web/scripts/showcase-provision.mjs and put the resulting ids here (see
+# values-staging.yaml for the full shape). The secrets (OWS API keys,
+# pseudonym pepper) never go through the chart: an operator creates the
+# cluster secret below once with deploy/create-showcase-secret.sh, and the
+# web deployment mounts it as optional env.
 showcase:
-  config:
-    IGRANT_BASE_URL: "https://demo-api.igrant.io"
-    STUDENT_ID_CREDENTIAL_ID: "b7463013-6d42-4740-9493-740a3367fe84"
-    DIPLOMA_CREDENTIAL_ID: "2eb096f7-9d7a-47d5-9314-f95b6133c874"
-    PID_PRESENTATION_DEFINITION_ID: "773c4107-bf7b-4c7f-8d11-b0c1b7be7131"
-    PAYMENT_PRESENTATION_DEFINITION_ID: "d5965a9b-0c44-49ac-9539-c632acf1f645"
-    PAYMENT_CARD_PRESENTATION_DEFINITION_ID: "0c288364-d472-4c46-a287-c0b355a604d7"
-    DIPLOMA_PRESENTATION_DEFINITION_ID: "727a48d1-49e2-40cd-918b-07dcc9dfef60"
-    AGREEMENT_ENROLMENT_ID: "6a7e4d0dd22651ae4335d5f2"
-    AGREEMENT_ANALYTICS_ID: "6a7e4d1dd22651ae4335d5fb"
-    AGREEMENT_EMPLOYER_ID: "6a7e4d1ed22651ae4335d603"
+  config: {}
   existingSecret: giga-showcase-secrets
 
 postgres:
@@ -72,9 +72,10 @@ postgres:
   user: govbuild
   password: ""        # REQUIRED: database password
   storage: 5Gi
-  # storageClassName: ""   # unset -> cluster default (GKE standard-rwo)
+  # storageClassName: ""   # unset -> cluster default
 
 ingress:
   className: nginx
   clusterIssuer: letsencrypt-prod
-  tlsSecret: giga-staging-tls
+  # cert-manager stores the issued certificate in this secret.
+  tlsSecret: giga-tls

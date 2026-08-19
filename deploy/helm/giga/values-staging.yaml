@@ -1,0 +1,32 @@
+# Staging preset of the project maintainers (giga-staging.igrant.io on GKE).
+# .github/workflows/deploy.yml passes this file on every deploy.
+#
+# Everything here is non-secret and safe to commit: the showcase ids are
+# demo-tenant resources created by web/scripts/showcase-provision.mjs. The
+# database password still comes from --set / values-secret.yaml, and the
+# showcase API keys live in the giga-showcase-secrets cluster secret
+# (deploy/create-showcase-secret.sh).
+#
+# To deploy your own environment, copy this file, keep the same shape, and
+# replace every value.
+
+domain: giga-staging.igrant.io
+
+image:
+  registry: eu.gcr.io/jenkins-189019
+
+showcase:
+  config:
+    IGRANT_BASE_URL: "https://demo-api.igrant.io"
+    STUDENT_ID_CREDENTIAL_ID: "b7463013-6d42-4740-9493-740a3367fe84"
+    DIPLOMA_CREDENTIAL_ID: "2eb096f7-9d7a-47d5-9314-f95b6133c874"
+    PID_PRESENTATION_DEFINITION_ID: "773c4107-bf7b-4c7f-8d11-b0c1b7be7131"
+    PAYMENT_PRESENTATION_DEFINITION_ID: "d5965a9b-0c44-49ac-9539-c632acf1f645"
+    PAYMENT_CARD_PRESENTATION_DEFINITION_ID: "0c288364-d472-4c46-a287-c0b355a604d7"
+    DIPLOMA_PRESENTATION_DEFINITION_ID: "727a48d1-49e2-40cd-918b-07dcc9dfef60"
+    AGREEMENT_ENROLMENT_ID: "6a7e4d0dd22651ae4335d5f2"
+    AGREEMENT_ANALYTICS_ID: "6a7e4d1dd22651ae4335d5fb"
+    AGREEMENT_EMPLOYER_ID: "6a7e4d1ed22651ae4335d603"
+
+ingress:
+  tlsSecret: giga-staging-tls
