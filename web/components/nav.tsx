@@ -67,11 +67,10 @@ export function Nav({ className }: { className?: string }) {
             href={REPO_URL}
             target="_blank"
             rel="noopener noreferrer"
-            aria-label="Source code on GitHub"
-            title="Source code on GitHub"
-            className="grid size-9 place-items-center rounded-md text-ink/70 transition-colors hover:text-ink"
+            className="flex items-center gap-1.5 rounded-md px-3.5 py-1.5 text-sm font-medium text-ink/70 transition-colors hover:text-ink"
           >
-            <Github className="size-5" />
+            <Github className="size-4.5" />
+            GitHub
           </a>
           {user ? (
             <AccountMenu user={user} />
@@ -126,8 +125,9 @@ export function Nav({ className }: { className?: string }) {
             target="_blank"
             rel="noopener noreferrer"
             onClick={() => setOpen(false)}
-            className="block rounded-lg px-3 py-2 text-sm font-medium text-ink/70 hover:bg-accent hover:text-ink"
+            className="flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium text-ink/70 hover:bg-accent hover:text-ink"
           >
+            <Github className="size-4.5" />
             GitHub
           </a>
           <div className="border-t border-border pt-2">
