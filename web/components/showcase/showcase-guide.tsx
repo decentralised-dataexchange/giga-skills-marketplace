@@ -1,12 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState, type CSSProperties } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ArrowRight, BookOpen, ExternalLink } from "lucide-react";
 
 import { Drawer } from "@/components/drawer";
-import { getNextStop } from "@/lib/showcase/next-stop";
+import { getNextStop, type NextStop } from "@/lib/showcase/next-stop";
 import { useShowcaseStore } from "@/lib/showcase/use-store";
 import { DEMO_STEPS, PREREQUISITES, WHO_SIGNS_IN, stepColour } from "@/lib/showcase/demo-steps";
 import { PORTALS, type PortalConfig } from "@/lib/showcase/portals";
@@ -70,6 +70,28 @@ export function ShowcaseGuide() {
       pathname === `/showcase/${portal.id}` || pathname.startsWith(`/showcase/${portal.id}/`),
   );
   const close = () => setOpen(false);
+
+  // A callout over the demo-guide button that names the exact next step. It
+  // fires only when an action moves the journey on - not on a plain page
+  // load - so the demo user is nudged the moment there is a fresh thing to do.
+  const [hint, setHint] = useState<NextStop | null>(null);
+  const [seenHref, setSeenHref] = useState<string | null | undefined>(undefined);
+  const nextHref = nextStop?.href ?? null;
+
+  // Adjust state during render (React's "store info from a previous render"
+  // pattern): the first hydrated pass sets a silent baseline, and any later
+  // change to the next step raises the callout with that step's instruction.
+  if (state.hydrated && nextHref !== seenHref) {
+    if (seenHref !== undefined) setHint(nextStop);
+    setSeenHref(nextHref);
+  }
+
+  // The callout is a nudge, not a modal: it retires itself after a while.
+  useEffect(() => {
+    if (!hint) return;
+    const timer = setTimeout(() => setHint(null), 9000);
+    return () => clearTimeout(timer);
+  }, [hint]);
 
   return (
     <div className="guide">
@@ -173,10 +195,34 @@ export function ShowcaseGuide() {
           </section>
         </Drawer>
       ) : null}
+      {hint && !open ? (
+        <div
+          className="guide-hint"
+          role="status"
+          style={{ "--hint-accent": stepColour(hint.href) } as CSSProperties}
+        >
+          <button
+            type="button"
+            className="guide-hint-x"
+            onClick={() => setHint(null)}
+            aria-label="Dismiss the next-step hint"
+          >
+            ×
+          </button>
+          <span className="guide-hint-kicker">Next step</span>
+          <Link className="guide-hint-link" href={hint.href} onClick={() => setHint(null)}>
+            {hint.label}
+            <ArrowRight size={14} aria-hidden="true" />
+          </Link>
+        </div>
+      ) : null}
       <button
         type="button"
         className="guide-fab"
-        onClick={() => setOpen(true)}
+        onClick={() => {
+          setHint(null);
+          setOpen(true);
+        }}
         aria-label="Open the demo guide"
       >
         <BookOpen size={16} />

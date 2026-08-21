@@ -4,6 +4,7 @@ import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 
+import { PortalLink } from "@/components/showcase/portal-link";
 import { SchoolShell } from "@/components/showcase/school-shell";
 import { attachStudentIdOffer, validateDocumentsAndApprove } from "@/lib/showcase/registry";
 import { useShowcaseStore } from "@/lib/showcase/use-store";
@@ -175,7 +176,7 @@ function SchoolQueueContent() {
                   </label>
                   <p className="sch-review-consent-note">
                     Current status from the consent service; the learner can change these at any
-                    time in the Education Portal.
+                    time in the <PortalLink to="education">Education Portal</PortalLink>.
                   </p>
                 </div>
               </form>
@@ -213,8 +214,10 @@ function SchoolQueueContent() {
                 </>
               ) : (
                 <p style={{ color: "var(--ok)", fontWeight: 600 }}>
-                  Validated. The learner was enrolled automatically and the Student ID was offered
-                  to their wallet.
+                  Validated. The learner was enrolled automatically and the Student ID issued. The
+                  student should now go to the{" "}
+                  <PortalLink to="education">National Education Portal</PortalLink> and receive the
+                  Student ID by scanning the QR code.
                 </p>
               )}
             </>

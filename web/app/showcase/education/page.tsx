@@ -3,6 +3,7 @@
 import Link from "next/link";
 
 import { EducationShell } from "@/components/showcase/education-shell";
+import { PortalLink } from "@/components/showcase/portal-link";
 import { useShowcaseStore } from "@/lib/showcase/use-store";
 
 export default function EducationLanding() {
@@ -30,8 +31,9 @@ export default function EducationLanding() {
         <div className="edu-service">
           <h3>Register as a learner</h3>
           <p>
-            Enrol in the National Learner Registry with attributes confirmed by your identity
-            wallet.
+            Enrol in the{" "}
+            <PortalLink href="/showcase/audit">National Learner Registry</PortalLink> with
+            attributes confirmed by your identity wallet.
           </p>
         </div>
         <div className="edu-service">

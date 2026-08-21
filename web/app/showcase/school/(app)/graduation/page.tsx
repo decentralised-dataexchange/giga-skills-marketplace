@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 
+import { PortalLink } from "@/components/showcase/portal-link";
 import { SchoolShell } from "@/components/showcase/school-shell";
 import { markDiplomaRevoked, submitGraduation } from "@/lib/showcase/registry";
 import { getDiplomaExchange } from "@/lib/showcase/store";
@@ -181,8 +182,9 @@ export default function SchoolGraduation() {
                   </div>
                   {app.status === "payment_pending" ? (
                     <p style={{ margin: "0.35rem 0 0" }}>
-                      Awaiting the learner&apos;s fee payment; the diploma is issued to their wallet
-                      in the same step.
+                      The student should now go to the{" "}
+                      <PortalLink to="education">National Education Portal</PortalLink> and pay with
+                      their bank account or bank card and receive the diploma to their wallet.
                     </p>
                   ) : exchange?.revoked ? (
                     <p style={{ margin: "0.35rem 0 0", color: "var(--bad)", fontWeight: 600 }}>

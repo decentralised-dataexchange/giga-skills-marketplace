@@ -1,15 +1,22 @@
 "use client";
 
+import type { ReactNode } from "react";
 import Link from "next/link";
 
 import { ExchangeQr } from "@/components/showcase/exchange-qr";
 import { PaymentConfirm } from "@/components/showcase/payment-confirm";
+import { PortalLink } from "@/components/showcase/portal-link";
 import { isExchangeAccepted, latestApplication } from "@/lib/showcase/store";
 import { useShowcaseStore } from "@/lib/showcase/use-store";
 
-const STATUS_TEXT: Record<string, string> = {
-  submitted:
-    "Your application is with the school admissions office for document review. Once validated, you are enrolled automatically.",
+const STATUS_TEXT: Record<string, ReactNode> = {
+  submitted: (
+    <>
+      Your application is with the{" "}
+      <PortalLink to="school">school admissions office</PortalLink> for document review. Once
+      validated, you are enrolled automatically.
+    </>
+  ),
   approved: "You are enrolled. Add your Student ID to your wallet below.",
   payment_pending:
     "The diploma fee is due. Pay with your wallet, and your diploma is issued in the same step.",
