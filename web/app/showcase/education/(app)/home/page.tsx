@@ -12,9 +12,8 @@ import { useShowcaseStore } from "@/lib/showcase/use-store";
 const STATUS_TEXT: Record<string, ReactNode> = {
   submitted: (
     <>
-      Your application is with the{" "}
-      <PortalLink to="school">school admissions office</PortalLink> for document review. Once
-      validated, you are enrolled automatically.
+      Your application is with the <PortalLink to="school">school admissions office</PortalLink> for
+      document review. Once validated, you are enrolled automatically.
     </>
   ),
   approved: "You are enrolled. Add your Student ID to your wallet below.",

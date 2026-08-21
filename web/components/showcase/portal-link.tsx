@@ -23,7 +23,10 @@ export function PortalLink({
 }) {
   const target = to ? PORTALS[to].publicPath : (href ?? "#");
   return (
-    <Link href={target} style={{ color: "inherit", fontWeight: "inherit", textDecoration: "underline" }}>
+    <Link
+      href={target}
+      style={{ color: "inherit", fontWeight: "inherit", textDecoration: "underline" }}
+    >
       {children}
     </Link>
   );
