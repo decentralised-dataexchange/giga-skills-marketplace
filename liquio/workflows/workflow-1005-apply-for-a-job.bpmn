@@ -1,0 +1,456 @@
+{
+ "workflowTemplate": {
+  "id": 1005,
+  "workflowTemplateCategoryId": null,
+  "name": "Apply for a job",
+  "description": "iGrant.io journey step 3: apply at CivicWorks Careers with the credentials in your wallet — one scan shares your PID and educational certificate, and the application form fills itself.",
+  "xmlBpmnSchema": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<bpmn2:definitions xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:bpmn2=\"http://www.omg.org/spec/BPMN/20100524/MODEL\" xmlns:bpmndi=\"http://www.omg.org/spec/BPMN/20100524/DI\" xmlns:dc=\"http://www.omg.org/spec/DD/20100524/DC\" xmlns:di=\"http://www.omg.org/spec/DD/20100524/DI\" id=\"apply-for-a-job-diagram\" targetNamespace=\"http://bpmn.io/schema/bpmn\" xsi:schemaLocation=\"http://www.omg.org/spec/BPMN/20100524/MODEL BPMN20.xsd\">\n  <bpmn2:collaboration id=\"Collaboration_apply-for-a-job-diagram\">\n    <bpmn2:participant id=\"Participant_apply-for-a-job-diagram\" name=\"Apply for a job\" processRef=\"Process_1\" />\n  </bpmn2:collaboration>\n  <bpmn2:process id=\"Process_1\" isExecutable=\"false\">\n    <bpmn2:laneSet id=\"LaneSet_apply-for-a-job-diagram\">\n      <bpmn2:lane id=\"Lane_apply-for-a-job-diagram\" name=\"Candidate\">\n        <bpmn2:flowNodeRef>StartEvent_1</bpmn2:flowNodeRef>\n        <bpmn2:flowNodeRef>task-1005001</bpmn2:flowNodeRef>\n        <bpmn2:flowNodeRef>task-1005002</bpmn2:flowNodeRef>\n        <bpmn2:flowNodeRef>event-1005001</bpmn2:flowNodeRef>\n        <bpmn2:flowNodeRef>task-1005003</bpmn2:flowNodeRef>\n        <bpmn2:flowNodeRef>gateway-1005001</bpmn2:flowNodeRef>\n        <bpmn2:flowNodeRef>task-1005005</bpmn2:flowNodeRef>\n        <bpmn2:flowNodeRef>end-event-1</bpmn2:flowNodeRef>\n        <bpmn2:flowNodeRef>task-1005004</bpmn2:flowNodeRef>\n        <bpmn2:flowNodeRef>end-event-2</bpmn2:flowNodeRef>\n      </bpmn2:lane>\n    </bpmn2:laneSet>\n    <bpmn2:startEvent id=\"StartEvent_1\">\n      <bpmn2:outgoing>Flow_01</bpmn2:outgoing>\n    </bpmn2:startEvent>\n    <bpmn2:task id=\"task-1005001\" name=\"Start\">\n      <bpmn2:incoming>Flow_01</bpmn2:incoming>\n      <bpmn2:outgoing>Flow_02</bpmn2:outgoing>\n    </bpmn2:task>\n    <bpmn2:task id=\"task-1005002\" name=\"Choose a role\">\n      <bpmn2:incoming>Flow_02</bpmn2:incoming>\n      <bpmn2:outgoing>Flow_03</bpmn2:outgoing>\n    </bpmn2:task>\n    <bpmn2:intermediateCatchEvent id=\"event-1005001\" name=\"Request credentials (verify)\">\n      <bpmn2:incoming>Flow_03</bpmn2:incoming>\n      <bpmn2:outgoing>Flow_04</bpmn2:outgoing>\n      <bpmn2:conditionalEventDefinition id=\"Cond_event-1005001\">\n        <bpmn2:condition xsi:type=\"bpmn2:tFormalExpression\" />\n      </bpmn2:conditionalEventDefinition>\n    </bpmn2:intermediateCatchEvent>\n    <bpmn2:task id=\"task-1005003\" name=\"Share your credentials\">\n      <bpmn2:incoming>Flow_04</bpmn2:incoming>\n      <bpmn2:outgoing>Flow_05</bpmn2:outgoing>\n    </bpmn2:task>\n    <bpmn2:exclusiveGateway id=\"gateway-1005001\" name=\"Credentials verified?\">\n      <bpmn2:incoming>Flow_05</bpmn2:incoming>\n      <bpmn2:outgoing>Flow_06</bpmn2:outgoing>\n      <bpmn2:outgoing>Flow_08</bpmn2:outgoing>\n    </bpmn2:exclusiveGateway>\n    <bpmn2:task id=\"task-1005005\" name=\"Review and submit\">\n      <bpmn2:incoming>Flow_06</bpmn2:incoming>\n      <bpmn2:outgoing>Flow_07</bpmn2:outgoing>\n    </bpmn2:task>\n    <bpmn2:endEvent id=\"end-event-1\">\n      <bpmn2:incoming>Flow_07</bpmn2:incoming>\n    </bpmn2:endEvent>\n    <bpmn2:task id=\"task-1005004\" name=\"Application failed\">\n      <bpmn2:incoming>Flow_08</bpmn2:incoming>\n      <bpmn2:outgoing>Flow_09</bpmn2:outgoing>\n    </bpmn2:task>\n    <bpmn2:endEvent id=\"end-event-2\">\n      <bpmn2:incoming>Flow_09</bpmn2:incoming>\n    </bpmn2:endEvent>\n    <bpmn2:sequenceFlow id=\"Flow_01\" sourceRef=\"StartEvent_1\" targetRef=\"task-1005001\" />\n    <bpmn2:sequenceFlow id=\"Flow_02\" sourceRef=\"task-1005001\" targetRef=\"task-1005002\" />\n    <bpmn2:sequenceFlow id=\"Flow_03\" sourceRef=\"task-1005002\" targetRef=\"event-1005001\" />\n    <bpmn2:sequenceFlow id=\"Flow_04\" sourceRef=\"event-1005001\" targetRef=\"task-1005003\" />\n    <bpmn2:sequenceFlow id=\"Flow_05\" sourceRef=\"task-1005003\" targetRef=\"gateway-1005001\" />\n    <bpmn2:sequenceFlow id=\"Flow_06\" name=\"Yes\" sourceRef=\"gateway-1005001\" targetRef=\"task-1005005\" />\n    <bpmn2:sequenceFlow id=\"Flow_07\" sourceRef=\"task-1005005\" targetRef=\"end-event-1\" />\n    <bpmn2:sequenceFlow id=\"Flow_08\" name=\"No\" sourceRef=\"gateway-1005001\" targetRef=\"task-1005004\" />\n    <bpmn2:sequenceFlow id=\"Flow_09\" sourceRef=\"task-1005004\" targetRef=\"end-event-2\" />\n  </bpmn2:process>\n  <bpmndi:BPMNDiagram id=\"BPMNDiagram_1\">\n    <bpmndi:BPMNPlane id=\"BPMNPlane_1\" bpmnElement=\"Collaboration_apply-for-a-job-diagram\">\n      <bpmndi:BPMNShape id=\"Participant_apply-for-a-job-diagram_di\" bpmnElement=\"Participant_apply-for-a-job-diagram\" isHorizontal=\"true\">\n        <dc:Bounds x=\"120\" y=\"80\" width=\"1176\" height=\"420\" />\n      </bpmndi:BPMNShape>\n      <bpmndi:BPMNShape id=\"Lane_apply-for-a-job-diagram_di\" bpmnElement=\"Lane_apply-for-a-job-diagram\" isHorizontal=\"true\">\n        <dc:Bounds x=\"150\" y=\"80\" width=\"1146\" height=\"420\" />\n      </bpmndi:BPMNShape>\n      <bpmndi:BPMNShape id=\"StartEvent_1_di\" bpmnElement=\"StartEvent_1\">\n        <dc:Bounds x=\"172\" y=\"202\" width=\"36\" height=\"36\" />\n      </bpmndi:BPMNShape>\n      <bpmndi:BPMNShape id=\"task-1005001_di\" bpmnElement=\"task-1005001\">\n        <dc:Bounds x=\"260\" y=\"180\" width=\"100\" height=\"80\" />\n      </bpmndi:BPMNShape>\n      <bpmndi:BPMNShape id=\"task-1005002_di\" bpmnElement=\"task-1005002\">\n        <dc:Bounds x=\"412\" y=\"180\" width=\"100\" height=\"80\" />\n      </bpmndi:BPMNShape>\n      <bpmndi:BPMNShape id=\"event-1005001_di\" bpmnElement=\"event-1005001\">\n        <dc:Bounds x=\"564\" y=\"202\" width=\"36\" height=\"36\" />\n      </bpmndi:BPMNShape>\n      <bpmndi:BPMNShape id=\"task-1005003_di\" bpmnElement=\"task-1005003\">\n        <dc:Bounds x=\"652\" y=\"180\" width=\"100\" height=\"80\" />\n      </bpmndi:BPMNShape>\n      <bpmndi:BPMNShape id=\"gateway-1005001_di\" bpmnElement=\"gateway-1005001\">\n        <dc:Bounds x=\"804\" y=\"195\" width=\"50\" height=\"50\" />\n      </bpmndi:BPMNShape>\n      <bpmndi:BPMNShape id=\"task-1005005_di\" bpmnElement=\"task-1005005\">\n        <dc:Bounds x=\"906\" y=\"180\" width=\"100\" height=\"80\" />\n      </bpmndi:BPMNShape>\n      <bpmndi:BPMNShape id=\"end-event-1_di\" bpmnElement=\"end-event-1\">\n        <dc:Bounds x=\"1058\" y=\"202\" width=\"36\" height=\"36\" />\n      </bpmndi:BPMNShape>\n      <bpmndi:BPMNShape id=\"task-1005004_di\" bpmnElement=\"task-1005004\">\n        <dc:Bounds x=\"906\" y=\"320\" width=\"100\" height=\"80\" />\n      </bpmndi:BPMNShape>\n      <bpmndi:BPMNShape id=\"end-event-2_di\" bpmnElement=\"end-event-2\">\n        <dc:Bounds x=\"1058\" y=\"342\" width=\"36\" height=\"36\" />\n      </bpmndi:BPMNShape>\n      <bpmndi:BPMNEdge id=\"Flow_01_di\" bpmnElement=\"Flow_01\">\n        <di:waypoint x=\"208\" y=\"220\" />\n        <di:waypoint x=\"260\" y=\"220\" />\n      </bpmndi:BPMNEdge>\n      <bpmndi:BPMNEdge id=\"Flow_02_di\" bpmnElement=\"Flow_02\">\n        <di:waypoint x=\"360\" y=\"220\" />\n        <di:waypoint x=\"412\" y=\"220\" />\n      </bpmndi:BPMNEdge>\n      <bpmndi:BPMNEdge id=\"Flow_03_di\" bpmnElement=\"Flow_03\">\n        <di:waypoint x=\"512\" y=\"220\" />\n        <di:waypoint x=\"564\" y=\"220\" />\n      </bpmndi:BPMNEdge>\n      <bpmndi:BPMNEdge id=\"Flow_04_di\" bpmnElement=\"Flow_04\">\n        <di:waypoint x=\"600\" y=\"220\" />\n        <di:waypoint x=\"652\" y=\"220\" />\n      </bpmndi:BPMNEdge>\n      <bpmndi:BPMNEdge id=\"Flow_05_di\" bpmnElement=\"Flow_05\">\n        <di:waypoint x=\"752\" y=\"220\" />\n        <di:waypoint x=\"804\" y=\"220\" />\n      </bpmndi:BPMNEdge>\n      <bpmndi:BPMNEdge id=\"Flow_06_di\" bpmnElement=\"Flow_06\">\n        <di:waypoint x=\"854\" y=\"220\" />\n        <di:waypoint x=\"906\" y=\"220\" />\n      </bpmndi:BPMNEdge>\n      <bpmndi:BPMNEdge id=\"Flow_07_di\" bpmnElement=\"Flow_07\">\n        <di:waypoint x=\"1006\" y=\"220\" />\n        <di:waypoint x=\"1058\" y=\"220\" />\n      </bpmndi:BPMNEdge>\n      <bpmndi:BPMNEdge id=\"Flow_08_di\" bpmnElement=\"Flow_08\">\n        <di:waypoint x=\"829\" y=\"245\" />\n        <di:waypoint x=\"829\" y=\"360\" />\n        <di:waypoint x=\"906\" y=\"360\" />\n      </bpmndi:BPMNEdge>\n      <bpmndi:BPMNEdge id=\"Flow_09_di\" bpmnElement=\"Flow_09\">\n        <di:waypoint x=\"1006\" y=\"360\" />\n        <di:waypoint x=\"1058\" y=\"360\" />\n      </bpmndi:BPMNEdge>\n    </bpmndi:BPMNPlane>\n  </bpmndi:BPMNDiagram>\n</bpmn2:definitions>\n",
+  "data": {
+   "statuses": [
+    {
+     "statusId": 1,
+     "label": "DRAFT",
+     "taskOrEventTemplateId": "{\"id\": 1005001, \"type\": \"task\", \"name\": \"Start\", \"sourceId\": 1005001}",
+     "taskTemplateId": 1005001
+    },
+    {
+     "statusId": 2,
+     "label": "CHOOSING",
+     "taskOrEventTemplateId": "{\"id\": 1005002, \"type\": \"task\", \"name\": \"Choose a role\", \"sourceId\": 1005002}",
+     "taskTemplateId": 1005002
+    },
+    {
+     "statusId": 3,
+     "label": "SHARING",
+     "taskOrEventTemplateId": "{\"id\": 1005003, \"type\": \"task\", \"name\": \"Share your credentials\", \"sourceId\": 1005003}",
+     "taskTemplateId": 1005003
+    },
+    {
+     "statusId": 4,
+     "label": "SUBMITTED",
+     "taskOrEventTemplateId": "{\"id\": 1005005, \"type\": \"task\", \"name\": \"Review and submit\", \"sourceId\": 1005005}",
+     "taskTemplateId": 1005005
+    }
+   ],
+   "entryTaskTemplateIds": [
+    {
+     "name": "Start",
+     "id": "() => 1005001;",
+     "hidden": false
+    }
+   ],
+   "numberTemplateId": 1005001,
+   "timeline": {
+    "steps": [
+     {
+      "taskTemplateId": 1005002,
+      "label": "CHOOSING"
+     },
+     {
+      "taskTemplateId": 1005003,
+      "label": "SHARING"
+     },
+     {
+      "taskTemplateId": 1005005,
+      "label": "SUBMITTED"
+     }
+    ]
+   }
+  },
+  "isActive": true,
+  "accessUnits": [],
+  "createdAt": "2026-08-26T09:00:00.000Z",
+  "updatedAt": "2026-08-26T09:00:00.000Z",
+  "meta": {}
+ },
+ "workflowTemplateCategory": null,
+ "taskTemplates": [
+  {
+   "id": 1005001,
+   "name": "Start",
+   "documentTemplateId": 1005001,
+   "jsonSchema": {
+    "setPermissions": [
+     {
+      "performerUsersIsWorkflowOwner": true
+     }
+    ]
+   },
+   "jsonSchemaRaw": "{\n    \"setPermissions\": [\n        {\n            \"performerUsersIsWorkflowOwner\": true\n        }\n    ]\n}",
+   "htmlTemplate": "",
+   "createdAt": "2026-08-26T09:00:00.000Z",
+   "updatedAt": "2026-08-26T09:00:00.000Z"
+  },
+  {
+   "id": 1005002,
+   "name": "Choose a role",
+   "documentTemplateId": 1005002,
+   "jsonSchema": {
+    "setPermissions": [
+     {
+      "performerUsersIsWorkflowOwner": true
+     }
+    ]
+   },
+   "jsonSchemaRaw": "{\n    \"setPermissions\": [\n        {\n            \"performerUsersIsWorkflowOwner\": true\n        }\n    ]\n}",
+   "htmlTemplate": "",
+   "createdAt": "2026-08-26T09:00:00.000Z",
+   "updatedAt": "2026-08-26T09:00:00.000Z"
+  },
+  {
+   "id": 1005003,
+   "name": "Share your credentials",
+   "documentTemplateId": 1005003,
+   "jsonSchema": {
+    "setPermissions": [
+     {
+      "performerUsersIsWorkflowOwner": true
+     }
+    ]
+   },
+   "jsonSchemaRaw": "{\n    \"setPermissions\": [\n        {\n            \"performerUsersIsWorkflowOwner\": true\n        }\n    ]\n}",
+   "htmlTemplate": "",
+   "createdAt": "2026-08-26T09:00:00.000Z",
+   "updatedAt": "2026-08-26T09:00:00.000Z"
+  },
+  {
+   "id": 1005004,
+   "name": "Application failed",
+   "documentTemplateId": 1005004,
+   "jsonSchema": {
+    "setPermissions": [
+     {
+      "performerUsersIsWorkflowOwner": true
+     }
+    ]
+   },
+   "jsonSchemaRaw": "{\n    \"setPermissions\": [\n        {\n            \"performerUsersIsWorkflowOwner\": true\n        }\n    ]\n}",
+   "htmlTemplate": "",
+   "createdAt": "2026-08-26T09:00:00.000Z",
+   "updatedAt": "2026-08-26T09:00:00.000Z"
+  },
+  {
+   "id": 1005005,
+   "name": "Review and submit",
+   "documentTemplateId": 1005005,
+   "jsonSchema": {
+    "setPermissions": [
+     {
+      "performerUsersIsWorkflowOwner": true
+     }
+    ]
+   },
+   "jsonSchemaRaw": "{\n    \"setPermissions\": [\n        {\n            \"performerUsersIsWorkflowOwner\": true\n        }\n    ]\n}",
+   "htmlTemplate": "",
+   "createdAt": "2026-08-26T09:00:00.000Z",
+   "updatedAt": "2026-08-26T09:00:00.000Z"
+  }
+ ],
+ "documentTemplates": [
+  {
+   "id": 1005001,
+   "name": "Start",
+   "jsonSchema": {
+    "title": "Apply for a job",
+    "type": "object",
+    "pdfRequired": false,
+    "signRequired": false,
+    "showNextTaskButton": false,
+    "finishBtn": "Continue",
+    "forceRedirect": true,
+    "properties": {
+     "intro": {
+      "type": "object",
+      "description": "CivicWorks Careers",
+      "properties": {
+       "text": {
+        "control": "text.block",
+        "htmlBlock": "<div><p><b>CivicWorks Careers</b> hires on verified qualifications, not photocopies: you apply with the certificate in your own wallet, share a few fields only, and keep everything else private.</p><p style='margin-bottom:4px;'><b>Your journey:</b></p><ul style='margin:6px 0;padding-left:0;list-style:none;'><li style='margin:5px 0;'>1. <a href='/tasks/create/1004/1004001' style='color:#1a56db;text-decoration:underline;'>Register as a learner</a> — share your ID, enrol, and receive your Learner Profile credential</li><li style='margin:5px 0;'>2. <a href='/tasks/create/1003/1003001' style='color:#1a56db;text-decoration:underline;'>Educational certificate</a> — pay the 10.00 EUR fee from your wallet and receive your certificate</li><li style='margin:5px 0;'><b>3. Apply for a job</b> — share your ID and certificate with CivicWorks Careers <span style='color:#0e7c7b;font-weight:600;'>← you are here</span></li></ul><p style='margin-bottom:4px;'><b>Before you start, you need:</b></p><ul style='margin:6px 0;padding-left:0;list-style:none;'><li style='margin:4px 0;'>1. The <b>iGrant.io Data Wallet</b> app on your phone — <a href='https://docs.igrant.io/docs/data-wallet-tryitout/' style='color:#1a56db;text-decoration:underline;' target='_blank' rel='noopener noreferrer'>download instructions here</a>.</li><li style='margin:4px 0;'>2. A <b>PID credential</b> (person identification data) in the wallet — <a href='https://igrant.io/demo/pid.html' style='color:#1a56db;text-decoration:underline;' target='_blank' rel='noopener noreferrer'>get one here</a>.</li><li style='margin:4px 0;'>3. An <b>Educational Institution Certificate</b> credential in the wallet — <a href='/tasks/create/1003/1003001' style='color:#1a56db;text-decoration:underline;'>complete step 2 first</a>.</li></ul><p>Press Continue to start.</p></div>"
+       }
+      }
+     }
+    }
+   },
+   "jsonSchemaRaw": "{\n    \"title\": \"Apply for a job\",\n    \"type\": \"object\",\n    \"pdfRequired\": false,\n    \"signRequired\": false,\n    \"showNextTaskButton\": false,\n    \"finishBtn\": \"Continue\",\n    \"forceRedirect\": true,\n    \"properties\": {\n        \"intro\": {\n            \"type\": \"object\",\n            \"description\": \"CivicWorks Careers\",\n            \"properties\": {\n                \"text\": {\n                    \"control\": \"text.block\",\n                    \"htmlBlock\": \"<div><p><b>CivicWorks Careers</b> hires on verified qualifications, not photocopies: you apply with the certificate in your own wallet, share a few fields only, and keep everything else private.</p><p style='margin-bottom:4px;'><b>Your journey:</b></p><ul style='margin:6px 0;padding-left:0;list-style:none;'><li style='margin:5px 0;'>1. <a href='/tasks/create/1004/1004001' style='color:#1a56db;text-decoration:underline;'>Register as a learner</a> \\u2014 share your ID, enrol, and receive your Learner Profile credential</li><li style='margin:5px 0;'>2. <a href='/tasks/create/1003/1003001' style='color:#1a56db;text-decoration:underline;'>Educational certificate</a> \\u2014 pay the 10.00 EUR fee from your wallet and receive your certificate</li><li style='margin:5px 0;'><b>3. Apply for a job</b> \\u2014 share your ID and certificate with CivicWorks Careers <span style='color:#0e7c7b;font-weight:600;'>\\u2190 you are here</span></li></ul><p style='margin-bottom:4px;'><b>Before you start, you need:</b></p><ul style='margin:6px 0;padding-left:0;list-style:none;'><li style='margin:4px 0;'>1. The <b>iGrant.io Data Wallet</b> app on your phone \\u2014 <a href='https://docs.igrant.io/docs/data-wallet-tryitout/' style='color:#1a56db;text-decoration:underline;' target='_blank' rel='noopener noreferrer'>download instructions here</a>.</li><li style='margin:4px 0;'>2. A <b>PID credential</b> (person identification data) in the wallet \\u2014 <a href='https://igrant.io/demo/pid.html' style='color:#1a56db;text-decoration:underline;' target='_blank' rel='noopener noreferrer'>get one here</a>.</li><li style='margin:4px 0;'>3. An <b>Educational Institution Certificate</b> credential in the wallet \\u2014 <a href='/tasks/create/1003/1003001' style='color:#1a56db;text-decoration:underline;'>complete step 2 first</a>.</li></ul><p>Press Continue to start.</p></div>\"\n                }\n            }\n        }\n    }\n}",
+   "htmlTemplate": "",
+   "accessJsonSchema": {},
+   "additionalDataToSign": null,
+   "createdAt": "2026-08-26T09:00:00.000Z",
+   "updatedAt": "2026-08-26T09:00:00.000Z"
+  },
+  {
+   "id": 1005002,
+   "name": "Choose a role",
+   "jsonSchema": {
+    "title": "Choose a role",
+    "type": "object",
+    "pdfRequired": false,
+    "signRequired": false,
+    "showNextTaskButton": false,
+    "finishBtn": "Continue",
+    "forceRedirect": true,
+    "properties": {
+     "apply": {
+      "type": "object",
+      "description": "Open positions",
+      "properties": {
+       "role": {
+        "type": "string",
+        "description": "Which role are you applying for?",
+        "control": "radio.group",
+        "checkRequired": "() => true",
+        "items": [
+         {
+          "id": "Registry Operations Coordinator",
+          "title": "Registry Operations Coordinator — keep the national registers running"
+         },
+         {
+          "id": "Public Services Analyst",
+          "title": "Public Services Analyst — measure and improve citizen services"
+         },
+         {
+          "id": "Junior Data Engineer",
+          "title": "Junior Data Engineer — build the data pipelines behind the portals"
+         }
+        ]
+       },
+       "message": {
+        "type": "string",
+        "description": "Message to the hiring team (optional)"
+       }
+      }
+     }
+    }
+   },
+   "jsonSchemaRaw": "{\n    \"title\": \"Choose a role\",\n    \"type\": \"object\",\n    \"pdfRequired\": false,\n    \"signRequired\": false,\n    \"showNextTaskButton\": false,\n    \"finishBtn\": \"Continue\",\n    \"forceRedirect\": true,\n    \"properties\": {\n        \"apply\": {\n            \"type\": \"object\",\n            \"description\": \"Open positions\",\n            \"properties\": {\n                \"role\": {\n                    \"type\": \"string\",\n                    \"description\": \"Which role are you applying for?\",\n                    \"control\": \"radio.group\",\n                    \"checkRequired\": \"() => true\",\n                    \"items\": [\n                        {\n                            \"id\": \"Registry Operations Coordinator\",\n                            \"title\": \"Registry Operations Coordinator \\u2014 keep the national registers running\"\n                        },\n                        {\n                            \"id\": \"Public Services Analyst\",\n                            \"title\": \"Public Services Analyst \\u2014 measure and improve citizen services\"\n                        },\n                        {\n                            \"id\": \"Junior Data Engineer\",\n                            \"title\": \"Junior Data Engineer \\u2014 build the data pipelines behind the portals\"\n                        }\n                    ]\n                },\n                \"message\": {\n                    \"type\": \"string\",\n                    \"description\": \"Message to the hiring team (optional)\"\n                }\n            }\n        }\n    }\n}",
+   "htmlTemplate": "",
+   "accessJsonSchema": {},
+   "additionalDataToSign": null,
+   "createdAt": "2026-08-26T09:00:00.000Z",
+   "updatedAt": "2026-08-26T09:00:00.000Z"
+  },
+  {
+   "id": 1005003,
+   "name": "Share your credentials",
+   "jsonSchema": {
+    "title": "Share your credentials",
+    "type": "object",
+    "pdfRequired": false,
+    "signRequired": false,
+    "showNextTaskButton": false,
+    "finishBtn": "Continue",
+    "forceRedirect": true,
+    "properties": {
+     "share": {
+      "type": "object",
+      "properties": {
+       "wallet": {
+        "type": "object",
+        "control": "igrant.credential",
+        "mode": "verify",
+        "checkService": "igrant",
+        "title": "Apply with your wallet",
+        "pendingText": "Scan with your wallet and share your PID and your educational certificate — the PID fills your details; the certificate is your evidence.",
+        "successText": "Credentials received — your application is verified.",
+        "settingsName": "REPLACE_WITH_EMPLOYER_SETTINGS_NAME",
+        "value": "({documents, events, documentData, user}) => { const rows = (events || []).filter((e) => e.eventTemplateId === 1005001).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)); const r = rows[0]?.data?.result?.sendToExternalService?.sendingResult?.response || {}; return { uri: r.qrUri || '', exchangeId: r.exchangeId || '' }; }"
+       }
+      }
+     }
+    }
+   },
+   "jsonSchemaRaw": "{\n    \"title\": \"Share your credentials\",\n    \"type\": \"object\",\n    \"pdfRequired\": false,\n    \"signRequired\": false,\n    \"showNextTaskButton\": false,\n    \"finishBtn\": \"Continue\",\n    \"forceRedirect\": true,\n    \"properties\": {\n        \"share\": {\n            \"type\": \"object\",\n            \"properties\": {\n                \"wallet\": {\n                    \"type\": \"object\",\n                    \"control\": \"igrant.credential\",\n                    \"mode\": \"verify\",\n                    \"checkService\": \"igrant\",\n                    \"title\": \"Apply with your wallet\",\n                    \"pendingText\": \"Scan with your wallet and share your PID and your educational certificate \\u2014 the PID fills your details; the certificate is your evidence.\",\n                    \"successText\": \"Credentials received \\u2014 your application is verified.\",\n                    \"settingsName\": \"REPLACE_WITH_EMPLOYER_SETTINGS_NAME\",\n                    \"value\": \"({documents, events, documentData, user}) => { const rows = (events || []).filter((e) => e.eventTemplateId === 1005001).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)); const r = rows[0]?.data?.result?.sendToExternalService?.sendingResult?.response || {}; return { uri: r.qrUri || '', exchangeId: r.exchangeId || '' }; }\"\n                }\n            }\n        }\n    }\n}",
+   "htmlTemplate": "",
+   "accessJsonSchema": {},
+   "additionalDataToSign": null,
+   "createdAt": "2026-08-26T09:00:00.000Z",
+   "updatedAt": "2026-08-26T09:00:00.000Z"
+  },
+  {
+   "id": 1005004,
+   "name": "Application failed",
+   "jsonSchema": {
+    "title": "Application failed",
+    "type": "object",
+    "pdfRequired": false,
+    "signRequired": false,
+    "showNextTaskButton": false,
+    "finishBtn": "Close",
+    "finalScreen": {
+     "title": "Application failed",
+     "subtitle": "The credentials could not be verified."
+    },
+    "properties": {
+     "failed": {
+      "type": "object",
+      "properties": {
+       "text": {
+        "control": "text.block",
+        "htmlBlock": "<div><p>The credentials could not be verified — for example, the certificate may have been revoked. You can order this service again, or <a href='/tasks/create/1003/1003001' style='color:#1a56db;text-decoration:underline;'>obtain a new certificate</a> first.</p></div>"
+       }
+      }
+     }
+    }
+   },
+   "jsonSchemaRaw": "{\n    \"title\": \"Application failed\",\n    \"type\": \"object\",\n    \"pdfRequired\": false,\n    \"signRequired\": false,\n    \"showNextTaskButton\": false,\n    \"finishBtn\": \"Close\",\n    \"finalScreen\": {\n        \"title\": \"Application failed\",\n        \"subtitle\": \"The credentials could not be verified.\"\n    },\n    \"properties\": {\n        \"failed\": {\n            \"type\": \"object\",\n            \"properties\": {\n                \"text\": {\n                    \"control\": \"text.block\",\n                    \"htmlBlock\": \"<div><p>The credentials could not be verified \\u2014 for example, the certificate may have been revoked. You can order this service again, or <a href='/tasks/create/1003/1003001' style='color:#1a56db;text-decoration:underline;'>obtain a new certificate</a> first.</p></div>\"\n                }\n            }\n        }\n    }\n}",
+   "htmlTemplate": "",
+   "accessJsonSchema": {},
+   "additionalDataToSign": null,
+   "createdAt": "2026-08-26T09:00:00.000Z",
+   "updatedAt": "2026-08-26T09:00:00.000Z"
+  },
+  {
+   "id": 1005005,
+   "name": "Review and submit",
+   "jsonSchema": {
+    "title": "Review and submit",
+    "type": "object",
+    "pdfRequired": false,
+    "signRequired": false,
+    "showNextTaskButton": false,
+    "finishBtn": "Submit application",
+    "finalScreen": {
+     "title": "Application submitted",
+     "subtitle": "Thank you for applying. CivicWorks will be in touch. This completes the journey!"
+    },
+    "properties": {
+     "applicant": {
+      "type": "object",
+      "description": "Your details",
+      "properties": {
+       "role": {
+        "type": "string",
+        "description": "Role",
+        "readOnly": true,
+        "value": "({documents, events, documentData, user}) => { const d = (documents || []).find((x) => x.documentTemplateId === 1005002); return d?.data?.apply?.role || ''; }"
+       },
+       "fullName": {
+        "type": "string",
+        "description": "Full name",
+        "value": "({documents, events, documentData, user}) => { const d = (documents || []).find((x) => x.documentTemplateId === 1005003); const c = d?.data?.share?.wallet?.result?.claims || {}; return ((c.given_name || '') + ' ' + (c.family_name || '')).trim(); }",
+        "readOnly": true,
+        "checkRequired": "() => true"
+       },
+       "email": {
+        "type": "string",
+        "description": "Email",
+        "value": "({documents, events, documentData, user}) => { const d = (documents || []).find((x) => x.documentTemplateId === 1005003); const c = d?.data?.share?.wallet?.result?.claims || {}; return c.email || ''; }",
+        "readOnly": true,
+        "checkRequired": "() => true"
+       },
+       "phone": {
+        "type": "string",
+        "description": "Phone (optional)"
+       }
+      }
+     },
+     "evidence": {
+      "type": "object",
+      "description": "Evidence of qualification (from your wallet)",
+      "properties": {
+       "institution": {
+        "type": "string",
+        "description": "Awarding institution",
+        "value": "({documents, events, documentData, user}) => { const d = (documents || []).find((x) => x.documentTemplateId === 1005003); const c = d?.data?.share?.wallet?.result?.claims || {}; return c.institution || ''; }",
+        "readOnly": true
+       },
+       "programmeName": {
+        "type": "string",
+        "description": "Programme",
+        "value": "({documents, events, documentData, user}) => { const d = (documents || []).find((x) => x.documentTemplateId === 1005003); const c = d?.data?.share?.wallet?.result?.claims || {}; return c.programme_name || ''; }",
+        "readOnly": true
+       },
+       "programmeLevel": {
+        "type": "string",
+        "description": "Programme level",
+        "value": "({documents, events, documentData, user}) => { const d = (documents || []).find((x) => x.documentTemplateId === 1005003); const c = d?.data?.share?.wallet?.result?.claims || {}; return c.programme_level || ''; }",
+        "readOnly": true
+       },
+       "finalOutcome": {
+        "type": "string",
+        "description": "Final outcome",
+        "value": "({documents, events, documentData, user}) => { const d = (documents || []).find((x) => x.documentTemplateId === 1005003); const c = d?.data?.share?.wallet?.result?.claims || {}; return c.final_outcome || ''; }",
+        "readOnly": true
+       },
+       "issueDate": {
+        "type": "string",
+        "description": "Issue date",
+        "value": "({documents, events, documentData, user}) => { const d = (documents || []).find((x) => x.documentTemplateId === 1005003); const c = d?.data?.share?.wallet?.result?.claims || {}; return c.issue_date || ''; }",
+        "readOnly": true
+       },
+       "note": {
+        "control": "text.block",
+        "htmlBlock": "<p style='color:#666;font-size:13px;margin-top:8px;'>Shared from your wallet with selective disclosure and verified: trusted issuer, valid signature, not revoked. Only the fields above were disclosed.</p>"
+       }
+      }
+     }
+    }
+   },
+   "jsonSchemaRaw": "{\n    \"title\": \"Review and submit\",\n    \"type\": \"object\",\n    \"pdfRequired\": false,\n    \"signRequired\": false,\n    \"showNextTaskButton\": false,\n    \"finishBtn\": \"Submit application\",\n    \"finalScreen\": {\n        \"title\": \"Application submitted\",\n        \"subtitle\": \"Thank you for applying. CivicWorks will be in touch. This completes the journey!\"\n    },\n    \"properties\": {\n        \"applicant\": {\n            \"type\": \"object\",\n            \"description\": \"Your details\",\n            \"properties\": {\n                \"role\": {\n                    \"type\": \"string\",\n                    \"description\": \"Role\",\n                    \"readOnly\": true,\n                    \"value\": \"({documents, events, documentData, user}) => { const d = (documents || []).find((x) => x.documentTemplateId === 1005002); return d?.data?.apply?.role || ''; }\"\n                },\n                \"fullName\": {\n                    \"type\": \"string\",\n                    \"description\": \"Full name\",\n                    \"value\": \"({documents, events, documentData, user}) => { const d = (documents || []).find((x) => x.documentTemplateId === 1005003); const c = d?.data?.share?.wallet?.result?.claims || {}; return ((c.given_name || '') + ' ' + (c.family_name || '')).trim(); }\",\n                    \"readOnly\": true,\n                    \"checkRequired\": \"() => true\"\n                },\n                \"email\": {\n                    \"type\": \"string\",\n                    \"description\": \"Email\",\n                    \"value\": \"({documents, events, documentData, user}) => { const d = (documents || []).find((x) => x.documentTemplateId === 1005003); const c = d?.data?.share?.wallet?.result?.claims || {}; return c.email || ''; }\",\n                    \"readOnly\": true,\n                    \"checkRequired\": \"() => true\"\n                },\n                \"phone\": {\n                    \"type\": \"string\",\n                    \"description\": \"Phone (optional)\"\n                }\n            }\n        },\n        \"evidence\": {\n            \"type\": \"object\",\n            \"description\": \"Evidence of qualification (from your wallet)\",\n            \"properties\": {\n                \"institution\": {\n                    \"type\": \"string\",\n                    \"description\": \"Awarding institution\",\n                    \"value\": \"({documents, events, documentData, user}) => { const d = (documents || []).find((x) => x.documentTemplateId === 1005003); const c = d?.data?.share?.wallet?.result?.claims || {}; return c.institution || ''; }\",\n                    \"readOnly\": true\n                },\n                \"programmeName\": {\n                    \"type\": \"string\",\n                    \"description\": \"Programme\",\n                    \"value\": \"({documents, events, documentData, user}) => { const d = (documents || []).find((x) => x.documentTemplateId === 1005003); const c = d?.data?.share?.wallet?.result?.claims || {}; return c.programme_name || ''; }\",\n                    \"readOnly\": true\n                },\n                \"programmeLevel\": {\n                    \"type\": \"string\",\n                    \"description\": \"Programme level\",\n                    \"value\": \"({documents, events, documentData, user}) => { const d = (documents || []).find((x) => x.documentTemplateId === 1005003); const c = d?.data?.share?.wallet?.result?.claims || {}; return c.programme_level || ''; }\",\n                    \"readOnly\": true\n                },\n                \"finalOutcome\": {\n                    \"type\": \"string\",\n                    \"description\": \"Final outcome\",\n                    \"value\": \"({documents, events, documentData, user}) => { const d = (documents || []).find((x) => x.documentTemplateId === 1005003); const c = d?.data?.share?.wallet?.result?.claims || {}; return c.final_outcome || ''; }\",\n                    \"readOnly\": true\n                },\n                \"issueDate\": {\n                    \"type\": \"string\",\n                    \"description\": \"Issue date\",\n                    \"value\": \"({documents, events, documentData, user}) => { const d = (documents || []).find((x) => x.documentTemplateId === 1005003); const c = d?.data?.share?.wallet?.result?.claims || {}; return c.issue_date || ''; }\",\n                    \"readOnly\": true\n                },\n                \"note\": {\n                    \"control\": \"text.block\",\n                    \"htmlBlock\": \"<p style='color:#666;font-size:13px;margin-top:8px;'>Shared from your wallet with selective disclosure and verified: trusted issuer, valid signature, not revoked. Only the fields above were disclosed.</p>\"\n                }\n            }\n        }\n    }\n}",
+   "htmlTemplate": "",
+   "accessJsonSchema": {},
+   "additionalDataToSign": null,
+   "createdAt": "2026-08-26T09:00:00.000Z",
+   "updatedAt": "2026-08-26T09:00:00.000Z"
+  }
+ ],
+ "gatewayTemplates": [
+  {
+   "id": 1005001,
+   "gatewayTypeId": 1,
+   "name": "Credentials verified?",
+   "description": "",
+   "jsonSchema": {
+    "formulas": [
+     {
+      "isDefault": false,
+      "id": "Yes",
+      "condition": "(documents, events) => { const d = documents.find((x) => x.documentTemplateId === 1005003); return d?.data?.share?.wallet?.result?.verified === true; };"
+     },
+     {
+      "isDefault": false,
+      "id": "No",
+      "condition": "(documents, events) => { const d = documents.find((x) => x.documentTemplateId === 1005003); return d?.data?.share?.wallet?.result?.verified !== true; };"
+     }
+    ],
+    "isCurrentOnly": true
+   },
+   "jsonSchemaRaw": "{\n    \"formulas\": [\n        {\n            \"isDefault\": false,\n            \"id\": \"Yes\",\n            \"condition\": \"(documents, events) => { const d = documents.find((x) => x.documentTemplateId === 1005003); return d?.data?.share?.wallet?.result?.verified === true; };\"\n        },\n        {\n            \"isDefault\": false,\n            \"id\": \"No\",\n            \"condition\": \"(documents, events) => { const d = documents.find((x) => x.documentTemplateId === 1005003); return d?.data?.share?.wallet?.result?.verified !== true; };\"\n        }\n    ],\n    \"isCurrentOnly\": true\n}",
+   "createdAt": "2026-08-26T09:00:00.000Z",
+   "updatedAt": "2026-08-26T09:00:00.000Z"
+  }
+ ],
+ "numberTemplates": [
+  {
+   "id": 1005001,
+   "name": "Job application number",
+   "template": "JOB-{{idZerosPrefix 6}}/{{date 'YY'}}",
+   "created_at": "2026-08-26T09:00:00.000Z",
+   "updated_at": "2026-08-26T09:00:00.000Z"
+  }
+ ],
+ "eventTemplates": [
+  {
+   "id": 1005001,
+   "eventTypeId": 3,
+   "name": "Request credentials (verify)",
+   "description": "",
+   "jsonSchema": {
+    "sendToExternalService": {
+     "providerName": "igrant",
+     "service": "igrant",
+     "options": {
+      "operation": "() => 'verify'",
+      "settingsName": "() => 'REPLACE_WITH_EMPLOYER_SETTINGS_NAME'",
+      "presentationDefinitionId": "() => 'REPLACE_WITH_JOB_APPLICATION_PRESENTATION_DEFINITION_ID'",
+      "requestByReference": "() => true"
+     }
+    }
+   },
+   "jsonSchemaRaw": "{\n    \"sendToExternalService\": {\n        \"providerName\": \"igrant\",\n        \"service\": \"igrant\",\n        \"options\": {\n            \"operation\": \"() => 'verify'\",\n            \"settingsName\": \"() => 'REPLACE_WITH_EMPLOYER_SETTINGS_NAME'\",\n            \"presentationDefinitionId\": \"() => 'REPLACE_WITH_JOB_APPLICATION_PRESENTATION_DEFINITION_ID'\",\n            \"requestByReference\": \"() => true\"\n        }\n    }\n}",
+   "htmlTemplate": "",
+   "createdAt": "2026-08-26T09:00:00.000Z",
+   "updatedAt": "2026-08-26T09:00:00.000Z"
+  }
+ ]
+}

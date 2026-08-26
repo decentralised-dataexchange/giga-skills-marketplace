@@ -1,0 +1,452 @@
+{
+ "workflowTemplate": {
+  "id": 1003,
+  "workflowTemplateCategoryId": null,
+  "name": "Educational certificate",
+  "description": "iGrant.io journey step 2: share your Learner Profile, select the certificate, pay the 10.00 EUR fee in your wallet (TS12 payment), and receive the certificate credential.",
+  "xmlBpmnSchema": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<bpmn2:definitions xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:bpmn2=\"http://www.omg.org/spec/BPMN/20100524/MODEL\" xmlns:bpmndi=\"http://www.omg.org/spec/BPMN/20100524/DI\" xmlns:dc=\"http://www.omg.org/spec/DD/20100524/DC\" xmlns:di=\"http://www.omg.org/spec/DD/20100524/DI\" id=\"educational-certificate-diagram\" targetNamespace=\"http://bpmn.io/schema/bpmn\" xsi:schemaLocation=\"http://www.omg.org/spec/BPMN/20100524/MODEL BPMN20.xsd\">\n  <bpmn2:collaboration id=\"Collaboration_educational-certificate-diagram\">\n    <bpmn2:participant id=\"Participant_educational-certificate-diagram\" name=\"Educational certificate\" processRef=\"Process_1\" />\n  </bpmn2:collaboration>\n  <bpmn2:process id=\"Process_1\" isExecutable=\"false\">\n    <bpmn2:laneSet id=\"LaneSet_educational-certificate-diagram\">\n      <bpmn2:lane id=\"Lane_educational-certificate-diagram\" name=\"Learner\">\n        <bpmn2:flowNodeRef>StartEvent_1</bpmn2:flowNodeRef>\n        <bpmn2:flowNodeRef>task-1003001</bpmn2:flowNodeRef>\n        <bpmn2:flowNodeRef>event-1003002</bpmn2:flowNodeRef>\n        <bpmn2:flowNodeRef>task-1003005</bpmn2:flowNodeRef>\n        <bpmn2:flowNodeRef>gateway-1003001</bpmn2:flowNodeRef>\n        <bpmn2:flowNodeRef>task-1003002</bpmn2:flowNodeRef>\n        <bpmn2:flowNodeRef>event-1003001</bpmn2:flowNodeRef>\n        <bpmn2:flowNodeRef>task-1003004</bpmn2:flowNodeRef>\n        <bpmn2:flowNodeRef>end-event-1</bpmn2:flowNodeRef>\n        <bpmn2:flowNodeRef>task-1003006</bpmn2:flowNodeRef>\n        <bpmn2:flowNodeRef>end-event-2</bpmn2:flowNodeRef>\n      </bpmn2:lane>\n    </bpmn2:laneSet>\n    <bpmn2:startEvent id=\"StartEvent_1\">\n      <bpmn2:outgoing>Flow_01</bpmn2:outgoing>\n    </bpmn2:startEvent>\n    <bpmn2:task id=\"task-1003001\" name=\"Start\">\n      <bpmn2:incoming>Flow_01</bpmn2:incoming>\n      <bpmn2:outgoing>Flow_02</bpmn2:outgoing>\n    </bpmn2:task>\n    <bpmn2:intermediateCatchEvent id=\"event-1003002\" name=\"Request Learner Profile (verify)\">\n      <bpmn2:incoming>Flow_02</bpmn2:incoming>\n      <bpmn2:outgoing>Flow_03</bpmn2:outgoing>\n      <bpmn2:conditionalEventDefinition id=\"Cond_event-1003002\">\n        <bpmn2:condition xsi:type=\"bpmn2:tFormalExpression\" />\n      </bpmn2:conditionalEventDefinition>\n    </bpmn2:intermediateCatchEvent>\n    <bpmn2:task id=\"task-1003005\" name=\"Share your Learner Profile\">\n      <bpmn2:incoming>Flow_03</bpmn2:incoming>\n      <bpmn2:outgoing>Flow_04</bpmn2:outgoing>\n    </bpmn2:task>\n    <bpmn2:exclusiveGateway id=\"gateway-1003001\" name=\"Profile verified?\">\n      <bpmn2:incoming>Flow_04</bpmn2:incoming>\n      <bpmn2:outgoing>Flow_05</bpmn2:outgoing>\n      <bpmn2:outgoing>Flow_09</bpmn2:outgoing>\n    </bpmn2:exclusiveGateway>\n    <bpmn2:task id=\"task-1003002\" name=\"Payment\">\n      <bpmn2:incoming>Flow_05</bpmn2:incoming>\n      <bpmn2:outgoing>Flow_06</bpmn2:outgoing>\n    </bpmn2:task>\n    <bpmn2:intermediateCatchEvent id=\"event-1003001\" name=\"Issue certificate credential\">\n      <bpmn2:incoming>Flow_06</bpmn2:incoming>\n      <bpmn2:outgoing>Flow_07</bpmn2:outgoing>\n      <bpmn2:conditionalEventDefinition id=\"Cond_event-1003001\">\n        <bpmn2:condition xsi:type=\"bpmn2:tFormalExpression\" />\n      </bpmn2:conditionalEventDefinition>\n    </bpmn2:intermediateCatchEvent>\n    <bpmn2:task id=\"task-1003004\" name=\"Save to your wallet\">\n      <bpmn2:incoming>Flow_07</bpmn2:incoming>\n      <bpmn2:outgoing>Flow_08</bpmn2:outgoing>\n    </bpmn2:task>\n    <bpmn2:endEvent id=\"end-event-1\">\n      <bpmn2:incoming>Flow_08</bpmn2:incoming>\n    </bpmn2:endEvent>\n    <bpmn2:task id=\"task-1003006\" name=\"Verification failed\">\n      <bpmn2:incoming>Flow_09</bpmn2:incoming>\n      <bpmn2:outgoing>Flow_10</bpmn2:outgoing>\n    </bpmn2:task>\n    <bpmn2:endEvent id=\"end-event-2\">\n      <bpmn2:incoming>Flow_10</bpmn2:incoming>\n    </bpmn2:endEvent>\n    <bpmn2:sequenceFlow id=\"Flow_01\" sourceRef=\"StartEvent_1\" targetRef=\"task-1003001\" />\n    <bpmn2:sequenceFlow id=\"Flow_02\" sourceRef=\"task-1003001\" targetRef=\"event-1003002\" />\n    <bpmn2:sequenceFlow id=\"Flow_03\" sourceRef=\"event-1003002\" targetRef=\"task-1003005\" />\n    <bpmn2:sequenceFlow id=\"Flow_04\" sourceRef=\"task-1003005\" targetRef=\"gateway-1003001\" />\n    <bpmn2:sequenceFlow id=\"Flow_05\" name=\"Yes\" sourceRef=\"gateway-1003001\" targetRef=\"task-1003002\" />\n    <bpmn2:sequenceFlow id=\"Flow_06\" sourceRef=\"task-1003002\" targetRef=\"event-1003001\" />\n    <bpmn2:sequenceFlow id=\"Flow_07\" sourceRef=\"event-1003001\" targetRef=\"task-1003004\" />\n    <bpmn2:sequenceFlow id=\"Flow_08\" sourceRef=\"task-1003004\" targetRef=\"end-event-1\" />\n    <bpmn2:sequenceFlow id=\"Flow_09\" name=\"No\" sourceRef=\"gateway-1003001\" targetRef=\"task-1003006\" />\n    <bpmn2:sequenceFlow id=\"Flow_10\" sourceRef=\"task-1003006\" targetRef=\"end-event-2\" />\n  </bpmn2:process>\n  <bpmndi:BPMNDiagram id=\"BPMNDiagram_1\">\n    <bpmndi:BPMNPlane id=\"BPMNPlane_1\" bpmnElement=\"Collaboration_educational-certificate-diagram\">\n      <bpmndi:BPMNShape id=\"Participant_educational-certificate-diagram_di\" bpmnElement=\"Participant_educational-certificate-diagram\" isHorizontal=\"true\">\n        <dc:Bounds x=\"120\" y=\"80\" width=\"1264\" height=\"420\" />\n      </bpmndi:BPMNShape>\n      <bpmndi:BPMNShape id=\"Lane_educational-certificate-diagram_di\" bpmnElement=\"Lane_educational-certificate-diagram\" isHorizontal=\"true\">\n        <dc:Bounds x=\"150\" y=\"80\" width=\"1234\" height=\"420\" />\n      </bpmndi:BPMNShape>\n      <bpmndi:BPMNShape id=\"StartEvent_1_di\" bpmnElement=\"StartEvent_1\">\n        <dc:Bounds x=\"172\" y=\"202\" width=\"36\" height=\"36\" />\n      </bpmndi:BPMNShape>\n      <bpmndi:BPMNShape id=\"task-1003001_di\" bpmnElement=\"task-1003001\">\n        <dc:Bounds x=\"260\" y=\"180\" width=\"100\" height=\"80\" />\n      </bpmndi:BPMNShape>\n      <bpmndi:BPMNShape id=\"event-1003002_di\" bpmnElement=\"event-1003002\">\n        <dc:Bounds x=\"412\" y=\"202\" width=\"36\" height=\"36\" />\n      </bpmndi:BPMNShape>\n      <bpmndi:BPMNShape id=\"task-1003005_di\" bpmnElement=\"task-1003005\">\n        <dc:Bounds x=\"500\" y=\"180\" width=\"100\" height=\"80\" />\n      </bpmndi:BPMNShape>\n      <bpmndi:BPMNShape id=\"gateway-1003001_di\" bpmnElement=\"gateway-1003001\">\n        <dc:Bounds x=\"652\" y=\"195\" width=\"50\" height=\"50\" />\n      </bpmndi:BPMNShape>\n      <bpmndi:BPMNShape id=\"task-1003002_di\" bpmnElement=\"task-1003002\">\n        <dc:Bounds x=\"754\" y=\"180\" width=\"100\" height=\"80\" />\n      </bpmndi:BPMNShape>\n      <bpmndi:BPMNShape id=\"event-1003001_di\" bpmnElement=\"event-1003001\">\n        <dc:Bounds x=\"906\" y=\"202\" width=\"36\" height=\"36\" />\n      </bpmndi:BPMNShape>\n      <bpmndi:BPMNShape id=\"task-1003004_di\" bpmnElement=\"task-1003004\">\n        <dc:Bounds x=\"994\" y=\"180\" width=\"100\" height=\"80\" />\n      </bpmndi:BPMNShape>\n      <bpmndi:BPMNShape id=\"end-event-1_di\" bpmnElement=\"end-event-1\">\n        <dc:Bounds x=\"1146\" y=\"202\" width=\"36\" height=\"36\" />\n      </bpmndi:BPMNShape>\n      <bpmndi:BPMNShape id=\"task-1003006_di\" bpmnElement=\"task-1003006\">\n        <dc:Bounds x=\"754\" y=\"320\" width=\"100\" height=\"80\" />\n      </bpmndi:BPMNShape>\n      <bpmndi:BPMNShape id=\"end-event-2_di\" bpmnElement=\"end-event-2\">\n        <dc:Bounds x=\"906\" y=\"342\" width=\"36\" height=\"36\" />\n      </bpmndi:BPMNShape>\n      <bpmndi:BPMNEdge id=\"Flow_01_di\" bpmnElement=\"Flow_01\">\n        <di:waypoint x=\"208\" y=\"220\" />\n        <di:waypoint x=\"260\" y=\"220\" />\n      </bpmndi:BPMNEdge>\n      <bpmndi:BPMNEdge id=\"Flow_02_di\" bpmnElement=\"Flow_02\">\n        <di:waypoint x=\"360\" y=\"220\" />\n        <di:waypoint x=\"412\" y=\"220\" />\n      </bpmndi:BPMNEdge>\n      <bpmndi:BPMNEdge id=\"Flow_03_di\" bpmnElement=\"Flow_03\">\n        <di:waypoint x=\"448\" y=\"220\" />\n        <di:waypoint x=\"500\" y=\"220\" />\n      </bpmndi:BPMNEdge>\n      <bpmndi:BPMNEdge id=\"Flow_04_di\" bpmnElement=\"Flow_04\">\n        <di:waypoint x=\"600\" y=\"220\" />\n        <di:waypoint x=\"652\" y=\"220\" />\n      </bpmndi:BPMNEdge>\n      <bpmndi:BPMNEdge id=\"Flow_05_di\" bpmnElement=\"Flow_05\">\n        <di:waypoint x=\"702\" y=\"220\" />\n        <di:waypoint x=\"754\" y=\"220\" />\n      </bpmndi:BPMNEdge>\n      <bpmndi:BPMNEdge id=\"Flow_06_di\" bpmnElement=\"Flow_06\">\n        <di:waypoint x=\"854\" y=\"220\" />\n        <di:waypoint x=\"906\" y=\"220\" />\n      </bpmndi:BPMNEdge>\n      <bpmndi:BPMNEdge id=\"Flow_07_di\" bpmnElement=\"Flow_07\">\n        <di:waypoint x=\"942\" y=\"220\" />\n        <di:waypoint x=\"994\" y=\"220\" />\n      </bpmndi:BPMNEdge>\n      <bpmndi:BPMNEdge id=\"Flow_08_di\" bpmnElement=\"Flow_08\">\n        <di:waypoint x=\"1094\" y=\"220\" />\n        <di:waypoint x=\"1146\" y=\"220\" />\n      </bpmndi:BPMNEdge>\n      <bpmndi:BPMNEdge id=\"Flow_09_di\" bpmnElement=\"Flow_09\">\n        <di:waypoint x=\"677\" y=\"245\" />\n        <di:waypoint x=\"677\" y=\"360\" />\n        <di:waypoint x=\"754\" y=\"360\" />\n      </bpmndi:BPMNEdge>\n      <bpmndi:BPMNEdge id=\"Flow_10_di\" bpmnElement=\"Flow_10\">\n        <di:waypoint x=\"854\" y=\"360\" />\n        <di:waypoint x=\"906\" y=\"360\" />\n      </bpmndi:BPMNEdge>\n    </bpmndi:BPMNPlane>\n  </bpmndi:BPMNDiagram>\n</bpmn2:definitions>\n",
+  "data": {
+   "statuses": [
+    {
+     "statusId": 1,
+     "label": "DRAFT",
+     "taskOrEventTemplateId": "{\"id\": 1003001, \"type\": \"task\", \"name\": \"Start\", \"sourceId\": 1003001}",
+     "taskTemplateId": 1003001
+    },
+    {
+     "statusId": 2,
+     "label": "SHARING PROFILE",
+     "taskOrEventTemplateId": "{\"id\": 1003005, \"type\": \"task\", \"name\": \"Share your Learner Profile\", \"sourceId\": 1003005}",
+     "taskTemplateId": 1003005
+    },
+    {
+     "statusId": 3,
+     "label": "PAYMENT",
+     "taskOrEventTemplateId": "{\"id\": 1003002, \"type\": \"task\", \"name\": \"Payment\", \"sourceId\": 1003002}",
+     "taskTemplateId": 1003002
+    },
+    {
+     "statusId": 4,
+     "label": "CREDENTIAL DELIVERED",
+     "taskOrEventTemplateId": "{\"id\": 1003004, \"type\": \"task\", \"name\": \"Save to your wallet\", \"sourceId\": 1003004}",
+     "taskTemplateId": 1003004
+    }
+   ],
+   "entryTaskTemplateIds": [
+    {
+     "name": "Start",
+     "id": "() => 1003001;",
+     "hidden": false
+    }
+   ],
+   "numberTemplateId": 1003001,
+   "timeline": {
+    "steps": [
+     {
+      "taskTemplateId": 1003005,
+      "label": "SHARING PROFILE"
+     },
+     {
+      "taskTemplateId": 1003002,
+      "label": "PAYMENT"
+     },
+     {
+      "taskTemplateId": 1003004,
+      "label": "CREDENTIAL DELIVERED"
+     }
+    ]
+   }
+  },
+  "isActive": true,
+  "accessUnits": [],
+  "createdAt": "2026-08-26T09:00:00.000Z",
+  "updatedAt": "2026-08-26T09:00:00.000Z",
+  "meta": {}
+ },
+ "workflowTemplateCategory": null,
+ "taskTemplates": [
+  {
+   "id": 1003001,
+   "name": "Start",
+   "documentTemplateId": 1003001,
+   "jsonSchema": {
+    "setPermissions": [
+     {
+      "performerUsersIsWorkflowOwner": true
+     }
+    ]
+   },
+   "jsonSchemaRaw": "{\n    \"setPermissions\": [\n        {\n            \"performerUsersIsWorkflowOwner\": true\n        }\n    ]\n}",
+   "htmlTemplate": "",
+   "createdAt": "2026-08-26T09:00:00.000Z",
+   "updatedAt": "2026-08-26T09:00:00.000Z"
+  },
+  {
+   "id": 1003002,
+   "name": "Payment",
+   "documentTemplateId": 1003002,
+   "jsonSchema": {
+    "setPermissions": [
+     {
+      "performerUsersIsWorkflowOwner": true
+     }
+    ]
+   },
+   "jsonSchemaRaw": "{\n    \"setPermissions\": [\n        {\n            \"performerUsersIsWorkflowOwner\": true\n        }\n    ]\n}",
+   "htmlTemplate": "",
+   "createdAt": "2026-08-26T09:00:00.000Z",
+   "updatedAt": "2026-08-26T09:00:00.000Z"
+  },
+  {
+   "id": 1003004,
+   "name": "Save to your wallet",
+   "documentTemplateId": 1003004,
+   "jsonSchema": {
+    "setPermissions": [
+     {
+      "performerUsersIsWorkflowOwner": true
+     }
+    ]
+   },
+   "jsonSchemaRaw": "{\n    \"setPermissions\": [\n        {\n            \"performerUsersIsWorkflowOwner\": true\n        }\n    ]\n}",
+   "htmlTemplate": "",
+   "createdAt": "2026-08-26T09:00:00.000Z",
+   "updatedAt": "2026-08-26T09:00:00.000Z"
+  },
+  {
+   "id": 1003005,
+   "name": "Share your Learner Profile",
+   "documentTemplateId": 1003005,
+   "jsonSchema": {
+    "setPermissions": [
+     {
+      "performerUsersIsWorkflowOwner": true
+     }
+    ]
+   },
+   "jsonSchemaRaw": "{\n    \"setPermissions\": [\n        {\n            \"performerUsersIsWorkflowOwner\": true\n        }\n    ]\n}",
+   "htmlTemplate": "",
+   "createdAt": "2026-08-26T09:00:00.000Z",
+   "updatedAt": "2026-08-26T09:00:00.000Z"
+  },
+  {
+   "id": 1003006,
+   "name": "Verification failed",
+   "documentTemplateId": 1003006,
+   "jsonSchema": {
+    "setPermissions": [
+     {
+      "performerUsersIsWorkflowOwner": true
+     }
+    ]
+   },
+   "jsonSchemaRaw": "{\n    \"setPermissions\": [\n        {\n            \"performerUsersIsWorkflowOwner\": true\n        }\n    ]\n}",
+   "htmlTemplate": "",
+   "createdAt": "2026-08-26T09:00:00.000Z",
+   "updatedAt": "2026-08-26T09:00:00.000Z"
+  }
+ ],
+ "documentTemplates": [
+  {
+   "id": 1003001,
+   "name": "Start",
+   "jsonSchema": {
+    "title": "Educational certificate",
+    "type": "object",
+    "pdfRequired": false,
+    "signRequired": false,
+    "showNextTaskButton": false,
+    "finishBtn": "Continue",
+    "forceRedirect": true,
+    "properties": {
+     "intro": {
+      "type": "object",
+      "description": "Welcome",
+      "properties": {
+       "text": {
+        "control": "text.block",
+        "htmlBlock": "<div><p>This service issues your educational institution certificate as a digital credential into your wallet. You pay the 10.00 EUR fee by approving it in your wallet — no card forms. We assume you have graduated — congratulations!</p><p style='margin-bottom:4px;'><b>Your journey:</b></p><ul style='margin:6px 0;padding-left:0;list-style:none;'><li style='margin:5px 0;'>1. <a href='/tasks/create/1004/1004001' style='color:#1a56db;text-decoration:underline;'>Register as a learner</a> — share your ID, enrol, and receive your Learner Profile credential</li><li style='margin:5px 0;'><b>2. Educational certificate</b> — pay the 10.00 EUR fee from your wallet and receive your certificate <span style='color:#0e7c7b;font-weight:600;'>← you are here</span></li><li style='margin:5px 0;'>3. <a href='/tasks/create/1005/1005001' style='color:#1a56db;text-decoration:underline;'>Apply for a job</a> — share your ID and certificate with CivicWorks Careers</li></ul><p style='margin-bottom:4px;'><b>Before you start, you need:</b></p><ul style='margin:6px 0;padding-left:0;list-style:none;'><li style='margin:4px 0;'>1. The <b>iGrant.io Data Wallet</b> app on your phone — <a href='https://docs.igrant.io/docs/data-wallet-tryitout/' style='color:#1a56db;text-decoration:underline;' target='_blank' rel='noopener noreferrer'>download instructions here</a>.</li><li style='margin:4px 0;'>2. A <b>Learner Profile</b> credential in the wallet — <a href='/tasks/create/1004/1004001' style='color:#1a56db;text-decoration:underline;'>complete step 1 first</a>.</li><li style='margin:4px 0;'>3. A <b>TS12 payment credential</b> in the wallet, account or card type (it pays the fee) — <a href='https://igrant.io/demo/ts12-payment-credential-issuance.html' style='color:#1a56db;text-decoration:underline;' target='_blank' rel='noopener noreferrer'>get one here</a>.</li></ul><p>Press Continue to start.</p></div>"
+       }
+      }
+     }
+    }
+   },
+   "jsonSchemaRaw": "{\n    \"title\": \"Educational certificate\",\n    \"type\": \"object\",\n    \"pdfRequired\": false,\n    \"signRequired\": false,\n    \"showNextTaskButton\": false,\n    \"finishBtn\": \"Continue\",\n    \"forceRedirect\": true,\n    \"properties\": {\n        \"intro\": {\n            \"type\": \"object\",\n            \"description\": \"Welcome\",\n            \"properties\": {\n                \"text\": {\n                    \"control\": \"text.block\",\n                    \"htmlBlock\": \"<div><p>This service issues your educational institution certificate as a digital credential into your wallet. You pay the 10.00 EUR fee by approving it in your wallet \\u2014 no card forms. We assume you have graduated \\u2014 congratulations!</p><p style='margin-bottom:4px;'><b>Your journey:</b></p><ul style='margin:6px 0;padding-left:0;list-style:none;'><li style='margin:5px 0;'>1. <a href='/tasks/create/1004/1004001' style='color:#1a56db;text-decoration:underline;'>Register as a learner</a> \\u2014 share your ID, enrol, and receive your Learner Profile credential</li><li style='margin:5px 0;'><b>2. Educational certificate</b> \\u2014 pay the 10.00 EUR fee from your wallet and receive your certificate <span style='color:#0e7c7b;font-weight:600;'>\\u2190 you are here</span></li><li style='margin:5px 0;'>3. <a href='/tasks/create/1005/1005001' style='color:#1a56db;text-decoration:underline;'>Apply for a job</a> \\u2014 share your ID and certificate with CivicWorks Careers</li></ul><p style='margin-bottom:4px;'><b>Before you start, you need:</b></p><ul style='margin:6px 0;padding-left:0;list-style:none;'><li style='margin:4px 0;'>1. The <b>iGrant.io Data Wallet</b> app on your phone \\u2014 <a href='https://docs.igrant.io/docs/data-wallet-tryitout/' style='color:#1a56db;text-decoration:underline;' target='_blank' rel='noopener noreferrer'>download instructions here</a>.</li><li style='margin:4px 0;'>2. A <b>Learner Profile</b> credential in the wallet \\u2014 <a href='/tasks/create/1004/1004001' style='color:#1a56db;text-decoration:underline;'>complete step 1 first</a>.</li><li style='margin:4px 0;'>3. A <b>TS12 payment credential</b> in the wallet, account or card type (it pays the fee) \\u2014 <a href='https://igrant.io/demo/ts12-payment-credential-issuance.html' style='color:#1a56db;text-decoration:underline;' target='_blank' rel='noopener noreferrer'>get one here</a>.</li></ul><p>Press Continue to start.</p></div>\"\n                }\n            }\n        }\n    }\n}",
+   "htmlTemplate": "",
+   "accessJsonSchema": {},
+   "additionalDataToSign": null,
+   "createdAt": "2026-08-26T09:00:00.000Z",
+   "updatedAt": "2026-08-26T09:00:00.000Z"
+  },
+  {
+   "id": 1003002,
+   "name": "Payment",
+   "jsonSchema": {
+    "title": "Payment",
+    "type": "object",
+    "pdfRequired": false,
+    "signRequired": false,
+    "showNextTaskButton": false,
+    "finishBtn": "Continue",
+    "forceRedirect": true,
+    "properties": {
+     "summary": {
+      "type": "object",
+      "description": "Your certificate (from your Learner Profile)",
+      "properties": {
+       "institution": {
+        "type": "string",
+        "description": "Educational institution",
+        "value": "({documents, events, documentData, user}) => { const d = (documents || []).find((x) => x.documentTemplateId === 1003005); const c = d?.data?.share?.wallet?.result?.claims || {}; return c.institution || ''; }",
+        "readOnly": true
+       },
+       "programmeName": {
+        "type": "string",
+        "description": "Programme",
+        "value": "({documents, events, documentData, user}) => { const d = (documents || []).find((x) => x.documentTemplateId === 1003005); const c = d?.data?.share?.wallet?.result?.claims || {}; return c.programme_name || ''; }",
+        "readOnly": true
+       },
+       "programmeLevel": {
+        "type": "string",
+        "description": "Programme level",
+        "value": "({documents, events, documentData, user}) => { const d = (documents || []).find((x) => x.documentTemplateId === 1003005); const c = d?.data?.share?.wallet?.result?.claims || {}; return /^(MSc|MA|M\\.|Master)/i.test(String(c.programme_name || '')) ? 'Master' : 'Bachelor'; }",
+        "readOnly": true
+       },
+       "finalOutcome": {
+        "type": "string",
+        "description": "Final outcome",
+        "readOnly": true,
+        "value": "({documents, events, documentData, user}) => 'Passed'"
+       }
+      }
+     },
+     "payment": {
+      "type": "object",
+      "description": "Payment method",
+      "properties": {
+       "method": {
+        "type": "string",
+        "description": "How do you want to pay the 10.00 EUR fee?",
+        "control": "radio.group",
+        "checkRequired": "() => true",
+        "items": [
+         {
+          "id": "account",
+          "title": "Pay by account - uses the Payment Account credential in your wallet"
+         },
+         {
+          "id": "card",
+          "title": "Pay by card - uses the Payment Card credential in your wallet"
+         }
+        ]
+       }
+      }
+     }
+    }
+   },
+   "jsonSchemaRaw": "{\n    \"title\": \"Payment\",\n    \"type\": \"object\",\n    \"pdfRequired\": false,\n    \"signRequired\": false,\n    \"showNextTaskButton\": false,\n    \"finishBtn\": \"Continue\",\n    \"forceRedirect\": true,\n    \"properties\": {\n        \"summary\": {\n            \"type\": \"object\",\n            \"description\": \"Your certificate (from your Learner Profile)\",\n            \"properties\": {\n                \"institution\": {\n                    \"type\": \"string\",\n                    \"description\": \"Educational institution\",\n                    \"value\": \"({documents, events, documentData, user}) => { const d = (documents || []).find((x) => x.documentTemplateId === 1003005); const c = d?.data?.share?.wallet?.result?.claims || {}; return c.institution || ''; }\",\n                    \"readOnly\": true\n                },\n                \"programmeName\": {\n                    \"type\": \"string\",\n                    \"description\": \"Programme\",\n                    \"value\": \"({documents, events, documentData, user}) => { const d = (documents || []).find((x) => x.documentTemplateId === 1003005); const c = d?.data?.share?.wallet?.result?.claims || {}; return c.programme_name || ''; }\",\n                    \"readOnly\": true\n                },\n                \"programmeLevel\": {\n                    \"type\": \"string\",\n                    \"description\": \"Programme level\",\n                    \"value\": \"({documents, events, documentData, user}) => { const d = (documents || []).find((x) => x.documentTemplateId === 1003005); const c = d?.data?.share?.wallet?.result?.claims || {}; return /^(MSc|MA|M\\\\.|Master)/i.test(String(c.programme_name || '')) ? 'Master' : 'Bachelor'; }\",\n                    \"readOnly\": true\n                },\n                \"finalOutcome\": {\n                    \"type\": \"string\",\n                    \"description\": \"Final outcome\",\n                    \"readOnly\": true,\n                    \"value\": \"({documents, events, documentData, user}) => 'Passed'\"\n                }\n            }\n        },\n        \"payment\": {\n            \"type\": \"object\",\n            \"description\": \"Payment method\",\n            \"properties\": {\n                \"method\": {\n                    \"type\": \"string\",\n                    \"description\": \"How do you want to pay the 10.00 EUR fee?\",\n                    \"control\": \"radio.group\",\n                    \"checkRequired\": \"() => true\",\n                    \"items\": [\n                        {\n                            \"id\": \"account\",\n                            \"title\": \"Pay by account - uses the Payment Account credential in your wallet\"\n                        },\n                        {\n                            \"id\": \"card\",\n                            \"title\": \"Pay by card - uses the Payment Card credential in your wallet\"\n                        }\n                    ]\n                }\n            }\n        }\n    }\n}",
+   "htmlTemplate": "",
+   "accessJsonSchema": {},
+   "additionalDataToSign": null,
+   "createdAt": "2026-08-26T09:00:00.000Z",
+   "updatedAt": "2026-08-26T09:00:00.000Z"
+  },
+  {
+   "id": 1003004,
+   "name": "Save to your wallet",
+   "jsonSchema": {
+    "title": "Save to your wallet",
+    "type": "object",
+    "pdfRequired": false,
+    "signRequired": false,
+    "showNextTaskButton": false,
+    "finishBtn": "Finish",
+    "finalScreen": {
+     "title": "Congratulations!",
+     "subtitle": "Your educational certificate credential is now in your wallet. Continue with step 3: Apply for a job."
+    },
+    "properties": {
+     "receive": {
+      "type": "object",
+      "properties": {
+       "wallet": {
+        "type": "object",
+        "control": "igrant.credential",
+        "mode": "issue",
+        "checkService": "igrant",
+        "title": "Pay and receive your certificate",
+        "pendingText": "Scan with your wallet: approve the 10.00 EUR fee with your payment credential, and the certificate is issued in the same session.",
+        "successText": "Payment approved and the certificate credential is in your wallet!",
+        "settingsName": "REPLACE_WITH_SETTINGS_NAME",
+        "value": "({documents, events, documentData, user}) => { const rows = (events || []).filter((e) => e.eventTemplateId === 1003001).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)); const r = rows[0]?.data?.result?.sendToExternalService?.sendingResult?.response || {}; return { uri: r.offerUri || '', exchangeId: r.exchangeId || '' }; }"
+       },
+       "nextStep": {
+        "control": "text.block",
+        "htmlBlock": "<div style='margin-top:12px;'><p><b>Next step:</b> <a href='/tasks/create/1005/1005001' style='color:#1a56db;text-decoration:underline;'>Apply for a job</a> — share your ID and certificate with CivicWorks Careers.</p></div>"
+       }
+      }
+     }
+    }
+   },
+   "jsonSchemaRaw": "{\n    \"title\": \"Save to your wallet\",\n    \"type\": \"object\",\n    \"pdfRequired\": false,\n    \"signRequired\": false,\n    \"showNextTaskButton\": false,\n    \"finishBtn\": \"Finish\",\n    \"finalScreen\": {\n        \"title\": \"Congratulations!\",\n        \"subtitle\": \"Your educational certificate credential is now in your wallet. Continue with step 3: Apply for a job.\"\n    },\n    \"properties\": {\n        \"receive\": {\n            \"type\": \"object\",\n            \"properties\": {\n                \"wallet\": {\n                    \"type\": \"object\",\n                    \"control\": \"igrant.credential\",\n                    \"mode\": \"issue\",\n                    \"checkService\": \"igrant\",\n                    \"title\": \"Pay and receive your certificate\",\n                    \"pendingText\": \"Scan with your wallet: approve the 10.00 EUR fee with your payment credential, and the certificate is issued in the same session.\",\n                    \"successText\": \"Payment approved and the certificate credential is in your wallet!\",\n                    \"settingsName\": \"REPLACE_WITH_SETTINGS_NAME\",\n                    \"value\": \"({documents, events, documentData, user}) => { const rows = (events || []).filter((e) => e.eventTemplateId === 1003001).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)); const r = rows[0]?.data?.result?.sendToExternalService?.sendingResult?.response || {}; return { uri: r.offerUri || '', exchangeId: r.exchangeId || '' }; }\"\n                },\n                \"nextStep\": {\n                    \"control\": \"text.block\",\n                    \"htmlBlock\": \"<div style='margin-top:12px;'><p><b>Next step:</b> <a href='/tasks/create/1005/1005001' style='color:#1a56db;text-decoration:underline;'>Apply for a job</a> \\u2014 share your ID and certificate with CivicWorks Careers.</p></div>\"\n                }\n            }\n        }\n    }\n}",
+   "htmlTemplate": "",
+   "accessJsonSchema": {},
+   "additionalDataToSign": null,
+   "createdAt": "2026-08-26T09:00:00.000Z",
+   "updatedAt": "2026-08-26T09:00:00.000Z"
+  },
+  {
+   "id": 1003005,
+   "name": "Share your Learner Profile",
+   "jsonSchema": {
+    "title": "Share your Learner Profile",
+    "type": "object",
+    "pdfRequired": false,
+    "signRequired": false,
+    "showNextTaskButton": false,
+    "finishBtn": "Continue",
+    "forceRedirect": true,
+    "properties": {
+     "share": {
+      "type": "object",
+      "properties": {
+       "wallet": {
+        "type": "object",
+        "control": "igrant.credential",
+        "mode": "verify",
+        "checkService": "igrant",
+        "title": "Scan with your wallet",
+        "pendingText": "Share your Learner Profile from your wallet — it fills the form and carries your learner identifier (ULID).",
+        "successText": "Learner Profile received. Thank you!",
+        "settingsName": "REPLACE_WITH_SETTINGS_NAME",
+        "value": "({documents, events, documentData, user}) => { const rows = (events || []).filter((e) => e.eventTemplateId === 1003002).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)); const r = rows[0]?.data?.result?.sendToExternalService?.sendingResult?.response || {}; return { uri: r.qrUri || '', exchangeId: r.exchangeId || '' }; }"
+       }
+      }
+     }
+    }
+   },
+   "jsonSchemaRaw": "{\n    \"title\": \"Share your Learner Profile\",\n    \"type\": \"object\",\n    \"pdfRequired\": false,\n    \"signRequired\": false,\n    \"showNextTaskButton\": false,\n    \"finishBtn\": \"Continue\",\n    \"forceRedirect\": true,\n    \"properties\": {\n        \"share\": {\n            \"type\": \"object\",\n            \"properties\": {\n                \"wallet\": {\n                    \"type\": \"object\",\n                    \"control\": \"igrant.credential\",\n                    \"mode\": \"verify\",\n                    \"checkService\": \"igrant\",\n                    \"title\": \"Scan with your wallet\",\n                    \"pendingText\": \"Share your Learner Profile from your wallet \\u2014 it fills the form and carries your learner identifier (ULID).\",\n                    \"successText\": \"Learner Profile received. Thank you!\",\n                    \"settingsName\": \"REPLACE_WITH_SETTINGS_NAME\",\n                    \"value\": \"({documents, events, documentData, user}) => { const rows = (events || []).filter((e) => e.eventTemplateId === 1003002).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)); const r = rows[0]?.data?.result?.sendToExternalService?.sendingResult?.response || {}; return { uri: r.qrUri || '', exchangeId: r.exchangeId || '' }; }\"\n                }\n            }\n        }\n    }\n}",
+   "htmlTemplate": "",
+   "accessJsonSchema": {},
+   "additionalDataToSign": null,
+   "createdAt": "2026-08-26T09:00:00.000Z",
+   "updatedAt": "2026-08-26T09:00:00.000Z"
+  },
+  {
+   "id": 1003006,
+   "name": "Verification failed",
+   "jsonSchema": {
+    "title": "Verification failed",
+    "type": "object",
+    "pdfRequired": false,
+    "signRequired": false,
+    "showNextTaskButton": false,
+    "finishBtn": "Close",
+    "finalScreen": {
+     "title": "Verification failed",
+     "subtitle": "Your Learner Profile could not be verified."
+    },
+    "properties": {
+     "failed": {
+      "type": "object",
+      "properties": {
+       "text": {
+        "control": "text.block",
+        "htmlBlock": "<div><p>Your Learner Profile could not be verified. <a href='/tasks/create/1004/1004001' style='color:#1a56db;text-decoration:underline;'>Complete step 1 — Register as a learner</a> first, then order this service again.</p></div>"
+       }
+      }
+     }
+    }
+   },
+   "jsonSchemaRaw": "{\n    \"title\": \"Verification failed\",\n    \"type\": \"object\",\n    \"pdfRequired\": false,\n    \"signRequired\": false,\n    \"showNextTaskButton\": false,\n    \"finishBtn\": \"Close\",\n    \"finalScreen\": {\n        \"title\": \"Verification failed\",\n        \"subtitle\": \"Your Learner Profile could not be verified.\"\n    },\n    \"properties\": {\n        \"failed\": {\n            \"type\": \"object\",\n            \"properties\": {\n                \"text\": {\n                    \"control\": \"text.block\",\n                    \"htmlBlock\": \"<div><p>Your Learner Profile could not be verified. <a href='/tasks/create/1004/1004001' style='color:#1a56db;text-decoration:underline;'>Complete step 1 \\u2014 Register as a learner</a> first, then order this service again.</p></div>\"\n                }\n            }\n        }\n    }\n}",
+   "htmlTemplate": "",
+   "accessJsonSchema": {},
+   "additionalDataToSign": null,
+   "createdAt": "2026-08-26T09:00:00.000Z",
+   "updatedAt": "2026-08-26T09:00:00.000Z"
+  }
+ ],
+ "gatewayTemplates": [
+  {
+   "id": 1003001,
+   "gatewayTypeId": 1,
+   "name": "Profile verified?",
+   "description": "",
+   "jsonSchema": {
+    "formulas": [
+     {
+      "isDefault": false,
+      "id": "Yes",
+      "condition": "(documents, events) => { const d = documents.find((x) => x.documentTemplateId === 1003005); return d?.data?.share?.wallet?.result?.verified === true; };"
+     },
+     {
+      "isDefault": false,
+      "id": "No",
+      "condition": "(documents, events) => { const d = documents.find((x) => x.documentTemplateId === 1003005); return d?.data?.share?.wallet?.result?.verified !== true; };"
+     }
+    ],
+    "isCurrentOnly": true
+   },
+   "jsonSchemaRaw": "{\n    \"formulas\": [\n        {\n            \"isDefault\": false,\n            \"id\": \"Yes\",\n            \"condition\": \"(documents, events) => { const d = documents.find((x) => x.documentTemplateId === 1003005); return d?.data?.share?.wallet?.result?.verified === true; };\"\n        },\n        {\n            \"isDefault\": false,\n            \"id\": \"No\",\n            \"condition\": \"(documents, events) => { const d = documents.find((x) => x.documentTemplateId === 1003005); return d?.data?.share?.wallet?.result?.verified !== true; };\"\n        }\n    ],\n    \"isCurrentOnly\": true\n}",
+   "createdAt": "2026-08-26T09:00:00.000Z",
+   "updatedAt": "2026-08-26T09:00:00.000Z"
+  }
+ ],
+ "numberTemplates": [
+  {
+   "id": 1003001,
+   "name": "Educational certificate number",
+   "template": "EDU-{{idZerosPrefix 6}}/{{date 'YY'}}",
+   "created_at": "2026-08-26T09:00:00.000Z",
+   "updated_at": "2026-08-26T09:00:00.000Z"
+  }
+ ],
+ "eventTemplates": [
+  {
+   "id": 1003001,
+   "eventTypeId": 3,
+   "name": "Issue certificate credential",
+   "description": "",
+   "jsonSchema": {
+    "sendToExternalService": {
+     "providerName": "igrant",
+     "service": "igrant",
+     "options": {
+      "operation": "() => 'issue'",
+      "settingsName": "() => 'REPLACE_WITH_SETTINGS_NAME'",
+      "credentialDefinitionId": "() => 'REPLACE_WITH_EDU_CERT_DEFINITION_ID'",
+      "issuanceMode": "() => 'InTime'",
+      "claims": "(document, event, documents, events) => { const sel = (documents || []).find((x) => x.documentTemplateId === 1003002) || {}; const prof = (documents || []).find((x) => x.documentTemplateId === 1003005) || {}; const claims = ((((prof.data || {}).share || {}).wallet || {}).result || {}).claims || {}; const prog = String(claims.programme_name || ''); const level = /^(MSc|MA|M\\.|Master)/i.test(prog) ? 'Master' : 'Bachelor'; return { given_name: claims.given_name || '', family_name: claims.family_name || '', birthdate: claims.birthdate || '', id_number: claims.id_number || '', phone: claims.phone || '', email: claims.email || '', institution: claims.institution || '', programme_name: prog, programme_level: level, final_outcome: 'Passed', ulid: String(claims.ulid || sel.id || ''), issue_date: new Date().toISOString().slice(0, 10) }; }",
+      "presentationDefinitionId": "(document, event, documents, events) => { const doc = (documents || []).find((x) => x.documentTemplateId === 1003002) || {}; const m = ((doc.data || {}).payment || {}).method; return m === 'card' ? 'REPLACE_WITH_CARD_PAYMENT_PRESENTATION_DEFINITION_ID' : 'REPLACE_WITH_ACCOUNT_PAYMENT_PRESENTATION_DEFINITION_ID'; }",
+      "transactionData": "(document, event, documents, events) => { const doc = (documents || []).find((x) => x.documentTemplateId === 1003002) || {}; return { payload: { transaction_id: String(doc.id || 'txn').slice(0, 36), date_time: new Date().toISOString(), payee: { name: 'Ministry of Education', id: 'ESR-MOE-0001', website: 'https://education-showcase.eubw.dev' }, execution_date: new Date().toISOString().slice(0, 10), currency: 'EUR', amount: 10 } }; }"
+     }
+    }
+   },
+   "jsonSchemaRaw": "{\n    \"sendToExternalService\": {\n        \"providerName\": \"igrant\",\n        \"service\": \"igrant\",\n        \"options\": {\n            \"operation\": \"() => 'issue'\",\n            \"settingsName\": \"() => 'REPLACE_WITH_SETTINGS_NAME'\",\n            \"credentialDefinitionId\": \"() => 'REPLACE_WITH_EDU_CERT_DEFINITION_ID'\",\n            \"issuanceMode\": \"() => 'InTime'\",\n            \"claims\": \"(document, event, documents, events) => { const sel = (documents || []).find((x) => x.documentTemplateId === 1003002) || {}; const prof = (documents || []).find((x) => x.documentTemplateId === 1003005) || {}; const claims = ((((prof.data || {}).share || {}).wallet || {}).result || {}).claims || {}; const prog = String(claims.programme_name || ''); const level = /^(MSc|MA|M\\\\.|Master)/i.test(prog) ? 'Master' : 'Bachelor'; return { given_name: claims.given_name || '', family_name: claims.family_name || '', birthdate: claims.birthdate || '', id_number: claims.id_number || '', phone: claims.phone || '', email: claims.email || '', institution: claims.institution || '', programme_name: prog, programme_level: level, final_outcome: 'Passed', ulid: String(claims.ulid || sel.id || ''), issue_date: new Date().toISOString().slice(0, 10) }; }\",\n            \"presentationDefinitionId\": \"(document, event, documents, events) => { const doc = (documents || []).find((x) => x.documentTemplateId === 1003002) || {}; const m = ((doc.data || {}).payment || {}).method; return m === 'card' ? 'REPLACE_WITH_CARD_PAYMENT_PRESENTATION_DEFINITION_ID' : 'REPLACE_WITH_ACCOUNT_PAYMENT_PRESENTATION_DEFINITION_ID'; }\",\n            \"transactionData\": \"(document, event, documents, events) => { const doc = (documents || []).find((x) => x.documentTemplateId === 1003002) || {}; return { payload: { transaction_id: String(doc.id || 'txn').slice(0, 36), date_time: new Date().toISOString(), payee: { name: 'Ministry of Education', id: 'ESR-MOE-0001', website: 'https://education-showcase.eubw.dev' }, execution_date: new Date().toISOString().slice(0, 10), currency: 'EUR', amount: 10 } }; }\"\n        }\n    }\n}",
+   "htmlTemplate": "",
+   "createdAt": "2026-08-26T09:00:00.000Z",
+   "updatedAt": "2026-08-26T09:00:00.000Z"
+  },
+  {
+   "id": 1003002,
+   "eventTypeId": 3,
+   "name": "Request Learner Profile (verify)",
+   "description": "",
+   "jsonSchema": {
+    "sendToExternalService": {
+     "providerName": "igrant",
+     "service": "igrant",
+     "options": {
+      "operation": "() => 'verify'",
+      "settingsName": "() => 'REPLACE_WITH_SETTINGS_NAME'",
+      "presentationDefinitionId": "() => 'REPLACE_WITH_LEARNER_PROFILE_PRESENTATION_DEFINITION_ID'"
+     }
+    }
+   },
+   "jsonSchemaRaw": "{\n    \"sendToExternalService\": {\n        \"providerName\": \"igrant\",\n        \"service\": \"igrant\",\n        \"options\": {\n            \"operation\": \"() => 'verify'\",\n            \"settingsName\": \"() => 'REPLACE_WITH_SETTINGS_NAME'\",\n            \"presentationDefinitionId\": \"() => 'REPLACE_WITH_LEARNER_PROFILE_PRESENTATION_DEFINITION_ID'\"\n        }\n    }\n}",
+   "htmlTemplate": "",
+   "createdAt": "2026-08-26T09:00:00.000Z",
+   "updatedAt": "2026-08-26T09:00:00.000Z"
+  }
+ ]
+}

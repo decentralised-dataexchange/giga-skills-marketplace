@@ -1,0 +1,110 @@
+{
+ "key": {
+  "data": {},
+  "id": 200,
+  "registerId": 200,
+  "name": "OWS settings",
+  "description": "Connection settings for the iGrant.io Organisation Wallet Suite (OWS). One record per environment: data.name identifies the record, data.baseUrl is the OWS base URL, data.apiKey is the organisation API key. Restrict access to the admin unit.",
+  "schema": {
+   "type": "object",
+   "properties": {
+    "name": {
+     "type": "string",
+     "description": "Settings name (e.g. default)"
+    },
+    "baseUrl": {
+     "type": "string",
+     "description": "OWS base URL (e.g. https://demo-api.igrant.io)"
+    },
+    "apiKey": {
+     "type": "string",
+     "description": "OWS organisation API key"
+    },
+    "notes": {
+     "type": "string",
+     "description": "Notes"
+    }
+   },
+   "required": [
+    "name",
+    "baseUrl",
+    "apiKey"
+   ]
+  },
+  "parentId": null,
+  "meta": {
+   "isPersonal": false,
+   "createdByPerson": {
+    "userId": "000000000000000000000001",
+    "name": "admin"
+   },
+   "updatedByPerson": {
+    "userId": "000000000000000000000001",
+    "name": "admin"
+   }
+  },
+  "toString": "(record) => record.data.name + ' (' + record.data.baseUrl + ')';",
+  "toSearchString": "(record) => { return [record.data.name]; }",
+  "createdBy": "register",
+  "updatedBy": "register",
+  "accessMode": "full",
+  "isEncrypted": false,
+  "toExport": "(record) => { return null; }",
+  "createdAt": "2026-08-25T15:00:00.000Z",
+  "updatedAt": "2026-08-25T15:00:00.000Z"
+ },
+ "register": {
+  "data": {},
+  "id": 200,
+  "name": "iGrant.io",
+  "description": "Configuration registers for the iGrant.io digital-credential component.",
+  "parentId": null,
+  "meta": {
+   "createdByPerson": {
+    "userId": "000000000000000000000001",
+    "name": "admin"
+   },
+   "updatedByPerson": {
+    "userId": "000000000000000000000001",
+    "name": "admin"
+   }
+  },
+  "createdBy": "register",
+  "updatedBy": "register",
+  "createdAt": "2026-08-25T15:00:00.000Z",
+  "updatedAt": "2026-08-25T15:00:00.000Z"
+ },
+ "records": [
+  {
+   "data": {
+    "name": "default",
+    "baseUrl": "https://demo-api.igrant.io",
+    "apiKey": "REPLACE_WITH_YOUR_OWS_API_KEY",
+    "notes": "Fill data.apiKey with the organisation API key from the iGrant.io dashboard."
+   },
+   "id": "1a2b3c40-a0a0-11f1-b000-000000000200",
+   "registerId": 200,
+   "keyId": 200,
+   "meta": {
+    "user": "register",
+    "person": {
+     "userId": "000000000000000000000001",
+     "name": "admin"
+    },
+    "historyMeta": {}
+   },
+   "allowTokens": [],
+   "createdBy": "register",
+   "updatedBy": "register",
+   "createdAt": "2026-08-25T15:00:00.000Z",
+   "updatedAt": "2026-08-25T15:00:00.000Z",
+   "signature": null,
+   "searchString": "default",
+   "searchString2": null,
+   "searchString3": null
+  }
+ ],
+ "options": {
+  "onlySchema": false
+ }
+}
