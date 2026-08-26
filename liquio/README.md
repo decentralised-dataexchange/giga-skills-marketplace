@@ -96,7 +96,7 @@ logs.
 
 ## Configure iGrant.io
 
-You need an OWS API key (demo environment: https://demo.igrant.io). For the
+You need an OWS API key (demo environment: https://demo-api.igrant.io). For the
 two-organisation story, use two sandbox organisations: a ministry that
 issues and a separate employer that verifies. Create these definitions
 through the OWS API or dashboard, all with the x509 trust anchor:
