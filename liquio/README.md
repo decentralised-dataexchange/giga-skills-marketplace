@@ -23,8 +23,10 @@ delivers the same learner journey as the education showcase under
 | Path | Purpose |
 | ---- | ------- |
 | `liquio-igrant.patch` | All source changes against Liquio `main`: the two backend plugins, the `igrant.credential` cabinet form control, configuration templates and the example workflows |
+| `packages/` | The source code of the two plugins, buildable on its own (`npm install && npm run build && npx jest`) |
 | `plugins/` | Prebuilt npm tarballs of the two plugins, ready for the platform's plugin installer |
 | `workflows/` | The three journey workflows and the settings register, in Liquio's import format |
+| `DEVELOPMENT.md` | How to develop the integration against the Liquio source on GitHub |
 
 The backend integration is a pair of standard Liquio plugins built on
 `@liquio/plugin-sdk`: an external-service provider for the `event` service
@@ -162,7 +164,7 @@ for the job again: the verification fails and the service ends on the
 ## Notes
 
 The workflows are ordinary Liquio content: everything in them can be built
-or edited in the admin panel's workflow designer without programming. The
-plugin package's README inside the patch
-(`packages/event-igrantio-plugin/README.md`) documents every operation and
-the copy-paste snippets for analysts.
+or edited in the admin panel's workflow designer without programming.
+`packages/event-igrantio-plugin/README.md` documents every operation and
+the copy-paste snippets for analysts, and [DEVELOPMENT.md](DEVELOPMENT.md)
+covers the development workflow against the Liquio source.
