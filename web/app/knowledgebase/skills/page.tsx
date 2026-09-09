@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 export const metadata = {
-  title: "Skills · Knowledgebase · Giga Skills Marketplace",
+  title: "Skills · Knowledgebase · ITU Skills Marketplace",
   description:
     "What a skill is: a SKILL.md with reference files, published from a pinned GitHub source and reviewed before publication.",
 };

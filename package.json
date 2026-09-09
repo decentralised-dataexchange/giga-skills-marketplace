@@ -1,8 +1,8 @@
 {
-  "name": "giga-marketplace-tooling",
+  "name": "itu-marketplace-tooling",
   "version": "0.1.0",
   "private": true,
-  "description": "Repo-wide lint and format tooling (OXC) for the Giga Skills Marketplace.",
+  "description": "Repo-wide lint and format tooling (OXC) for the ITU Skills Marketplace.",
   "scripts": {
     "lint": "oxlint",
     "format": "oxfmt --write .",

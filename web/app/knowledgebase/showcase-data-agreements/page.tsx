@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 export const metadata = {
-  title: "Data agreements · Knowledgebase · Giga Skills Marketplace",
+  title: "Data agreements · Knowledgebase · ITU Skills Marketplace",
   description:
     "How the education showcase records processing and consent: three data agreements, per-agreement opt-in and opt-out, and the right to be forgotten.",
 };

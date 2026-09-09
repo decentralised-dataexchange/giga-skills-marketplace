@@ -34,9 +34,9 @@ const interLatinExt = localFont({
 });
 const jetbrainsMono = JetBrains_Mono({ subsets: ["latin"], variable: "--font-jb-mono" });
 
-const TITLE = "Giga Skills Marketplace";
+const TITLE = "ITU Skills Marketplace";
 const DESCRIPTION =
-  "Provider-published, agent-agnostic skill files for the education wallet building block, part of the ITU / UNICEF Giga initiative. Reviewed app-store style and ready to install into any AI coding agent.";
+  "Provider-published, agent-agnostic skill files for the ITU education wallet building block. Reviewed app-store style and ready to install into any AI coding agent.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "https://giga-staging.igrant.io"),

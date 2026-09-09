@@ -66,7 +66,7 @@ def create_app(repository: CatalogRepository | None = None) -> FastAPI:
             await pool.close()
 
     application = FastAPI(
-        title="Giga Skills Marketplace API",
+        title="ITU Skills Marketplace API",
         version="1.0.0",
         lifespan=lifespan,
     )

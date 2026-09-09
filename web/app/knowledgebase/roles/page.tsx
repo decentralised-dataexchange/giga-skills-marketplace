@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 export const metadata = {
-  title: "Roles and statuses · Knowledgebase · Giga Skills Marketplace",
+  title: "Roles and statuses · Knowledgebase · ITU Skills Marketplace",
   description: "The marketplace roles and every status a skill version or organisation can hold.",
 };
 

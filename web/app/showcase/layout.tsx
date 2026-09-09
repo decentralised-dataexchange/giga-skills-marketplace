@@ -6,7 +6,7 @@ import "./showcase.css";
 
 const TITLE = "National Learner Registry & Education Wallet Showcase";
 const DESCRIPTION =
-  "ITU/Giga education use case showcase: learner registration, credential issuance, wallet storage and third-party verification.";
+  "ITU education use case showcase: learner registration, credential issuance, wallet storage and third-party verification.";
 
 export const metadata: Metadata = {
   title: TITLE,

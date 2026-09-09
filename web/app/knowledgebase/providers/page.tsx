@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 export const metadata = {
-  title: "Providers · Knowledgebase · Giga Skills Marketplace",
+  title: "Providers · Knowledgebase · ITU Skills Marketplace",
   description:
     "What a provider organisation is, how registration works, and when a provider becomes publicly visible.",
 };

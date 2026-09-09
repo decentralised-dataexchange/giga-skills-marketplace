@@ -138,12 +138,12 @@ async def test_skill_list_normalizes_filters_and_pagination(
 async def test_provider_list_uses_defaults_for_invalid_pagination(
     client: AsyncClient, repository: FakeRepository
 ) -> None:
-    response = await client.get("/v1/providers?q=++GIGA++&page=nope&pageSize=none")
+    response = await client.get("/v1/providers?q=++ITU++&page=nope&pageSize=none")
 
     assert response.status_code == 200
     assert response.json() == {"providers": [], "total": 0, "page": 1, "pageSize": 12}
     assert repository.provider_list_args == {
-        "query": "giga",
+        "query": "itu",
         "page": 1,
         "page_size": 12,
     }

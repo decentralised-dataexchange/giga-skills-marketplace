@@ -1,6 +1,6 @@
 # Contributing
 
-Thank you for your interest in the Giga Skills Marketplace. Issues and pull
+Thank you for your interest in the ITU Skills Marketplace. Issues and pull
 requests are welcome.
 
 ## Development setup

@@ -1,4 +1,4 @@
-# Default values for the Giga Skills Marketplace chart.
+# Default values for the ITU Skills Marketplace chart.
 #
 # The defaults here are neutral placeholders so the chart is safe to publish
 # and deploy anywhere. For each environment, override at least `domain`,

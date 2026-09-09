@@ -1,1 +1,1 @@
-"""Public Giga Skills Marketplace API."""
+"""Public ITU Skills Marketplace API."""

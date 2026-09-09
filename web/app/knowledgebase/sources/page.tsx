@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 export const metadata = {
-  title: "Source repositories · Knowledgebase · Giga Skills Marketplace",
+  title: "Source repositories · Knowledgebase · ITU Skills Marketplace",
   description:
     "How a public GitHub repository becomes a marketplace source: pinning, provenance, and the source page.",
 };

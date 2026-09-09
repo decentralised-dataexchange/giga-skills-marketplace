@@ -80,7 +80,7 @@ wheels = [
 ]
 
 [[package]]
-name = "giga-marketplace"
+name = "itu-marketplace"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [

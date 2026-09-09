@@ -1,5 +1,5 @@
 <h1 align="center">
-    Giga Skills Marketplace
+    ITU Skills Marketplace
 </h1>
 
 <p align="center">
@@ -10,11 +10,11 @@
 
 A marketplace of provider-published, agent-agnostic AI skills for the
 education wallet building block, with an app-store style review pipeline.
-It is the working outcome of the ITU/UNICEF Giga Knowledge Product
-"AI-Enabled GovBuild Education Wallet Building Block" (RFQ-S-GIGA-2026-036),
-which demonstrates how an AI integration assistant adopts digital identity
-wallets into a National Learner Registry and Digital Credential ecosystem.
-The repository holds two deployables:
+It is the working outcome of the ITU Knowledge Product "AI-Enabled
+GovBuild Education Wallet Building Block", which demonstrates how an AI
+integration assistant adopts digital identity wallets into a National
+Learner Registry and Digital Credential ecosystem. The repository holds
+two deployables:
 
 - `services/marketplace/`: a Python 3.12 FastAPI service (managed with uv)
   that owns public catalogue reads.

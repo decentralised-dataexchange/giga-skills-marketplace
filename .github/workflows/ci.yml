@@ -51,19 +51,19 @@ jobs:
         run: uv run pytest
       - name: Build and smoke-test production image
         run: |
-          docker build --tag giga-marketplace-ci .
+          docker build --tag marketplace-ci .
           docker run --detach --rm --network host \
-            --name giga-marketplace-ci \
+            --name marketplace-ci \
             --env DATABASE_URL="$TEST_DATABASE_URL" \
-            giga-marketplace-ci
-          trap 'docker stop giga-marketplace-ci' EXIT
+            marketplace-ci
+          trap 'docker stop marketplace-ci' EXIT
           for _ in {1..30}; do
             if curl --fail --silent http://localhost:4830/health; then
               exit 0
             fi
             sleep 1
           done
-          docker logs giga-marketplace-ci
+          docker logs marketplace-ci
           exit 1
 
   helm:

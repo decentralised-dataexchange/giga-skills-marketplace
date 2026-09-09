@@ -14,7 +14,7 @@
   --font-mono: var(--font-jb-mono);
   --font-heading:
     var(--font-geist-sans), var(--font-inter-latin), ui-sans-serif, system-ui, sans-serif;
-  /* Giga (giga.global) brand tokens: Giga blue on white, near-black ink. */
+  /* Brand tokens: primary blue on white, near-black ink. */
   --color-brand: #0050d6;
   --color-brand-dark: #003ea6;
   /* iGrant.io support-portal panel shading (docs.igrant.io "Build with AI" banner). */
@@ -63,8 +63,8 @@
 }
 
 :root {
-  /* Giga look: white page, near-black ink, Giga-blue primary CTAs (10px radius),
-     Manrope type, light-blue accents. */
+  /* Site look: white page, near-black ink, blue primary CTAs (10px radius),
+     light-blue accents. */
   --background: #ffffff;
   --foreground: #0a0a0a;
   --card: #ffffff;

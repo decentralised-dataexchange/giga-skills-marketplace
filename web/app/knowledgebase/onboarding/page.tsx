@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 export const metadata = {
-  title: "Onboard your organisation · Knowledgebase · Giga Skills Marketplace",
+  title: "Onboard your organisation · Knowledgebase · ITU Skills Marketplace",
   description:
     "Create a provider account, register your organisation, and get ready to publish skills.",
 };

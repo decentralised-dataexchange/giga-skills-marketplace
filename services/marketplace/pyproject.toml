@@ -1,7 +1,7 @@
 [project]
-name = "giga-marketplace"
+name = "itu-marketplace"
 version = "0.1.0"
-description = "FastAPI service for the public Giga Skills Marketplace catalog"
+description = "FastAPI service for the public ITU Skills Marketplace catalog"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [

@@ -12,7 +12,7 @@ The canonical working tree is a clone (or fork) of
 ```bash
 git clone https://github.com/liquio/liquio.git
 cd liquio
-git am /path/to/giga-skills-marketplace/liquio/liquio-igrant.patch
+git am /path/to/this-repository/liquio/liquio-igrant.patch
 ```
 
 The patch is a series of ordinary commits, so the result is a normal branch

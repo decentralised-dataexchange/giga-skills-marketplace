@@ -1,4 +1,4 @@
-# Deploying the Giga Skills Marketplace
+# Deploying the ITU Skills Marketplace
 
 Kubernetes deployment via the Helm chart in [`helm/giga`](helm/giga). It provisions:
 

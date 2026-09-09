@@ -18,7 +18,7 @@ export function Footer({ className }: { className?: string }) {
         className,
       )}
     >
-      <p className="m-0">© 2026 ITU / UNICEF Giga · Education Wallet Building Block</p>
+      <p className="m-0">© 2026 ITU · Education Wallet Building Block</p>
       <nav aria-label="Footer" className="flex flex-wrap items-center gap-3">
         {LINKS.map((l, i) => (
           <span key={l.href} className="flex items-center gap-3">

@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 export const metadata = {
-  title: "The review process · Knowledgebase · Giga Skills Marketplace",
+  title: "The review process · Knowledgebase · ITU Skills Marketplace",
   description:
     "How submissions move through the review queue: claiming, inspection, decisions, and the public review trail.",
 };

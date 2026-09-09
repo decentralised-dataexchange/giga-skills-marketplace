@@ -46,7 +46,7 @@ export function DashboardTopbar({
             {open ? <X className="size-7" /> : <Menu className="size-7" />}
           </button>
         )}
-        <Link href="/" className="flex items-center gap-3" aria-label="Giga home">
+        <Link href="/" className="flex items-center gap-3" aria-label="ITU home">
           <Logo className="h-11 md:h-12" />
           <span className="hidden font-heading text-[clamp(1rem,2vw,1.4rem)] font-semibold tracking-tight sm:inline">
             Skills <span className="text-muted-foreground">Marketplace</span>

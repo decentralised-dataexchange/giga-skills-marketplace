@@ -2,7 +2,7 @@
 import Link from "next/link";
 
 export const metadata = {
-  title: "Try the showcase · Knowledgebase · Giga Skills Marketplace",
+  title: "Try the showcase · Knowledgebase · ITU Skills Marketplace",
   description:
     "A guided walkthrough of the National Learner Registry and Education Wallet showcase: wallet sign-in, verifiable credentials, payment, and selective disclosure.",
 };

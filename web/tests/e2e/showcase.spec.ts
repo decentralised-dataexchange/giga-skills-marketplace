@@ -7,7 +7,7 @@ import { expect, test, type Page } from "@playwright/test";
  * verification) need a phone Wallet and OWS webhooks, so they stay manual.
  */
 
-const NS = "giga.showcase.";
+const NS = "itu.showcase.";
 
 /**
  * Seed showcase state exactly once, from a lightweight same-origin page.
@@ -75,7 +75,7 @@ const APPLICATION = {
 test("showcase landing shares the marketplace chrome", async ({ page }) => {
   await page.goto("/showcase");
   // The site masthead is present, with the Showcases entry highlighted.
-  await expect(page.getByRole("link", { name: "Giga home" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "ITU home" })).toBeVisible();
   await expect(page.getByRole("navigation", { name: "Primary" })).toBeVisible();
   await expect(
     page.getByRole("heading", { name: /National Learner Registry & Education Wallet/ }),
@@ -85,11 +85,11 @@ test("showcase landing shares the marketplace chrome", async ({ page }) => {
 
 test("portals render their own chrome without the masthead", async ({ page }) => {
   await page.goto("/showcase/education");
-  await expect(page.getByRole("link", { name: "Giga home" })).toHaveCount(0);
+  await expect(page.getByRole("link", { name: "ITU home" })).toHaveCount(0);
   await expect(page.locator(".edu-header")).toBeVisible();
 
   await page.goto("/showcase/civicworks");
-  await expect(page.getByRole("link", { name: "Giga home" })).toHaveCount(0);
+  await expect(page.getByRole("link", { name: "ITU home" })).toHaveCount(0);
   await expect(page.locator(".cw-header")).toBeVisible();
 });
 

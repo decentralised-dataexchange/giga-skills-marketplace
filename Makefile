@@ -1,4 +1,4 @@
-# Giga Skills Marketplace developer routines.
+# ITU Skills Marketplace developer routines.
 # PostgreSQL always runs in Docker; the apps run on the host for hot reload.
 
 DB_URL         ?= postgresql://govbuild:govbuild-dev@localhost:5433/govbuild

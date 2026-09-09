@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 export const metadata = {
-  title: "Install skills · Knowledgebase · Giga Skills Marketplace",
+  title: "Install skills · Knowledgebase · ITU Skills Marketplace",
   description:
     "Install published skills into Claude Code, Codex, opencode, or Pi with the skills CLI.",
 };

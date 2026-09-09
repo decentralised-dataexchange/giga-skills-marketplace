@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 export const metadata = {
-  title: "How it was built with skills · Knowledgebase · Giga Skills Marketplace",
+  title: "How it was built with skills · Knowledgebase · ITU Skills Marketplace",
   description:
     "A guide for integrators: how the education showcase was built by an AI coding agent using the skills from this marketplace, which skill served which step, and the prompts that drove them.",
 };

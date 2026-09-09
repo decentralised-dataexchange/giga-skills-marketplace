@@ -47,7 +47,7 @@ Prerequisites: Docker with Compose, Git.
    ```bash
    git clone https://github.com/liquio/liquio.git
    cd liquio
-   git am /path/to/giga-skills-marketplace/liquio/liquio-igrant.patch
+   git am /path/to/this-repository/liquio/liquio-igrant.patch
    ```
 
 2. Generate the configuration and certificates, then place the plugin

@@ -1,5 +1,5 @@
 export const metadata = {
-  title: "Author a skill · Knowledgebase · Giga Skills Marketplace",
+  title: "Author a skill · Knowledgebase · ITU Skills Marketplace",
   description:
     "How to write a SKILL.md: the manifest fields, the instruction body, and the reference files a skill carries.",
 };

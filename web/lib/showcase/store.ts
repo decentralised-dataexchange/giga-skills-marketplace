@@ -11,13 +11,13 @@
  * in the education portal from the same store. The server holds no user
  * state: it is a stateless broker for wallet (OWS) and consent calls.
  *
- * Every key is namespaced `giga.showcase.*` and holds JSON. A version key
+ * Every key is namespaced `itu.showcase.*` and holds JSON. A version key
  * guards the shape: on mismatch the whole namespace is wiped, which is the
  * demo's reset semantics.
  */
 
 const VERSION = "1";
-const NS = "giga.showcase.";
+const NS = "itu.showcase.";
 
 const KEYS = {
   version: `${NS}version`,

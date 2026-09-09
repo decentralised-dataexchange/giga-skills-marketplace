@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 export const metadata = {
-  title: "Credentials and presentations · Knowledgebase · Giga Skills Marketplace",
+  title: "Credentials and presentations · Knowledgebase · ITU Skills Marketplace",
   description:
     "The exact credential and presentation definitions behind the education showcase: types, claims, formats, trust anchors and revocation.",
 };

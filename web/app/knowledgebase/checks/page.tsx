@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 export const metadata = {
-  title: "Automated checks · Knowledgebase · Giga Skills Marketplace",
+  title: "Automated checks · Knowledgebase · ITU Skills Marketplace",
   description:
     "The pre-review validation every skill bundle passes: what is checked, and what fails versus warns.",
 };

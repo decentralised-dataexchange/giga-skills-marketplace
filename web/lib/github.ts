@@ -14,7 +14,7 @@ import type { BundleFile } from "./views";
 
 const API = "https://api.github.com";
 const RAW = "https://raw.githubusercontent.com";
-const USER_AGENT = "giga-skills-marketplace";
+const USER_AGENT = "itu-skills-marketplace";
 const FETCH_TIMEOUT_MS = 20_000;
 const MAX_BUNDLE_BYTES = 2 * 1024 * 1024;
 const MAX_FILE_BYTES = 400 * 1024;

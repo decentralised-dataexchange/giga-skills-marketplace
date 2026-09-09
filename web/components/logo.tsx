@@ -1,9 +1,9 @@
 import { cn } from "@/lib/utils";
 
-// The Giga wordmark, served from /public/giga-logo.svg.
+// The ITU emblem, served from /public/itu-logo.svg.
 export function Logo({ className }: { className?: string }) {
   return (
     // eslint-disable-next-line @next/next/no-img-element -- static brand SVG
-    <img src="/giga-logo.svg" alt="Giga" className={cn("h-9 w-auto", className)} />
+    <img src="/itu-logo.svg" alt="ITU" className={cn("h-9 w-auto", className)} />
   );
 }

@@ -58,7 +58,7 @@ export const PORTALS: Record<PortalId, PortalConfig> = {
       line: "#d8e0e9",
     },
     footer:
-      "National Education Portal is a fictional government service built for the ITU/Giga education wallet showcase.",
+      "National Education Portal is a fictional government service built for the ITU education wallet showcase.",
   },
   school: {
     id: "school",

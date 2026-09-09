@@ -2,9 +2,9 @@ import Link from "next/link";
 import { REPO_URL } from "@/components/nav-links";
 
 export const metadata = {
-  title: "Introduction · Knowledgebase · Giga Skills Marketplace",
+  title: "Introduction · Knowledgebase · ITU Skills Marketplace",
   description:
-    "What the Giga Skills Marketplace is, who it is for, and where to start in the documentation.",
+    "What the ITU Skills Marketplace is, who it is for, and where to start in the documentation.",
 };
 
 export default function IntroductionPage() {
@@ -12,7 +12,7 @@ export default function IntroductionPage() {
     <>
       <h1>Introduction</h1>
       <p className="docs-lead">
-        The Giga Skills Marketplace is a catalog of provider-published, agent-agnostic{" "}
+        The ITU Skills Marketplace is a catalog of provider-published, agent-agnostic{" "}
         <strong>skills</strong> for the education wallet building block. Wallet solution providers
         publish skills from their public GitHub repositories; every submission passes automated
         checks and human review; anyone can install a published skill into their own AI coding
@@ -99,9 +99,9 @@ export default function IntroductionPage() {
         The marketplace and the education showcase are open source under the Apache 2.0 license. The
         source code, the deployment charts, and the contribution guide live in the{" "}
         <a href={REPO_URL} target="_blank" rel="noopener">
-          giga-skills-marketplace
+          project repository
         </a>{" "}
-        repository on GitHub, built for the ITU/UNICEF Giga initiative. Issues and pull requests are
+        on GitHub, built for the ITU education wallet building block. Issues and pull requests are
         welcome there.
       </p>
     </>
