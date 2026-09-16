@@ -2,15 +2,21 @@ import { check, route } from "@/lib/handler";
 import { isDemoAccount } from "@/lib/demo-accounts";
 import { setDemoAccountsEnabled } from "@/lib/seed";
 import { getSettings, saveSetting, type MarketplaceSettings } from "@/lib/settings";
+import type { User } from "@/lib/auth";
+
+// The settings plus whether the caller is signed in with a demo account, so
+// the dashboard can warn that its password is public once demo mode is off.
+async function view(user: User) {
+  return { settings: await getSettings(), demoAccountSignedIn: isDemoAccount(user.email) };
+}
 
 // The marketplace settings a super admin changes from the dashboard.
-export const GET = route(async () => ({ settings: await getSettings() }), {
-  roles: ["superadmin"],
-});
+export const GET = route(async ({ user }) => view(user!), { roles: ["superadmin"] });
 
 // Change one or both settings. Turning demo mode off suspends the demo
-// accounts, so a demo super admin cannot do it: they would lock themselves
-// out and leave the marketplace without an operator.
+// accounts except the one flipping the switch, so a demo super admin can do
+// it without locking themselves out; they are then told to change the
+// password of that account.
 export const PATCH = route(
   async ({ user, body }) => {
     const patch = await body<Partial<MarketplaceSettings>>();
@@ -21,22 +27,15 @@ export const PATCH = route(
     for (const key of changes) {
       check(typeof patch[key] === "boolean", 400, `${key} must be true or false`);
     }
-    if (patch.demoMode === false) {
-      check(
-        !isDemoAccount(user!.email),
-        409,
-        "Sign in with a non-demo super admin account before turning demo mode off",
-      );
-    }
 
     const before = await getSettings();
     for (const key of changes) {
       const value = patch[key] as boolean;
       if (value === before[key]) continue;
       await saveSetting(key, value, user!.id);
-      if (key === "demoMode") await setDemoAccountsEnabled(value);
+      if (key === "demoMode") await setDemoAccountsEnabled(value, user!.id);
     }
-    return { settings: await getSettings() };
+    return view(user!);
   },
   { roles: ["superadmin"] },
 );

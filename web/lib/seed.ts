@@ -232,9 +232,12 @@ export async function ensureSuperadmin(): Promise<"created" | "updated" | "uncha
  * active (created with its demo password when missing, for a marketplace
  * that started outside demo mode; the demo organisations and skills are a
  * first-boot seed only). Off: the demo accounts are suspended and their
- * sessions revoked, so the public demo passwords open nothing.
+ * sessions revoked, so the public demo passwords open nothing. The account
+ * that flips the switch (`keepUserId`) is left active even when it is a demo
+ * account, so the operator is never locked out; the dashboard then tells
+ * them to change its password.
  */
-export async function setDemoAccountsEnabled(enabled: boolean): Promise<void> {
+export async function setDemoAccountsEnabled(enabled: boolean, keepUserId?: string): Promise<void> {
   const status = enabled ? "active" : "suspended";
   for (const account of DEMO_ACCOUNTS) {
     const [existing] = await sql`SELECT id, status FROM users WHERE email = ${account.email}`;
@@ -242,6 +245,7 @@ export async function setDemoAccountsEnabled(enabled: boolean): Promise<void> {
       if (enabled) await addUser(account.email, account.password, account.name, account.role);
       continue;
     }
+    if (existing.id === keepUserId) continue;
     if (existing.status !== status) {
       await sql`UPDATE users SET status = ${status} WHERE id = ${existing.id}`;
     }

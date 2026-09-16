@@ -1,8 +1,10 @@
 "use client";
 
+import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { api, auth } from "@/lib/client";
 import { toast } from "@/components/toast";
+import { Notice } from "@/components/notice";
 import { DashboardMain, useDashboardGuard } from "@/components/dashboard-shell";
 
 interface Settings {
@@ -10,17 +12,23 @@ interface Settings {
   selfServiceRegistration: boolean;
 }
 
+interface SettingsView {
+  settings: Settings;
+  /** The signed-in super admin is one of the demo accounts. */
+  demoAccountSignedIn: boolean;
+}
+
 // The marketplace settings a super admin changes here, not by redeploying:
 // demo mode and self-service provider registration. Each starts from the
 // deployment's environment and keeps the last value set here.
 export default function SettingsPage() {
   const { denied } = useDashboardGuard("/governance/settings", ["superadmin"]);
-  const [settings, setSettings] = useState<Settings | null>(null);
+  const [view, setView] = useState<SettingsView | null>(null);
   const [busy, setBusy] = useState<keyof Settings | null>(null);
+  const settings = view?.settings;
 
   const load = useCallback(async () => {
-    const s = await api("/api/admin/settings");
-    setSettings(s.settings);
+    setView(await api("/api/admin/settings"));
   }, []);
 
   useEffect(() => {
@@ -31,17 +39,30 @@ export default function SettingsPage() {
   async function change(key: keyof Settings, value: boolean) {
     setBusy(key);
     try {
-      const s = await api("/api/admin/settings", { method: "PATCH", json: { [key]: value } });
-      setSettings(s.settings);
-      toast.success(
-        key === "demoMode"
-          ? value
-            ? "Demo mode is on: the demo accounts are active and offered on the sign-in page"
-            : "Demo mode is off: the demo accounts are suspended and hidden"
-          : value
+      const next: SettingsView = await api("/api/admin/settings", {
+        method: "PATCH",
+        json: { [key]: value },
+      });
+      setView(next);
+      if (key === "demoMode") {
+        if (value) {
+          toast.success(
+            "Demo mode is on: the demo accounts are active and offered on the sign-in page",
+          );
+        } else if (next.demoAccountSignedIn) {
+          toast.success(
+            "Demo mode is off: the other demo accounts are suspended and hidden. Your own account is still a demo account, so change its password now.",
+          );
+        } else {
+          toast.success("Demo mode is off: the demo accounts are suspended and hidden");
+        }
+      } else {
+        toast.success(
+          value
             ? "Self-service registration is on"
             : "Self-service registration is off: only you can add accounts now",
-      );
+        );
+      }
     } catch (e) {
       toast.error(e instanceof Error ? e.message : String(e));
     } finally {
@@ -55,6 +76,15 @@ export default function SettingsPage() {
       subtitle="How this marketplace is run. Changes apply at once, without a redeploy."
       denied={denied}
     >
+      {view && !view.settings.demoMode && view.demoAccountSignedIn && (
+        <Notice severity="warning" title="You are signed in with a demo account">
+          Its password is public. Change it under{" "}
+          <Link href="/settings" className="font-semibold underline">
+            Manage User
+          </Link>
+          , or add a real super admin under Users &amp; roles and sign in with that instead.
+        </Notice>
+      )}
       <section className="space-y-4 rounded-lg border border-[#e0e0e0] bg-white p-4">
         <h3 className="text-xs font-semibold uppercase tracking-[0.66px] text-[#86868b]">
           Sign-in page
@@ -70,7 +100,7 @@ export default function SettingsPage() {
         <SettingRow
           id="demo-mode"
           title="Demo mode"
-          description="The demo accounts (super admin, reviewer, two providers, public passwords) are active and offered under “Use a demo account”. Off, they are suspended and hidden. Turn it off on a real marketplace, signed in as a non-demo super admin."
+          description="The demo accounts (super admin, reviewer, two providers, public passwords) are active and offered under “Use a demo account”. Off, they are suspended and hidden; the account you are signed in with stays active. Turn it off on a real marketplace."
           checked={settings?.demoMode ?? false}
           disabled={!settings || busy != null}
           onChange={(v) => change("demoMode", v)}

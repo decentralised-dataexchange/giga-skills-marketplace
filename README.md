@@ -92,11 +92,12 @@ stored setting then wins over the environment.
   governance roles can only be granted by one.
 
 Switching demo mode **off** from the dashboard suspends the demo accounts
-and revokes their sessions, so their public passwords open nothing; a demo
-super admin cannot do this (sign in as a real super admin first). Switching
-it **on** reactivates them, creating them when the marketplace started
-outside demo mode (the demo organisations and skills are a first-boot seed
-only).
+and revokes their sessions, so their public passwords open nothing. The
+account that flips the switch stays active even when it is a demo account,
+so the operator is never locked out; the dashboard then asks them to change
+its password under Manage User (or to add a real super admin). Switching it
+**on** reactivates them, creating them when the marketplace started outside
+demo mode (the demo organisations and skills are a first-boot seed only).
 
 The same Settings page has **self-service registration**: off, the sign-in
 page shows no "Create account" and the register endpoint refuses; accounts
