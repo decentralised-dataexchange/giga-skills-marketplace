@@ -40,6 +40,20 @@ spec:
               value: "https://{{ .Values.domain }}"
             - name: DB_MAX_CONNECTIONS
               value: {{ .Values.web.dbMaxConnections | quote }}
+            # demo or production; see `mode` in values.yaml.
+            - name: MARKETPLACE_MODE
+              value: {{ .Values.mode | quote }}
+            {{- if .Values.superadmin.email }}
+            - name: SUPERADMIN_EMAIL
+              value: {{ .Values.superadmin.email | quote }}
+            - name: SUPERADMIN_NAME
+              value: {{ .Values.superadmin.name | quote }}
+            - name: SUPERADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: giga-secrets
+                  key: SUPERADMIN_PASSWORD
+            {{- end }}
             {{- if .Values.githubToken }}
             - name: GITHUB_TOKEN
               valueFrom:

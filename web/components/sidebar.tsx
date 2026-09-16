@@ -8,6 +8,7 @@ import {
   Home,
   KeyRound,
   ScrollText,
+  Settings,
   Shield,
   Upload,
   Users,
@@ -27,6 +28,7 @@ const ICONS: Record<string, React.ReactNode> = {
   shield: <Shield className="size-5 shrink-0 text-[#48484d]" aria-hidden="true" />,
   activity: <Activity className="size-5 shrink-0 text-[#48484d]" aria-hidden="true" />,
   users: <Users className="size-5 shrink-0 text-[#48484d]" aria-hidden="true" />,
+  settings: <Settings className="size-5 shrink-0 text-[#48484d]" aria-hidden="true" />,
   key: <KeyRound className="size-5 shrink-0 text-[#48484d]" aria-hidden="true" />,
 };
 

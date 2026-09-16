@@ -2,9 +2,17 @@ import { sql, logEvent } from "@/lib/db";
 import { hashPassword, issueToken } from "@/lib/auth";
 import { DEFAULT_SELF_SERVICE_ROLE, SELF_SERVICE_ROLES } from "@/lib/roles";
 import { check, route } from "@/lib/handler";
+import { getSettings } from "@/lib/settings";
 import { publicUser } from "@/lib/views";
 
 export const POST = route(async ({ body }) => {
+  // A super admin can close self-service onboarding (Settings); accounts are
+  // then created under Users & roles only.
+  check(
+    (await getSettings()).selfServiceRegistration,
+    403,
+    "Self-service registration is turned off; contact the marketplace operator for an account",
+  );
   const { email, password, name, role } = await body<Record<string, string>>();
   check(email && password && name?.trim(), 400, "email, password and name are required");
   check(/.+@.+\..+/.test(email), 400, "email: value is not a valid email address");

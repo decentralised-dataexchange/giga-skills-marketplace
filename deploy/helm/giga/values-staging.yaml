@@ -12,6 +12,11 @@
 
 domain: giga-staging.igrant.io
 
+# Staging is a demo deployment: demo accounts seeded and offered on the
+# sign-in page. A production deployment sets mode: production and provides
+# superadmin.email plus superadmin.password (secret).
+mode: demo
+
 image:
   registry: eu.gcr.io/jenkins-189019
 

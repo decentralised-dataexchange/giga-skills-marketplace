@@ -45,5 +45,6 @@ export const DASHBOARD_ITEMS: DashboardItem[] = [
   { href: "/governance/organisations", label: "Organisations", icon: "org", show: superadmin },
   { href: "/governance/audit", label: "Audit trail", icon: "activity", show: gov },
   { href: "/governance/users", label: "Users & roles", icon: "users", show: superadmin },
+  { href: "/governance/settings", label: "Settings", icon: "settings", show: superadmin },
   { href: "/settings", label: "Manage User", icon: "key", show: (u) => u != null },
 ];

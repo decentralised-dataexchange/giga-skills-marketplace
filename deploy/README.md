@@ -21,15 +21,48 @@ placeholders. Two values files sit on top of them:
 1. **An environment values file** (non-secret, safe to commit). Set at least
    `domain`, `image.registry` and `ingress.tlsSecret`. The maintainers'
    staging preset, [`helm/giga/values-staging.yaml`](helm/giga/values-staging.yaml),
-   is a complete worked example — copy it and replace every value.
+   is a complete worked example — copy it and replace every value. For a
+   real production deployment also set:
+
+   ```yaml
+   mode: production # no demo data, no demo accounts on the sign-in page
+   superadmin:
+     email: operator@example.org
+     name: Marketplace Operator
+   ```
+
 2. **A secret values file** (gitignored). `values.yaml` ships with the
-   database password blank on purpose; provide it at deploy time. Create a
-   local `values-secret.yaml`:
+   database password and the super admin password blank on purpose; provide
+   them at deploy time. Create a local `values-secret.yaml`:
 
    ```yaml
    postgres:
      password: <database-password>
+   superadmin:
+     password: <super-admin-password> # at least 12 characters
    ```
+
+   The chart refuses to render in production mode without
+   `superadmin.email` and `superadmin.password`.
+
+## Demo and production mode
+
+`mode` becomes the web app's `MARKETPLACE_MODE`, read at runtime, so the same
+image serves both kinds of deployment. It is the starting value: a super
+admin can switch demo mode (and self-service registration) on or off
+afterwards under Dashboard → Settings, and the stored setting then wins.
+
+| Mode                 | Demo data                                                   | Sign-in page                                  | Super admin                                                                           |
+| -------------------- | ----------------------------------------------------------- | --------------------------------------------- | ------------------------------------------------------------------------------------- |
+| `demo` (default)     | Seeded on the first boot (demo accounts, organisations, skills) | Offers "Use a demo account"                   | The seeded `superadmin@govbuild.test`; `superadmin.*` optional                        |
+| `production`         | None                                                        | No demo accounts, none sent to the browser    | `superadmin.email` + `superadmin.password`, required                                  |
+
+The web app bootstraps the `superadmin.*` account on every boot: it is
+created when missing, and its password, role and status follow the values.
+To rotate the password, change `superadmin.password` in `values-secret.yaml`
+and upgrade; the pods restart and apply it. In production mode the app
+refuses to serve while no super admin exists, since only a super admin can
+grant governance roles.
 
 ## Install / upgrade
 

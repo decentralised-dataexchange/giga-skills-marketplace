@@ -67,8 +67,46 @@ the repository or passed through CI.
 | ---------------------- | ----------------------------------------------------------------------------------------------- |
 | `DATABASE_URL`         | PostgreSQL connection string                                                                    |
 | `MARKETPLACE_API_URL`  | Base URL of the marketplace service                                                             |
+| `MARKETPLACE_MODE`     | Starting mode, `demo` (default) or `production`; see "Demo and production mode" below           |
+| `SUPERADMIN_EMAIL`     | The operator's super admin account, bootstrapped on every boot; required in production mode     |
+| `SUPERADMIN_PASSWORD`  | Its password (at least 12 characters); a secret, never committed                                |
+| `SUPERADMIN_NAME`      | Optional display name of that account (default "Marketplace Operator")                          |
 | `GITHUB_TOKEN`         | Optional; raises the GitHub API rate limit for repository submissions                           |
 | `NEXT_PUBLIC_SITE_URL` | Optional; canonical site URL for social-preview metadata (the Helm chart sets it from `domain`) |
+
+#### Demo and production mode
+
+`MARKETPLACE_MODE` is read by the server at runtime (it is not a build-time
+`NEXT_PUBLIC_` value), so one image serves both kinds of deployment. It is
+the starting value of the **demo mode** setting; a super admin can switch
+demo mode on or off afterwards under **Dashboard → Settings**, and the
+stored setting then wins over the environment.
+
+- **`demo`** (default): the first boot seeds the demo accounts, organisations
+  and skills, and the sign-in page offers "Use a demo account". This is what
+  local development, the e2e suite and the maintainers' staging use.
+- **`production`**: nothing is seeded and the sign-in page shows no demo
+  accounts (the browser never receives them). The super admin comes from
+  `SUPERADMIN_EMAIL` and `SUPERADMIN_PASSWORD`; the app refuses to serve
+  while demo mode is off and no active super admin exists, because
+  governance roles can only be granted by one.
+
+Switching demo mode **off** from the dashboard suspends the demo accounts
+and revokes their sessions, so their public passwords open nothing; a demo
+super admin cannot do this (sign in as a real super admin first). Switching
+it **on** reactivates them, creating them when the marketplace started
+outside demo mode (the demo organisations and skills are a first-boot seed
+only).
+
+The same Settings page has **self-service registration**: off, the sign-in
+page shows no "Create account" and the register endpoint refuses; accounts
+are then created by a super admin under Users & roles.
+
+In either mode, when `SUPERADMIN_EMAIL` and `SUPERADMIN_PASSWORD` are set the
+app bootstraps that account on every boot: it is created when missing, and
+its password, role and status follow the environment. Rotate the secret and
+restart to change the password, or to restore a suspended operator account.
+An unknown mode value is treated as `production` and logged.
 
 The education showcase needs its own set only for the real wallet flows;
 without them every page renders and only the wallet broker calls fail with
@@ -113,12 +151,16 @@ The chart's default values are neutral placeholders. Set `domain`,
 `image.registry` and `ingress.tlsSecret` in an environment values file —
 the maintainers' staging preset,
 [`deploy/helm/giga/values-staging.yaml`](deploy/helm/giga/values-staging.yaml),
-is a complete worked example. The database password is blank in
-`values.yaml` on purpose; put it in a local, gitignored `values-secret.yaml`:
+is a complete worked example. A real production deployment also sets
+`mode: production` and `superadmin.email` there. The database password and
+the super admin password are blank in `values.yaml` on purpose; put them in
+a local, gitignored `values-secret.yaml`:
 
 ```yaml
 postgres:
   password: <database password>
+superadmin:
+  password: <super admin password, at least 12 characters>
 ```
 
 Install or upgrade:

@@ -19,6 +19,27 @@ domain: marketplace.example.org
 # via values-secret.yaml or --set githubToken=... - never commit it here.
 githubToken: ""
 
+# The starting mode of the marketplace (MARKETPLACE_MODE of the web app):
+#   demo        the first boot seeds the demo accounts, organisations and
+#               skills, and the sign-in page offers "Use a demo account".
+#   production  no demo data is seeded, the sign-in page shows no demo
+#               accounts, and superadmin.email/password are required.
+# A super admin can switch demo mode on or off later under Dashboard ->
+# Settings; the stored setting then wins over this value.
+mode: demo
+
+# The operator's super admin account, bootstrapped by the web app on every
+# boot: created when missing; its password, role and status follow these
+# values, so rotate the secret and restart to change them. Required in
+# production mode (the only account that can grant governance roles). The
+# password is a secret (at least 12 characters): supply it like the database
+# password, via values-secret.yaml or --set superadmin.password=... - never
+# commit it here.
+superadmin:
+  email: ""
+  name: "Marketplace Operator"
+  password: ""
+
 image:
   # Registry that hosts the giga-web and giga-marketplace images. Build them
   # from the repository Dockerfiles and push them to a registry you control.

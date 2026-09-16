@@ -102,6 +102,14 @@ CREATE TABLE IF NOT EXISTS events (
   detail   JSONB,
   at       TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+-- Operator settings changed from the dashboard (lib/settings.ts): one row
+-- per setting, absent until a super admin first changes it.
+CREATE TABLE IF NOT EXISTS settings (
+  key        TEXT PRIMARY KEY,
+  value      JSONB NOT NULL,
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_by UUID REFERENCES users(id)
+);
 ALTER TABLE skills ADD COLUMN IF NOT EXISTS official BOOLEAN NOT NULL DEFAULT false;
 ALTER TABLE orgs ADD COLUMN IF NOT EXISTS slug TEXT;
 ALTER TABLE orgs ADD COLUMN IF NOT EXISTS logo TEXT;
@@ -236,8 +244,14 @@ export function ensureReady(): Promise<void> {
       const { migrateIntegerIdsToUuid } = await import("./migrations");
       if (await migrateIntegerIdsToUuid()) console.log("Migrated integer ids to UUIDs.");
       await sql.unsafe(SCHEMA);
-      const { seedIfEmpty } = await import("./seed");
+      const { seedIfEmpty, ensureSuperadmin } = await import("./seed");
       if (await seedIfEmpty()) console.log("Seeded demo users, organisations, and skills.");
+      // The operator's super admin from SUPERADMIN_EMAIL / SUPERADMIN_PASSWORD;
+      // required while demo mode is off and no active super admin exists.
+      const operator = await ensureSuperadmin();
+      if (operator === "created" || operator === "updated") {
+        console.log(`Super admin ${operator} from SUPERADMIN_EMAIL.`);
+      }
       await backfillOrgSlugs();
       if (await backfillSources()) console.log("Backfilled sources and submissions.");
     } finally {

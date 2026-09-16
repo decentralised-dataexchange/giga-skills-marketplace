@@ -33,6 +33,12 @@ services:
       MARKETPLACE_API_URL: http://marketplace:4830
       # Optional: raises GitHub's API limit for repository submissions
       GITHUB_TOKEN: ${GITHUB_TOKEN:-}
+      # demo (default) seeds and offers the demo accounts; production does
+      # neither and needs the super admin below (password >= 12 characters).
+      MARKETPLACE_MODE: ${MARKETPLACE_MODE:-demo}
+      SUPERADMIN_EMAIL: ${SUPERADMIN_EMAIL:-}
+      SUPERADMIN_PASSWORD: ${SUPERADMIN_PASSWORD:-}
+      SUPERADMIN_NAME: ${SUPERADMIN_NAME:-}
     depends_on:
       postgres:
         condition: service_healthy
