@@ -135,8 +135,7 @@ export class IgrantProvider extends EventExternalServiceProvider<IgrantPluginOpt
     const rawHistory = raw.credentialHistory;
     const history: OwsCredentialHistory =
       (Array.isArray(rawHistory) ? rawHistory[0] : rawHistory) || {};
-    const exchangeId =
-      history.credentialExchangeId || history.CredentialExchangeId || "";
+    const exchangeId = history.credentialExchangeId || history.CredentialExchangeId || "";
 
     const response = {
       operation: "issue",
@@ -232,9 +231,7 @@ export class IgrantProvider extends EventExternalServiceProvider<IgrantPluginOpt
       throw new Error("iGrant.io provider. checkStatus needs options.exchangeId.");
     }
     if (flow !== "issue" && flow !== "verify") {
-      throw new Error(
-        'iGrant.io provider. checkStatus needs options.flow: "issue" or "verify".',
-      );
+      throw new Error('iGrant.io provider. checkStatus needs options.flow: "issue" or "verify".');
     }
 
     const client = await this.getClient(
@@ -264,8 +261,7 @@ export class IgrantProvider extends EventExternalServiceProvider<IgrantPluginOpt
       const history: OwsVerificationHistory = raw.verificationHistory || {};
       const status = history.status || "";
       const responded =
-        (history.vpTokenResponse?.length ?? 0) > 0 ||
-        status === VERIFICATION_DONE_STATUS;
+        (history.vpTokenResponse?.length ?? 0) > 0 || status === VERIFICATION_DONE_STATUS;
       done = responded;
       response = {
         operation: "checkStatus",
@@ -353,9 +349,7 @@ export class IgrantProvider extends EventExternalServiceProvider<IgrantPluginOpt
     const exchangeId = String(optionsData.exchangeId || "");
 
     if (!exchangeId) {
-      throw new Error(
-        "iGrant.io provider. supplyClaims needs options.exchangeId.",
-      );
+      throw new Error("iGrant.io provider. supplyClaims needs options.exchangeId.");
     }
 
     let credential = optionsData.credential as Record<string, unknown>;
@@ -393,9 +387,7 @@ export class IgrantProvider extends EventExternalServiceProvider<IgrantPluginOpt
     };
   }
 
-  private buildIssuePayload(
-    optionsData: Record<string, unknown>,
-  ): Record<string, unknown> {
+  private buildIssuePayload(optionsData: Record<string, unknown>): Record<string, unknown> {
     // Full payload passthrough for advanced cases.
     if (optionsData.payload && typeof optionsData.payload === "object") {
       return optionsData.payload as Record<string, unknown>;
@@ -403,9 +395,7 @@ export class IgrantProvider extends EventExternalServiceProvider<IgrantPluginOpt
 
     const credentialDefinitionId = optionsData.credentialDefinitionId;
     if (!credentialDefinitionId) {
-      throw new Error(
-        "iGrant.io provider. issue needs options.credentialDefinitionId.",
-      );
+      throw new Error("iGrant.io provider. issue needs options.credentialDefinitionId.");
     }
 
     const payload: Record<string, unknown> = {
@@ -432,26 +422,20 @@ export class IgrantProvider extends EventExternalServiceProvider<IgrantPluginOpt
     return payload;
   }
 
-  private buildVerifyPayload(
-    optionsData: Record<string, unknown>,
-  ): Record<string, unknown> {
+  private buildVerifyPayload(optionsData: Record<string, unknown>): Record<string, unknown> {
     if (optionsData.payload && typeof optionsData.payload === "object") {
       return optionsData.payload as Record<string, unknown>;
     }
 
     const presentationDefinitionId = optionsData.presentationDefinitionId;
     if (!presentationDefinitionId) {
-      throw new Error(
-        "iGrant.io provider. verify needs options.presentationDefinitionId.",
-      );
+      throw new Error("iGrant.io provider. verify needs options.presentationDefinitionId.");
     }
 
     const payload: Record<string, unknown> = {
       presentationDefinitionId,
       requestByReference:
-        typeof optionsData.requestByReference === "boolean"
-          ? optionsData.requestByReference
-          : true,
+        typeof optionsData.requestByReference === "boolean" ? optionsData.requestByReference : true,
     };
     for (const key of [
       "transactionData",

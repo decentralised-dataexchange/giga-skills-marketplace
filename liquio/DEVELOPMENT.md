@@ -20,14 +20,14 @@ you can rebase, extend and turn into pull requests against the upstream
 repository (see Liquio's `CONTRIBUTING.md` for their fork and pull-request
 process). After the patch, the integration lives in:
 
-| Path in the Liquio tree | Contains |
-| ----------------------- | -------- |
-| `packages/event-igrantio-plugin/` | The external-service plugin (issue, verify, check status, revoke, supply deferred claims) |
-| `packages/external-reader-igrantio-plugin/` | The exchange-status reader the cabinet polls |
-| `packages/front-core/components/JsonSchema/elements/IgrantCredential/` | The `igrant.credential` wallet control |
-| `components/cabinet-front/src/application/components/JsonSchema/elements/index.jsx` | Registers the control in the cabinet |
-| `config-templates/event/`, `config-templates/external-reader/` | Plugin configuration templates |
-| `examples/` | The journey workflows, the settings register and `INTEGRATION.md` |
+| Path in the Liquio tree                                                             | Contains                                                                                  |
+| ----------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| `packages/event-igrantio-plugin/`                                                   | The external-service plugin (issue, verify, check status, revoke, supply deferred claims) |
+| `packages/external-reader-igrantio-plugin/`                                         | The exchange-status reader the cabinet polls                                              |
+| `packages/front-core/components/JsonSchema/elements/IgrantCredential/`              | The `igrant.credential` wallet control                                                    |
+| `components/cabinet-front/src/application/components/JsonSchema/elements/index.jsx` | Registers the control in the cabinet                                                      |
+| `config-templates/event/`, `config-templates/external-reader/`                      | Plugin configuration templates                                                            |
+| `examples/`                                                                         | The journey workflows, the settings register and `INTEGRATION.md`                         |
 
 The `packages/` copy in this folder is the same source, included so the
 plugins can be read and built without cloning Liquio. Treat the patch as

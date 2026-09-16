@@ -1,8 +1,4 @@
-import {
-  ExternalReaderProvider,
-  PluginContext,
-  ProviderMethodArgs,
-} from "@liquio/plugin-sdk";
+import { ExternalReaderProvider, PluginContext, ProviderMethodArgs } from "@liquio/plugin-sdk";
 
 import { OwsClient } from "./ows/client";
 import { SettingsResolver } from "./ows/settings";
@@ -20,9 +16,7 @@ import {
  * `presentation[]` entry per credential. Merge them into a single flat
  * object so form fillers can read every claim from one place.
  */
-export function mergePresentationClaims(
-  presentation: unknown,
-): Record<string, unknown> | null {
+export function mergePresentationClaims(presentation: unknown): Record<string, unknown> | null {
   if (!Array.isArray(presentation)) {
     return null;
   }
@@ -67,9 +61,7 @@ export class IgrantReaderProvider extends ExternalReaderProvider<IgrantPluginOpt
     }));
   }
 
-  private async checkCredentialStatus(
-    args: ProviderMethodArgs,
-  ): Promise<Record<string, unknown>> {
+  private async checkCredentialStatus(args: ProviderMethodArgs): Promise<Record<string, unknown>> {
     const exchangeId = this.extractExchangeId(args);
     const client = await this.getClient(this.extractSettingsName(args));
 
@@ -104,9 +96,7 @@ export class IgrantReaderProvider extends ExternalReaderProvider<IgrantPluginOpt
     const raw = await client.getVerificationHistory(exchangeId);
     const history: OwsVerificationHistory = raw.verificationHistory || {};
     const status = history.status || "";
-    const done =
-      (history.vpTokenResponse?.length ?? 0) > 0 ||
-      status === VERIFICATION_DONE_STATUS;
+    const done = (history.vpTokenResponse?.length ?? 0) > 0 || status === VERIFICATION_DONE_STATUS;
 
     this.context.log.save("igrant-reader|presentation-status", {
       exchangeId,
@@ -139,9 +129,7 @@ export class IgrantReaderProvider extends ExternalReaderProvider<IgrantPluginOpt
     const filter = (args?.nonUserFilter || {}) as Record<string, unknown>;
     const exchangeId = String(extra.exchangeId || filter.exchangeId || "");
     if (!exchangeId) {
-      throw new Error(
-        "iGrant.io reader. extraParams.exchangeId is required to check an exchange.",
-      );
+      throw new Error("iGrant.io reader. extraParams.exchangeId is required to check an exchange.");
     }
     return exchangeId;
   }

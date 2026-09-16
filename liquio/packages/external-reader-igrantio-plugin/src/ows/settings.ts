@@ -105,9 +105,7 @@ export class SettingsResolver {
         { error: error?.message, registerId, keyId },
         "error",
       );
-      throw new Error(
-        `iGrant.io provider. Can not read the settings register: ${error?.message}`,
-      );
+      throw new Error(`iGrant.io provider. Can not read the settings register: ${error?.message}`);
     }
 
     const rows = Array.isArray(records) ? records : [];
@@ -123,7 +121,13 @@ export class SettingsResolver {
     if (!settings.baseUrl || !settings.apiKey) {
       this.log.save(
         "igrant|settings-register|record-incomplete",
-        { registerId, keyId, recordName, hasBaseUrl: !!settings.baseUrl, hasApiKey: !!settings.apiKey },
+        {
+          registerId,
+          keyId,
+          recordName,
+          hasBaseUrl: !!settings.baseUrl,
+          hasApiKey: !!settings.apiKey,
+        },
         "error",
       );
       throw new Error(

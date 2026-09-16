@@ -20,13 +20,13 @@ delivers the same learner journey as the education showcase under
 
 ## Contents
 
-| Path | Purpose |
-| ---- | ------- |
+| Path                  | Purpose                                                                                                                                                            |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `liquio-igrant.patch` | All source changes against Liquio `main`: the two backend plugins, the `igrant.credential` cabinet form control, configuration templates and the example workflows |
-| `packages/` | The source code of the two plugins, buildable on its own (`npm install && npm run build && npx jest`) |
-| `plugins/` | Prebuilt npm tarballs of the two plugins, ready for the platform's plugin installer |
-| `workflows/` | The three journey workflows and the settings register, in Liquio's import format |
-| `DEVELOPMENT.md` | How to develop the integration against the Liquio source on GitHub |
+| `packages/`           | The source code of the two plugins, buildable on its own (`npm install && npm run build && npx jest`)                                                              |
+| `plugins/`            | Prebuilt npm tarballs of the two plugins, ready for the platform's plugin installer                                                                                |
+| `workflows/`          | The three journey workflows and the settings register, in Liquio's import format                                                                                   |
+| `DEVELOPMENT.md`      | How to develop the integration against the Liquio source on GitHub                                                                                                 |
 
 The backend integration is a pair of standard Liquio plugins built on
 `@liquio/plugin-sdk`: an external-service provider for the `event` service
@@ -103,14 +103,14 @@ two-organisation story, use two sandbox organisations: a ministry that
 issues and a separate employer that verifies. Create these definitions
 through the OWS API or dashboard, all with the x509 trust anchor:
 
-| Organisation | Definition | Notes |
-| ------------ | ---------- | ----- |
-| Issuer | Credential definition `LearnerProfile` | Claims: ulid, given_name, family_name, birthdate, id_number, phone, email, institution, programme_name; revocation on; set a display name |
-| Issuer | Credential definition `EducationalInstitutionCertificate` | The claims above plus programme_level, final_outcome, issue_date; revocation on; `supportInteractiveAuthorisationEndpoint: true` is mandatory for the payment flow |
-| Issuer | Presentation definition for the PID | vct `urn:eu.europa.ec.eudi:pid:1`; claims given_name, family_name, birthdate, email |
-| Issuer | Presentation definition for the Learner Profile | vct `LearnerProfile`; the nine claims above |
-| Issuer | Two payment presentation definitions | `transactionDataDefinitionType: "payment"`; one for the TS12 payment account credential, one for the payment card credential |
-| Verifier | Presentation definition for the job application | One DCQL query with two credentials: the PID (given_name, family_name, email) and the certificate (institution, programme_name, programme_level, final_outcome, issue_date, ulid); `clientIdScheme: x509_hash` |
+| Organisation | Definition                                                | Notes                                                                                                                                                                                                          |
+| ------------ | --------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Issuer       | Credential definition `LearnerProfile`                    | Claims: ulid, given_name, family_name, birthdate, id_number, phone, email, institution, programme_name; revocation on; set a display name                                                                      |
+| Issuer       | Credential definition `EducationalInstitutionCertificate` | The claims above plus programme_level, final_outcome, issue_date; revocation on; `supportInteractiveAuthorisationEndpoint: true` is mandatory for the payment flow                                             |
+| Issuer       | Presentation definition for the PID                       | vct `urn:eu.europa.ec.eudi:pid:1`; claims given_name, family_name, birthdate, email                                                                                                                            |
+| Issuer       | Presentation definition for the Learner Profile           | vct `LearnerProfile`; the nine claims above                                                                                                                                                                    |
+| Issuer       | Two payment presentation definitions                      | `transactionDataDefinitionType: "payment"`; one for the TS12 payment account credential, one for the payment card credential                                                                                   |
+| Verifier     | Presentation definition for the job application           | One DCQL query with two credentials: the PID (given_name, family_name, email) and the certificate (institution, programme_name, programme_level, final_outcome, issue_date, ulid); `clientIdScheme: x509_hash` |
 
 The issuer certificate must be granted on the trust list the wallet
 consults; otherwise the wallet downloads the credential, fails the trust
@@ -136,17 +136,17 @@ https://trustlist.nxd.foundation/trust-list/lookup` with
 3. Replace the placeholders in the imported templates (the event nodes and
    the `igrant.credential` controls) with your values:
 
-   | Placeholder | Value |
-   | ----------- | ----- |
-   | `REPLACE_WITH_SETTINGS_NAME` | Issuer record name, for example `moe-sandbox` |
-   | `REPLACE_WITH_EMPLOYER_SETTINGS_NAME` | Verifier record name, for example `civicworks-sandbox` |
-   | `REPLACE_WITH_PID_PRESENTATION_DEFINITION_ID` | PID presentation definition id |
-   | `REPLACE_WITH_LEARNER_PROFILE_DEFINITION_ID` | Learner Profile credential definition id |
-   | `REPLACE_WITH_LEARNER_PROFILE_PRESENTATION_DEFINITION_ID` | Learner Profile presentation definition id |
-   | `REPLACE_WITH_EDU_CERT_DEFINITION_ID` | Certificate credential definition id |
-   | `REPLACE_WITH_ACCOUNT_PAYMENT_PRESENTATION_DEFINITION_ID` | Payment account presentation definition id |
-   | `REPLACE_WITH_CARD_PAYMENT_PRESENTATION_DEFINITION_ID` | Payment card presentation definition id |
-   | `REPLACE_WITH_JOB_APPLICATION_PRESENTATION_DEFINITION_ID` | Job application presentation definition id |
+   | Placeholder                                               | Value                                                  |
+   | --------------------------------------------------------- | ------------------------------------------------------ |
+   | `REPLACE_WITH_SETTINGS_NAME`                              | Issuer record name, for example `moe-sandbox`          |
+   | `REPLACE_WITH_EMPLOYER_SETTINGS_NAME`                     | Verifier record name, for example `civicworks-sandbox` |
+   | `REPLACE_WITH_PID_PRESENTATION_DEFINITION_ID`             | PID presentation definition id                         |
+   | `REPLACE_WITH_LEARNER_PROFILE_DEFINITION_ID`              | Learner Profile credential definition id               |
+   | `REPLACE_WITH_LEARNER_PROFILE_PRESENTATION_DEFINITION_ID` | Learner Profile presentation definition id             |
+   | `REPLACE_WITH_EDU_CERT_DEFINITION_ID`                     | Certificate credential definition id                   |
+   | `REPLACE_WITH_ACCOUNT_PAYMENT_PRESENTATION_DEFINITION_ID` | Payment account presentation definition id             |
+   | `REPLACE_WITH_CARD_PAYMENT_PRESENTATION_DEFINITION_ID`    | Payment card presentation definition id                |
+   | `REPLACE_WITH_JOB_APPLICATION_PRESENTATION_DEFINITION_ID` | Job application presentation definition id             |
 
 The three services then appear as top-level entries in the cabinet's
 service catalogue.

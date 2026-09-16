@@ -1,24 +1,20 @@
 {
   "name": "@liquio/external-reader-igrantio-plugin",
   "version": "0.1.0",
-  "license": "SEE LICENSE IN ../../LICENSE.md",
   "description": "iGrant.io OWS exchange-status reader plugin for components/external-reader, built on @liquio/plugin-sdk. Lets cabinet forms poll OpenID4VCI issuance / OpenID4VP verification exchanges.",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
-  "files": [
-    "dist"
-  ],
-  "publishConfig": {
-    "access": "public"
-  },
+  "license": "SEE LICENSE IN ../../LICENSE.md",
   "repository": {
     "type": "git",
     "url": "https://github.com/liquio/liquio.git",
     "directory": "packages/external-reader-igrantio-plugin"
   },
-  "liquioPlugin": {
-    "kind": "external-reader-provider",
-    "sdkVersion": "^0.1.0"
+  "files": [
+    "dist"
+  ],
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "publishConfig": {
+    "access": "public"
   },
   "scripts": {
     "build": "tsc",
@@ -43,5 +39,9 @@
   },
   "overrides": {
     "brace-expansion": "^5.0.8"
+  },
+  "liquioPlugin": {
+    "kind": "external-reader-provider",
+    "sdkVersion": "^0.1.0"
   }
 }

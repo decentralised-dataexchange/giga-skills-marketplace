@@ -61,9 +61,11 @@ describe("IgrantReaderProvider", () => {
     });
     const provider = new IgrantReaderProvider(context as never, options);
 
-    const result = ((await provider.getMethod("checkCredentialStatus")({
-      extraParams: { exchangeId: "cred-ex-1" },
-    })) as { data: Record<string, unknown> }).data;
+    const result = (
+      (await provider.getMethod("checkCredentialStatus")({
+        extraParams: { exchangeId: "cred-ex-1" },
+      })) as { data: Record<string, unknown> }
+    ).data;
 
     expect(result).toMatchObject({ done: true, accepted: true });
   });
@@ -82,9 +84,11 @@ describe("IgrantReaderProvider", () => {
     });
     const provider = new IgrantReaderProvider(context as never, options);
 
-    const result = ((await provider.getMethod("checkPresentationStatus")({
-      extraParams: { exchangeId: "pres-ex-1" },
-    })) as { data: Record<string, unknown> }).data;
+    const result = (
+      (await provider.getMethod("checkPresentationStatus")({
+        extraParams: { exchangeId: "pres-ex-1" },
+      })) as { data: Record<string, unknown> }
+    ).data;
 
     expect(mockedAxios).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -116,9 +120,11 @@ describe("IgrantReaderProvider", () => {
     });
     const provider = new IgrantReaderProvider(context as never, options);
 
-    const result = ((await provider.getMethod("checkPresentationStatus")({
-      extraParams: { exchangeId: "pres-ex-2" },
-    })) as { data: Record<string, unknown> }).data;
+    const result = (
+      (await provider.getMethod("checkPresentationStatus")({
+        extraParams: { exchangeId: "pres-ex-2" },
+      })) as { data: Record<string, unknown> }
+    ).data;
 
     expect(result).toMatchObject({
       done: true,
@@ -139,9 +145,11 @@ describe("IgrantReaderProvider", () => {
     });
     const provider = new IgrantReaderProvider(context as never, options);
 
-    const result = ((await provider.getMethod("checkPresentationStatus")({
-      extraParams: { exchangeId: "pres-ex-1" },
-    })) as { data: Record<string, unknown> }).data;
+    const result = (
+      (await provider.getMethod("checkPresentationStatus")({
+        extraParams: { exchangeId: "pres-ex-1" },
+      })) as { data: Record<string, unknown> }
+    ).data;
 
     expect(result).toMatchObject({ done: false, verified: false, claims: null });
   });
@@ -165,9 +173,7 @@ describe("IgrantReaderProvider", () => {
 
   it("throws without an exchange id", async () => {
     const provider = new IgrantReaderProvider(context as never, options);
-    await expect(
-      provider.getMethod("checkPresentationStatus")({}),
-    ).rejects.toThrow("exchangeId");
+    await expect(provider.getMethod("checkPresentationStatus")({})).rejects.toThrow("exchangeId");
     expect(mockedAxios).not.toHaveBeenCalled();
   });
 });

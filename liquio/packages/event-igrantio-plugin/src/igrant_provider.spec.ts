@@ -81,9 +81,7 @@ describe("IgrantProvider", () => {
 
     it("throws without credentialDefinitionId", async () => {
       const provider = new IgrantProvider(context as never, directOptions);
-      await expect(provider.issue(sendData({}))).rejects.toThrow(
-        "credentialDefinitionId",
-      );
+      await expect(provider.issue(sendData({}))).rejects.toThrow("credentialDefinitionId");
       expect(mockedAxios).not.toHaveBeenCalled();
     });
 
@@ -98,9 +96,7 @@ describe("IgrantProvider", () => {
 
       await provider.issue(sendData({ payload }));
 
-      expect(mockedAxios).toHaveBeenCalledWith(
-        expect.objectContaining({ data: payload }),
-      );
+      expect(mockedAxios).toHaveBeenCalledWith(expect.objectContaining({ data: payload }));
     });
   });
 
@@ -119,9 +115,7 @@ describe("IgrantProvider", () => {
       mockedAxios.mockResolvedValueOnce(verifyResponse);
       const provider = new IgrantProvider(context as never, directOptions);
 
-      const result = await provider.verify(
-        sendData({ presentationDefinitionId: "pd-1" }),
-      );
+      const result = await provider.verify(sendData({ presentationDefinitionId: "pd-1" }));
 
       expect(mockedAxios).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -144,9 +138,7 @@ describe("IgrantProvider", () => {
 
     it("throws without presentationDefinitionId", async () => {
       const provider = new IgrantProvider(context as never, directOptions);
-      await expect(provider.verify(sendData({}))).rejects.toThrow(
-        "presentationDefinitionId",
-      );
+      await expect(provider.verify(sendData({}))).rejects.toThrow("presentationDefinitionId");
     });
   });
 
@@ -241,9 +233,7 @@ describe("IgrantProvider", () => {
 
     it("validates its arguments", async () => {
       const provider = new IgrantProvider(context as never, directOptions);
-      await expect(
-        provider.checkStatus(sendData({ flow: "issue" })),
-      ).rejects.toThrow("exchangeId");
+      await expect(provider.checkStatus(sendData({ flow: "issue" }))).rejects.toThrow("exchangeId");
       await expect(
         provider.checkStatus(sendData({ exchangeId: "x", flow: "bad" })),
       ).rejects.toThrow("flow");
@@ -283,9 +273,7 @@ describe("IgrantProvider", () => {
       );
 
       await expect(
-        provider.revoke(
-          sendData({ exchangeId: "cred-ex-1", revocationStatus: "Bad" }),
-        ),
+        provider.revoke(sendData({ exchangeId: "cred-ex-1", revocationStatus: "Bad" })),
       ).rejects.toThrow("revocationStatus");
       await expect(provider.revoke(sendData({}))).rejects.toThrow("exchangeId");
     });
@@ -321,12 +309,8 @@ describe("IgrantProvider", () => {
 
     it("validates its arguments", async () => {
       const provider = new IgrantProvider(context as never, directOptions);
-      await expect(
-        provider.supplyClaims(sendData({ claims: {} })),
-      ).rejects.toThrow("exchangeId");
-      await expect(
-        provider.supplyClaims(sendData({ exchangeId: "x" })),
-      ).rejects.toThrow("claims");
+      await expect(provider.supplyClaims(sendData({ claims: {} }))).rejects.toThrow("exchangeId");
+      await expect(provider.supplyClaims(sendData({ exchangeId: "x" }))).rejects.toThrow("claims");
     });
   });
 
@@ -345,16 +329,12 @@ describe("IgrantProvider", () => {
         }),
       );
 
-      expect((result.response as Record<string, unknown>).exchangeId).toBe(
-        "cred-ex-9",
-      );
+      expect((result.response as Record<string, unknown>).exchangeId).toBe("cred-ex-9");
     });
 
     it("throws on unknown operation", async () => {
       const provider = new IgrantProvider(context as never, directOptions);
-      await expect(provider.send(sendData({}))).rejects.toThrow(
-        "Unknown operation",
-      );
+      await expect(provider.send(sendData({}))).rejects.toThrow("Unknown operation");
     });
   });
 
@@ -418,16 +398,16 @@ describe("IgrantProvider", () => {
       });
       const provider = new IgrantProvider(context as never, registerOptions);
 
-      await expect(
-        provider.verify(sendData({ presentationDefinitionId: "pd-1" })),
-      ).rejects.toThrow("data.baseUrl and data.apiKey");
+      await expect(provider.verify(sendData({ presentationDefinitionId: "pd-1" }))).rejects.toThrow(
+        "data.baseUrl and data.apiKey",
+      );
     });
 
     it("fails clearly when nothing is configured", async () => {
       const provider = new IgrantProvider(context as never, {});
-      await expect(
-        provider.verify(sendData({ presentationDefinitionId: "pd-1" })),
-      ).rejects.toThrow("No OWS settings");
+      await expect(provider.verify(sendData({ presentationDefinitionId: "pd-1" }))).rejects.toThrow(
+        "No OWS settings",
+      );
     });
   });
 });

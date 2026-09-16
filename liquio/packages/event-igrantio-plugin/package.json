@@ -1,24 +1,20 @@
 {
   "name": "@liquio/event-igrantio-plugin",
   "version": "0.1.0",
-  "license": "SEE LICENSE IN ../../LICENSE.md",
   "description": "iGrant.io Organisation Wallet Suite (OpenID4VCI issuance / OpenID4VP verification) external-service plugin for components/event, built on @liquio/plugin-sdk",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
-  "files": [
-    "dist"
-  ],
-  "publishConfig": {
-    "access": "public"
-  },
+  "license": "SEE LICENSE IN ../../LICENSE.md",
   "repository": {
     "type": "git",
     "url": "https://github.com/liquio/liquio.git",
     "directory": "packages/event-igrantio-plugin"
   },
-  "liquioPlugin": {
-    "kind": "event-external-service",
-    "sdkVersion": "^0.1.0"
+  "files": [
+    "dist"
+  ],
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "publishConfig": {
+    "access": "public"
   },
   "scripts": {
     "build": "tsc",
@@ -43,5 +39,9 @@
   },
   "overrides": {
     "brace-expansion": "^5.0.8"
+  },
+  "liquioPlugin": {
+    "kind": "event-external-service",
+    "sdkVersion": "^0.1.0"
   }
 }

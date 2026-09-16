@@ -3,12 +3,9 @@ import axios, { AxiosRequestConfig } from "axios";
 import { OwsIssueResponse, OwsSettings, OwsVerifyResponse } from "./types";
 
 const ISSUE_PATH = "/v2/config/digital-wallet/openid/sdjwt/credential/issue";
-const CREDENTIAL_HISTORY_PATH =
-  "/v2/config/digital-wallet/openid/sdjwt/credential/history";
-const VERIFICATION_SEND_PATH =
-  "/v3/config/digital-wallet/openid/sdjwt/verification/send";
-const VERIFICATION_HISTORY_PATH =
-  "/v3/config/digital-wallet/openid/sdjwt/verification/history";
+const CREDENTIAL_HISTORY_PATH = "/v2/config/digital-wallet/openid/sdjwt/credential/history";
+const VERIFICATION_SEND_PATH = "/v3/config/digital-wallet/openid/sdjwt/verification/send";
+const VERIFICATION_HISTORY_PATH = "/v3/config/digital-wallet/openid/sdjwt/verification/history";
 
 /**
  * Thin HTTP client for the OWS OpenID4VC endpoints used by the Liquio plugins.
@@ -71,9 +68,7 @@ export class OwsClient {
   }
 
   /** `POST …/verification/send` (OpenID4VP, v3). */
-  async sendVerification(
-    payload: Record<string, unknown>,
-  ): Promise<OwsVerifyResponse> {
+  async sendVerification(payload: Record<string, unknown>): Promise<OwsVerifyResponse> {
     return this.request<OwsVerifyResponse>({
       method: "POST",
       url: `${this.base()}${VERIFICATION_SEND_PATH}`,
@@ -107,9 +102,7 @@ export class OwsClient {
     } catch (error) {
       const status = error?.response?.status;
       const detail =
-        error?.response?.data?.detail ||
-        error?.response?.data?.message ||
-        error?.message;
+        error?.response?.data?.detail || error?.response?.data?.message || error?.message;
       const wrapped: Error & { details?: unknown } = new Error(
         `iGrant.io OWS request failed${status ? ` (HTTP ${status})` : ""}: ${detail}`,
       );

@@ -12,9 +12,9 @@ The OWS API key stays server-side.
 
 ## Methods
 
-| Method | Input | Output |
-| --- | --- | --- |
-| `checkCredentialStatus` | `extraParams.exchangeId` (CredentialExchangeId) | `{flow:"issue", exchangeId, status, credentialStatus, done, accepted, holder}` |
+| Method                    | Input                                             | Output                                                                                               |
+| ------------------------- | ------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| `checkCredentialStatus`   | `extraParams.exchangeId` (CredentialExchangeId)   | `{flow:"issue", exchangeId, status, credentialStatus, done, accepted, holder}`                       |
 | `checkPresentationStatus` | `extraParams.exchangeId` (presentationExchangeId) | `{flow:"verify", exchangeId, status, done, verified, claims, holder, walletUnitAttestationVerified}` |
 
 `done` is `true` when the wallet has completed the exchange

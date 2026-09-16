@@ -81,16 +81,16 @@ Restrict the register to the admin unit with register access rules
 
 Options reference (`IgrantPluginOptions` in `src/ows/types.ts`):
 
-| Option | Meaning |
-| --- | --- |
-| `settingsRegister.url` | Register service base URL (`http://register:8103`). |
-| `settingsRegister.token` | Register service auth token (same as `requester.json` → `registers.token`). |
-| `settingsRegister.registerId` / `keyId` | Where the settings record lives. |
-| `settingsRegister.recordName` | Optional `data.name` filter when the key holds several records. |
-| `settingsRegister.cacheTtlMs` | Settings cache TTL, default 60000. |
-| `baseUrl`, `apiKey` | Hard overrides; skip / override the register (default tenant only). |
-| `timeout` | OWS HTTP timeout in ms, default 20000. |
-| `debug` | Log full payloads (claims included) — never enable in production. |
+| Option                                  | Meaning                                                                     |
+| --------------------------------------- | --------------------------------------------------------------------------- |
+| `settingsRegister.url`                  | Register service base URL (`http://register:8103`).                         |
+| `settingsRegister.token`                | Register service auth token (same as `requester.json` → `registers.token`). |
+| `settingsRegister.registerId` / `keyId` | Where the settings record lives.                                            |
+| `settingsRegister.recordName`           | Optional `data.name` filter when the key holds several records.             |
+| `settingsRegister.cacheTtlMs`           | Settings cache TTL, default 60000.                                          |
+| `baseUrl`, `apiKey`                     | Hard overrides; skip / override the register (default tenant only).         |
+| `timeout`                               | OWS HTTP timeout in ms, default 20000.                                      |
+| `debug`                                 | Log full payloads (claims included) — never enable in production.           |
 
 ## Usage in the workflow designer (for analysts)
 
@@ -295,7 +295,7 @@ object, so fillers and gateway conditions read them from one place.
 
 ### Server-side wait loop (no citizen on the page)
 
-Model *request → delay → checkStatus → gateway* in BPMN:
+Model _request → delay → checkStatus → gateway_ in BPMN:
 
 ```json5
 // checkStatus event node:
@@ -316,13 +316,13 @@ Model *request → delay → checkStatus → gateway* in BPMN:
 
 ## Operations reference
 
-| operation (in `options`) | Required options | Normalized response |
-| --- | --- | --- |
-| `operation: "issue"` | `credentialDefinitionId` (+ `claims` or `credential`; optional `issuanceMode`, `userPin`, `individualId`, `presentationDefinitionId`, `urlScheme`, `transactionData`, or full `payload`) | `{operation, exchangeId, offerUri, status, credentialStatus, credentialId}` |
-| `operation: "verify"` | `presentationDefinitionId` (optional `transactionData`, `individualId`, `mapperId`, `signatureStamp`, `signatureCoordinate`, `requestByReference`, or full `payload`) | `{operation, exchangeId, qrUri, status, dcApiRequest}` |
-| `operation: "checkStatus"` | `exchangeId`, `flow: "issue"\|"verify"` | issue: `{status, done, accepted}` · verify: `{status, done, verified, claims, holder}` |
-| `operation: "revoke"` | `exchangeId` (optional `revocationStatus: "Revoked"\|"Suspended"\|"Operational"`, default `Revoked`; the credential definition must set `supportRevocation: true`) | `{operation, exchangeId, revocationStatus}` |
-| `operation: "supplyClaims"` | `exchangeId` + `claims` (optional `credentialId`) or a full `credential` — completes a `Deferred` issuance | `{operation, exchangeId, success}` |
+| operation (in `options`)    | Required options                                                                                                                                                                         | Normalized response                                                                    |
+| --------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| `operation: "issue"`        | `credentialDefinitionId` (+ `claims` or `credential`; optional `issuanceMode`, `userPin`, `individualId`, `presentationDefinitionId`, `urlScheme`, `transactionData`, or full `payload`) | `{operation, exchangeId, offerUri, status, credentialStatus, credentialId}`            |
+| `operation: "verify"`       | `presentationDefinitionId` (optional `transactionData`, `individualId`, `mapperId`, `signatureStamp`, `signatureCoordinate`, `requestByReference`, or full `payload`)                    | `{operation, exchangeId, qrUri, status, dcApiRequest}`                                 |
+| `operation: "checkStatus"`  | `exchangeId`, `flow: "issue"\|"verify"`                                                                                                                                                  | issue: `{status, done, accepted}` · verify: `{status, done, verified, claims, holder}` |
+| `operation: "revoke"`       | `exchangeId` (optional `revocationStatus: "Revoked"\|"Suspended"\|"Operational"`, default `Revoked`; the credential definition must set `supportRevocation: true`)                       | `{operation, exchangeId, revocationStatus}`                                            |
+| `operation: "supplyClaims"` | `exchangeId` + `claims` (optional `credentialId`) or a full `credential` — completes a `Deferred` issuance                                                                               | `{operation, exchangeId, success}`                                                     |
 
 `isDone` on the send result is `true` for successful `issue`/`verify` creation and
 mirrors `done` for `checkStatus` (useful in gateway conditions).
