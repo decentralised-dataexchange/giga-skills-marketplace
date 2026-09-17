@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { PromptDoc } from "@/components/prompt-doc";
 
 export const metadata = {
   title: "How it was built with skills · Knowledgebase · ITU Skills Marketplace",
@@ -234,14 +235,13 @@ export default function ShowcaseBuildGuidePage() {
           with server-only modules, so a leaked key is a build error rather than an incident.
         </li>
         <li>
-          <strong>Make provisioning idempotent.</strong> Definitions, webhooks and trust entries are
-          created by a script that can run twice without duplicating anything, which the webhook
-          skill models explicitly.
+          <strong>Make provisioning idempotent.</strong> Definitions and trust entries are created by
+          a script that searches by label first and can run twice without duplicating anything.
         </li>
         <li>
-          <strong>Test with a real Wallet early.</strong> Webhooks need a publicly reachable HTTPS
-          address even during development, and the trust warnings a Wallet shows are the fastest way
-          to find a missing certificate registration. The phone finds what curl cannot.
+          <strong>Test with a real Wallet early.</strong> The trust warnings a Wallet shows are the
+          fastest way to find a missing certificate registration, and only a real presentation
+          exercises selective disclosure and revocation. The phone finds what curl cannot.
         </li>
         <li>
           <strong>When behaviour surprises you, reread the skill.</strong> Almost every error in the
@@ -250,6 +250,35 @@ export default function ShowcaseBuildGuidePage() {
           loaded skill.
         </li>
       </ul>
+
+      <h2>Per-portal build prompts</h2>
+      <p>
+        These are the full, copy-and-paste prompts to rebuild each portal end to end. Give the
+        shared foundation once (it provisions the definitions, keys and trust), then one portal
+        prompt per build. The fields match the live showcase exactly, with fresh{" "}
+        <code>(rebuild)</code> labels so nothing deployed breaks. Copy a prompt and hand it to your
+        coding agent, or open the raw file to keep it under version control.
+      </p>
+      <PromptDoc
+        src="/knowledgebase/build-prompts/00-foundation.md"
+        title="Shared foundation"
+        subtitle="Prerequisites, the six definitions, environment variables and conventions. Give this once."
+      />
+      <PromptDoc
+        src="/knowledgebase/build-prompts/01-education.md"
+        title="National Education Portal (learner)"
+        subtitle="PID sign-in, Student ID, and diploma via account or card payment."
+      />
+      <PromptDoc
+        src="/knowledgebase/build-prompts/02-school.md"
+        title="Riverside Admissions (school)"
+        subtitle="Review queue, enrolment, the graduation decision, and revocation."
+      />
+      <PromptDoc
+        src="/knowledgebase/build-prompts/03-employer.md"
+        title="CivicWorks Careers (employer)"
+        subtitle="Apply with your wallet: the combined PID and diploma qualification check."
+      />
     </>
   );
 }
