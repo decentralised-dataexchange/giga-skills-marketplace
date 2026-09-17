@@ -8,19 +8,37 @@ import { DataTable } from "@/components/data-table";
 import { StatusBadge } from "@/components/status-badge";
 import { TableFilter } from "@/components/table-filter";
 import { DashboardMain, useDashboardGuard } from "@/components/dashboard-shell";
+import { ConfirmDialog } from "@/components/confirm-dialog";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 export default function OrganisationsPage() {
-  const { denied } = useDashboardGuard("/governance/organisations", ["superadmin"]);
+  const { user, denied } = useDashboardGuard("/governance/organisations", ["superadmin"]);
   const [orgs, setOrgs] = useState<any[]>([]);
   // Approved is the active state of an organisation; the filter widens the view.
   const [filter, setFilter] = useState<"all" | "approved" | "suspended" | "rejected">("approved");
+  const [toDelete, setToDelete] = useState<any | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   const load = useCallback(async () => {
     const o = await api("/api/admin/orgs");
     setOrgs(o.orgs);
   }, []);
+
+  async function confirmDelete() {
+    if (!toDelete) return;
+    setDeleting(true);
+    try {
+      await api(`/api/admin/orgs/${toDelete.id}`, { method: "DELETE" });
+      toast.success(`Deleted ${toDelete.name}`);
+      setToDelete(null);
+      await load();
+    } catch (e: any) {
+      toast.error(e.message);
+    } finally {
+      setDeleting(false);
+    }
+  }
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- initial data fetch; setState after await
@@ -83,19 +101,32 @@ export default function OrganisationsPage() {
           },
           {
             key: "actions",
-            width: 150,
+            width: 240,
             align: "right",
             ellipsis: false,
-            render: (o: any) =>
-              o.status === "approved" ? (
-                <Button size="sm" variant="destructive" onClick={setStatus(o, "suspended")}>
-                  Suspend
-                </Button>
-              ) : o.status === "suspended" ? (
-                <Button size="sm" variant="secondary" onClick={setStatus(o, "approved")}>
-                  Reactivate
-                </Button>
-              ) : null,
+            render: (o: any) => (
+              <div className="flex justify-end gap-2">
+                {o.status === "approved" ? (
+                  <Button size="sm" variant="destructive" onClick={setStatus(o, "suspended")}>
+                    Suspend
+                  </Button>
+                ) : o.status === "suspended" ? (
+                  <Button size="sm" variant="secondary" onClick={setStatus(o, "approved")}>
+                    Reactivate
+                  </Button>
+                ) : null}
+                {o.owner?.id !== user?.id && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="border-destructive/40 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                    onClick={() => setToDelete(o)}
+                  >
+                    Delete
+                  </Button>
+                )}
+              </div>
+            ),
           },
         ]}
         rows={visible}
@@ -106,6 +137,25 @@ export default function OrganisationsPage() {
           No {filter} organisations. Switch the filter to All statuses to see everything.
         </p>
       )}
+
+      <ConfirmDialog
+        open={!!toDelete}
+        busy={deleting}
+        title="Delete this organisation?"
+        description={
+          toDelete && (
+            <>
+              This permanently deletes <b className="text-ink">{toDelete.name}</b>, every skill it
+              published, and the account of its owner
+              {toDelete.owner?.name ? ` (${toDelete.owner.name})` : ""}. This cannot be undone. To
+              take it off the catalog without losing the data, suspend it instead.
+            </>
+          )
+        }
+        confirmLabel="Delete organisation"
+        onConfirm={confirmDelete}
+        onCancel={() => !deleting && setToDelete(null)}
+      />
     </DashboardMain>
   );
 }

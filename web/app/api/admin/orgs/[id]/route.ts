@@ -2,6 +2,7 @@ import { sql, logEvent } from "@/lib/db";
 import { check, route } from "@/lib/handler";
 import { orgView } from "@/lib/views";
 import { isUuid, slugify, RESERVED_SLUGS } from "@/lib/utils";
+import { purgeAccounts } from "@/lib/admin-delete";
 
 // Superadmin edit of an organisation: rename, change its slug, or set status.
 // A suspended (or rejected) organisation leaves the public catalog together
@@ -43,18 +44,16 @@ export const PATCH = route<{ id: string }>(
   { roles: ["superadmin"] },
 );
 
-// Superadmin: delete an organisation and everything it published (skills, use
-// cases, and their versions).
+// Superadmin: delete an organisation and everything it published (sources,
+// skills, submissions, and their versions), together with its owner's account.
+// The reversible action is suspension, via PATCH above.
 export const DELETE = route<{ id: string }>(
   async ({ user, params }) => {
     check(isUuid(params.id), 404, "Organisation not found");
-    const [org] = await sql`SELECT * FROM orgs WHERE id = ${params.id}`;
+    const [org] = await sql`SELECT id FROM orgs WHERE id = ${params.id}`;
     check(org, 404, "Organisation not found");
-    await sql`DELETE FROM versions WHERE skill_id IN (SELECT id FROM skills WHERE org_id = ${org.id})`;
-    await sql`DELETE FROM skills WHERE org_id = ${org.id}`;
-    await sql`DELETE FROM orgs WHERE id = ${org.id}`;
-    await logEvent("org.deleted", user!.id, { orgId: org.id }, { name: org.name });
-    return { ok: true };
+    const removed = await purgeAccounts({ orgIds: [params.id] }, user!.id);
+    return { ok: true, removed };
   },
   { roles: ["superadmin"] },
 );

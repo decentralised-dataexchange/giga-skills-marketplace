@@ -18,6 +18,7 @@ import {
 import { StatusBadge } from "@/components/status-badge";
 import { TableFilter } from "@/components/table-filter";
 import { Tip } from "@/components/tip";
+import { ConfirmDialog } from "@/components/confirm-dialog";
 import { DashboardMain, useDashboardGuard } from "@/components/dashboard-shell";
 import { ASSIGNABLE_ROLES, DEFAULT_SELF_SERVICE_ROLE } from "@/lib/roles";
 
@@ -34,6 +35,8 @@ export default function UsersPage() {
   // because the table is server-paginated.
   const [status, setStatus] = useState<"all" | "active" | "suspended">("active");
   const [addOpen, setAddOpen] = useState(false);
+  const [toDelete, setToDelete] = useState<any | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   const load = useCallback(async () => {
     const filter = status === "all" ? "" : `&status=${status}`;
@@ -51,6 +54,21 @@ export default function UsersPage() {
     fn()
       .then(load)
       .catch((e) => toast.error(e.message));
+
+  async function confirmDelete() {
+    if (!toDelete) return;
+    setDeleting(true);
+    try {
+      await api(`/api/admin/users/${toDelete.id}`, { method: "DELETE" });
+      toast.success(`Deleted ${toDelete.name}`);
+      setToDelete(null);
+      await load();
+    } catch (e: any) {
+      toast.error(e.message);
+    } finally {
+      setDeleting(false);
+    }
+  }
 
   return (
     <DashboardMain
@@ -156,23 +174,33 @@ export default function UsersPage() {
           },
           {
             key: "actions",
-            width: 150,
+            width: 220,
             align: "right",
             ellipsis: false,
             render: (u: any) =>
               u.id !== user?.id && (
-                <Button
-                  size="sm"
-                  variant={u.status === "active" ? "destructive" : "secondary"}
-                  onClick={act(() =>
-                    api(`/api/admin/users/${u.id}/status`, {
-                      method: "POST",
-                      json: { status: u.status === "active" ? "suspended" : "active" },
-                    }),
-                  )}
-                >
-                  {u.status === "active" ? "Suspend" : "Reactivate"}
-                </Button>
+                <div className="flex justify-end gap-2">
+                  <Button
+                    size="sm"
+                    variant={u.status === "active" ? "destructive" : "secondary"}
+                    onClick={act(() =>
+                      api(`/api/admin/users/${u.id}/status`, {
+                        method: "POST",
+                        json: { status: u.status === "active" ? "suspended" : "active" },
+                      }),
+                    )}
+                  >
+                    {u.status === "active" ? "Suspend" : "Reactivate"}
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="border-destructive/40 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                    onClick={() => setToDelete(u)}
+                  >
+                    Delete
+                  </Button>
+                </div>
               ),
           },
         ]}
@@ -195,6 +223,24 @@ export default function UsersPage() {
           }}
         />
       )}
+
+      <ConfirmDialog
+        open={!!toDelete}
+        busy={deleting}
+        title="Delete this user?"
+        description={
+          toDelete && (
+            <>
+              This permanently deletes <b className="text-ink">{toDelete.name}</b> ({toDelete.email}
+              ), the organisation they own, and every skill that organisation published. This cannot
+              be undone. To bar access without losing the data, suspend the account instead.
+            </>
+          )
+        }
+        confirmLabel="Delete user"
+        onConfirm={confirmDelete}
+        onCancel={() => !deleting && setToDelete(null)}
+      />
     </DashboardMain>
   );
 }
