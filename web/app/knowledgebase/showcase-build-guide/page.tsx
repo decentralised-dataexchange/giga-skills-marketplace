@@ -135,8 +135,8 @@ export default function ShowcaseBuildGuidePage() {
         nine-claim diploma a graduate later shares with an employer,{" "}
         <code>igrantio-credential-schema-pid</code> described the person identification credential
         the sign-in relies on, and <code>igrantio-credential-schema-sca-payment-account</code> (with
-        its card counterpart) described the payment credentials the fee confirmation accepts. The exact resulting
-        definitions are on the{" "}
+        its card counterpart) described the payment credentials the fee confirmation accepts. The
+        exact resulting definitions are on the{" "}
         <Link href="/knowledgebase/showcase-credentials">credentials and presentations</Link> page.
       </p>
       <Prompt>
@@ -191,13 +191,13 @@ export default function ShowcaseBuildGuidePage() {
         webhook receiver at all: it polls the OWS exchange record, which is the more robust channel.
         The browser polls a small status route every three seconds; that route reads the credential
         or verification history straight from OWS and returns the update in the webhook topic
-        vocabulary, so the client reads one language. The QR flips to a progress state the moment the
-        phone scans, with no relay storage and no signed callback to secure.{" "}
-        <code>igrantio-qr-code</code> set the QR conventions: requests by reference, the right sizing
-        and error correction, and a logo in the centre. For a production deployment with a public
-        HTTPS endpoint, <code>igrantio-backend-webhooks</code> adds a verified webhook receiver
-        (timestamped HMAC compared in constant time) and <code>igrantio-backend-sse</code> streams
-        the stored events to the browser.
+        vocabulary, so the client reads one language. The QR flips to a progress state the moment
+        the phone scans, with no relay storage and no signed callback to secure.{" "}
+        <code>igrantio-qr-code</code> set the QR conventions: requests by reference, the right
+        sizing and error correction, and a logo in the centre. For a production deployment with a
+        public HTTPS endpoint, <code>igrantio-backend-webhooks</code> adds a verified webhook
+        receiver (timestamped HMAC compared in constant time) and <code>igrantio-backend-sse</code>{" "}
+        streams the stored events to the browser.
       </p>
       <Prompt>
         Make all the QR codes by-reference ones. Do not stand up a webhook receiver; poll the OWS
@@ -235,8 +235,8 @@ export default function ShowcaseBuildGuidePage() {
           with server-only modules, so a leaked key is a build error rather than an incident.
         </li>
         <li>
-          <strong>Make provisioning idempotent.</strong> Definitions and trust entries are created by
-          a script that searches by label first and can run twice without duplicating anything.
+          <strong>Make provisioning idempotent.</strong> Definitions and trust entries are created
+          by a script that searches by label first and can run twice without duplicating anything.
         </li>
         <li>
           <strong>Test with a real Wallet early.</strong> The trust warnings a Wallet shows are the
