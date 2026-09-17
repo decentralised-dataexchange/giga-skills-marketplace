@@ -43,3 +43,16 @@ export function installCommand({ repoUrl, skillId }: InstallSource): string {
 export function installRepoCommand(repoUrl: string): string {
   return `npx skills add ${repoShorthand(repoUrl)}`;
 }
+
+/**
+ * `npx skills add` command for a chosen set of skills from a repository, e.g.
+ * `npx skills add l3-iGrant/skills --skill igrantio-qr-code --skill igrantio-pid`.
+ * The `skills` CLI accepts one repeatable `--skill` flag, so each skill adds a
+ * flag. With no skill ids given, it falls back to the whole-repository command.
+ */
+export function installSkillsCommand(repoUrl: string, skillIds: string[]): string {
+  if (!repoUrl) return "";
+  if (!skillIds.length) return installRepoCommand(repoUrl);
+  const flags = skillIds.map((id) => `--skill ${id}`).join(" ");
+  return `npx skills add ${repoShorthand(repoUrl)} ${flags}`;
+}

@@ -3,10 +3,11 @@
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import { Check, Copy, ExternalLink, Star } from "@/components/icons";
+import { Check, Copy, ExternalLink, Search, Star, X } from "@/components/icons";
 import { api, fetchAllProviderSkills, timeAgo } from "@/lib/client";
-import { installRepoCommand } from "@/lib/agents";
+import { installRepoCommand, installSkillsCommand } from "@/lib/agents";
 import { providerPath, skillPath } from "@/lib/routes";
+import { cn } from "@/lib/utils";
 
 interface Provider {
   id: string;
@@ -19,6 +20,7 @@ interface SkillEntry {
   slug: string;
   description: string;
   publishedAt: string | null;
+  categories?: string[];
   source: { repo: string | null } | null;
   repo: {
     url: string;
@@ -33,6 +35,15 @@ interface SkillEntry {
 // to the published version's repo blob, then the "bundles" pseudo-source.
 const sourceSegment = (s: SkillEntry) => s.source?.repo ?? s.repo?.repo ?? "bundles";
 
+// The category of a skill: the metadata.category extension when the skill
+// declares one, else the top-level repo directory (the legacy grouping),
+// else the "skills" catch-all.
+const skillCategory = (s: SkillEntry) => {
+  if (s.categories?.length) return s.categories[0];
+  const dir = s.repo?.dir ?? "";
+  return dir.includes("/") ? dir.split("/")[0] : "skills";
+};
+
 // One source of a provider: a GitHub repository (addressed by repo name), or
 // the "bundles" pseudo-source for skills published without a repository.
 export default function SourcePage() {
@@ -44,6 +55,22 @@ export default function SourcePage() {
   const [skills, setSkills] = useState<SkillEntry[] | null>(null);
   const [error, setError] = useState("");
   const [copied, setCopied] = useState(false);
+  // Interaction state, reset whenever the source changes.
+  const [query, setQuery] = useState("");
+  const [activeCats, setActiveCats] = useState<Set<string>>(new Set());
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+
+  // Clear the search, filters, and selection when the visitor moves to another
+  // source. Adjusting state during render is React's recommended pattern for a
+  // reset keyed to a changed prop, over a state-setting effect.
+  const routeKey = `${handle}/${source}`;
+  const [seenRoute, setSeenRoute] = useState(routeKey);
+  if (seenRoute !== routeKey) {
+    setSeenRoute(routeKey);
+    setQuery("");
+    setActiveCats(new Set());
+    setSelected(new Set());
+  }
 
   useEffect(() => {
     api(`/api/providers/${encodeURIComponent(handle)}`)
@@ -55,16 +82,76 @@ export default function SourcePage() {
   }, [handle, source]);
 
   const repo = skills?.find((s) => s.repo)?.repo ?? null;
-  const command = repo ? installRepoCommand(repo.url) : "";
+  // The interactive controls (search, filters, checkboxes) only make sense for
+  // a real repository with more than one skill to choose between.
+  const interactive = !!repo && (skills?.length ?? 0) > 1;
 
-  // Section skills by the top-level directory they live under in the repo.
-  const categories = [
-    ...(skills ?? []).reduce((m, s) => {
-      const dir = s.repo?.dir ?? "";
-      const key = dir.includes("/") ? dir.split("/")[0] : "skills";
+  // Every distinct category in the source, most-populated first, for the chips.
+  const allCategories = [
+    ...(skills ?? []).reduce(
+      (m, s) => m.set(skillCategory(s), (m.get(skillCategory(s)) ?? 0) + 1),
+      new Map<string, number>(),
+    ),
+  ]
+    .sort((a, b) => b[1] - a[1])
+    .map(([c]) => c);
+
+  // The skills that pass the search box and the active category filters.
+  const q = query.trim().toLowerCase();
+  const visible = (skills ?? []).filter((s) => {
+    const matchesQ =
+      !q || s.slug.toLowerCase().includes(q) || (s.description ?? "").toLowerCase().includes(q);
+    const matchesCat = activeCats.size === 0 || activeCats.has(skillCategory(s));
+    return matchesQ && matchesCat;
+  });
+
+  // Section the visible skills by category, most-populated first.
+  const sections = [
+    ...visible.reduce((m, s) => {
+      const key = skillCategory(s);
       return m.set(key, [...(m.get(key) ?? []), s]);
     }, new Map<string, SkillEntry[]>()),
   ].sort(([, a], [, b]) => b.length - a.length);
+
+  // The install command reflects the selection: the whole source when nothing
+  // (or everything) is ticked, else one --skill flag per ticked skill.
+  const selectedList = (skills ?? []).filter((s) => selected.has(s.slug)).map((s) => s.slug);
+  const command = !repo
+    ? ""
+    : selected.size === 0 || selected.size === (skills?.length ?? 0)
+      ? installRepoCommand(repo.url)
+      : installSkillsCommand(repo.url, selectedList);
+
+  // The select-all checkbox acts on the currently visible skills.
+  const visibleSlugs = visible.map((s) => s.slug);
+  const allVisibleSelected =
+    visibleSlugs.length > 0 && visibleSlugs.every((sl) => selected.has(sl));
+  const someVisibleSelected = visibleSlugs.some((sl) => selected.has(sl));
+
+  function toggleAllVisible() {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (allVisibleSelected) visibleSlugs.forEach((sl) => next.delete(sl));
+      else visibleSlugs.forEach((sl) => next.add(sl));
+      return next;
+    });
+  }
+  function toggleSkill(slug: string) {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(slug)) next.delete(slug);
+      else next.add(slug);
+      return next;
+    });
+  }
+  function toggleCat(cat: string) {
+    setActiveCats((prev) => {
+      const next = new Set(prev);
+      if (next.has(cat)) next.delete(cat);
+      else next.add(cat);
+      return next;
+    });
+  }
 
   function copyInstall() {
     if (!command) return;
@@ -142,57 +229,162 @@ export default function SourcePage() {
         </div>
       </div>
 
-      {/* Install command for every skill in this source, as the flat muted
-          command block at the top of a skills.sh repository page */}
+      {/* Install command for the current selection. It installs the whole
+          source by default, or only the ticked skills once some are chosen. */}
       {command && skills.length > 0 && (
-        <div className="mb-10 flex w-full max-w-3xl items-center gap-2 rounded-md bg-muted px-3 py-2">
-          <code className="min-w-0 flex-1 overflow-x-auto whitespace-nowrap font-mono text-sm text-ink">
-            <span className="select-none opacity-50">$ </span>
-            {command}
-          </code>
-          <button
-            type="button"
-            onClick={copyInstall}
-            aria-label="Copy install command"
-            className="shrink-0 rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-accent hover:text-ink"
-          >
-            {copied ? <Check className="size-4" /> : <Copy className="size-4" />}
-          </button>
+        <div className="mb-10 max-w-3xl">
+          {interactive && (
+            <p className="mb-2 text-sm text-muted-foreground">
+              {selected.size === 0
+                ? "The command installs every skill in this source. Select skills to install a subset."
+                : selected.size === skills.length
+                  ? "The command installs every skill in this source."
+                  : `The command installs ${selected.size} selected skill${selected.size === 1 ? "" : "s"}.`}
+            </p>
+          )}
+          <div className="flex w-full items-center gap-2 rounded-md bg-muted px-3 py-2">
+            <code className="min-w-0 flex-1 overflow-x-auto whitespace-nowrap font-mono text-sm text-ink">
+              <span className="select-none opacity-50">$ </span>
+              {command}
+            </code>
+            <button
+              type="button"
+              onClick={copyInstall}
+              aria-label="Copy install command"
+              className="shrink-0 rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-accent hover:text-ink"
+            >
+              {copied ? <Check className="size-4" /> : <Copy className="size-4" />}
+            </button>
+          </div>
         </div>
       )}
 
-      {/* Skill table, sectioned by top-level repo directory (as skills.sh
-          sections a repository's skills by category) */}
+      {/* Search field and category filters */}
+      {interactive && (
+        <div className="mb-6 space-y-4">
+          <div className="relative max-w-3xl">
+            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center">
+              <Search className="size-4 text-muted-foreground" aria-hidden="true" />
+            </div>
+            <input
+              type="search"
+              aria-label="Search skills"
+              className="w-full border-b border-input bg-transparent py-3 pl-8 pr-8 text-base outline-none placeholder:text-muted-foreground focus-visible:border-ink lg:text-sm"
+              placeholder="Search skills…"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+            />
+            {query && (
+              <button
+                type="button"
+                onClick={() => setQuery("")}
+                aria-label="Clear search"
+                className="absolute inset-y-0 right-0 flex items-center text-muted-foreground hover:text-ink"
+              >
+                <X className="size-4" />
+              </button>
+            )}
+          </div>
+
+          {allCategories.length > 1 && (
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setActiveCats(new Set())}
+                aria-pressed={activeCats.size === 0}
+                className={cn(
+                  "rounded-full border px-3 py-1 text-xs font-medium transition-colors",
+                  activeCats.size === 0
+                    ? "border-brand bg-brand text-white"
+                    : "border-border text-muted-foreground hover:border-brand/40 hover:text-ink",
+                )}
+              >
+                All
+              </button>
+              {allCategories.map((cat) => {
+                const active = activeCats.has(cat);
+                return (
+                  <button
+                    key={cat}
+                    type="button"
+                    onClick={() => toggleCat(cat)}
+                    aria-pressed={active}
+                    className={cn(
+                      "rounded-full border px-3 py-1 text-xs font-medium transition-colors",
+                      active
+                        ? "border-brand bg-brand text-white"
+                        : "border-border text-muted-foreground hover:border-brand/40 hover:text-ink",
+                    )}
+                  >
+                    {cat}
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Skill table, sectioned by category (metadata.category, else the
+          top-level repo directory) with a select-all header and per-skill
+          checkboxes that drive the install command above */}
       <div className="w-full py-4">
-        <div className="hidden border-b border-border py-3 text-sm font-medium uppercase text-muted-foreground lg:grid lg:grid-cols-16 lg:gap-4">
-          <div className="col-span-13">Skill</div>
-          <div className="col-span-3 text-right">Published</div>
+        <div className="flex items-center gap-3 border-b border-border py-3 text-sm font-medium uppercase text-muted-foreground">
+          {interactive && (
+            <input
+              type="checkbox"
+              ref={(el) => {
+                if (el) el.indeterminate = someVisibleSelected && !allVisibleSelected;
+              }}
+              checked={allVisibleSelected}
+              onChange={toggleAllVisible}
+              aria-label="Select all skills"
+              className="size-4 shrink-0 accent-brand"
+            />
+          )}
+          <div className="grid min-w-0 flex-1 grid-cols-[1fr_auto] gap-3 lg:grid-cols-16 lg:gap-4">
+            <span className="lg:col-span-13">Skill</span>
+            <span className="text-right lg:col-span-3">Published</span>
+          </div>
         </div>
         <div className="space-y-10">
-          {categories.map(([category, group]) => (
+          {sections.map(([category, group]) => (
             <section key={category}>
-              {categories.length > 1 && (
+              {sections.length > 1 && (
                 <h2 className="mb-3 mt-6 text-sm font-medium uppercase text-ink">{category}</h2>
               )}
               <div className="divide-y divide-border">
                 {group.map((s) => (
-                  <Link
+                  <div
                     key={s.slug}
-                    href={skillPath(provider.slug ?? handle, source, s.slug)}
-                    className="group grid grid-cols-[1fr_auto] items-start gap-3 py-3 transition-colors hover:bg-accent/30 lg:grid-cols-16 lg:gap-4"
+                    className="flex items-start gap-3 py-3 transition-colors hover:bg-accent/30"
                   >
-                    <span className="min-w-0 overflow-hidden lg:col-span-13">
-                      <span className="block truncate font-semibold text-ink group-hover:text-brand">
-                        {s.slug}
+                    {interactive && (
+                      <input
+                        type="checkbox"
+                        checked={selected.has(s.slug)}
+                        onChange={() => toggleSkill(s.slug)}
+                        aria-label={`Select ${s.slug}`}
+                        className="mt-0.5 size-4 shrink-0 accent-brand"
+                      />
+                    )}
+                    <Link
+                      href={skillPath(provider.slug ?? handle, source, s.slug)}
+                      className="group grid min-w-0 flex-1 grid-cols-[1fr_auto] items-start gap-3 lg:grid-cols-16 lg:gap-4"
+                    >
+                      <span className="min-w-0 overflow-hidden lg:col-span-13">
+                        <span className="block truncate font-semibold text-ink group-hover:text-brand">
+                          {s.slug}
+                        </span>
+                        <span className="mt-0.5 block truncate text-xs text-muted-foreground lg:text-sm">
+                          {s.description}
+                        </span>
                       </span>
-                      <span className="mt-0.5 block truncate text-xs text-muted-foreground lg:text-sm">
-                        {s.description}
+                      <span className="pt-0.5 text-right text-sm text-muted-foreground lg:col-span-3">
+                        {timeAgo(s.publishedAt)}
                       </span>
-                    </span>
-                    <span className="pt-0.5 text-right text-sm text-muted-foreground lg:col-span-3">
-                      {timeAgo(s.publishedAt)}
-                    </span>
-                  </Link>
+                    </Link>
+                  </div>
                 ))}
               </div>
             </section>
@@ -201,6 +393,11 @@ export default function SourcePage() {
         {!skills.length && (
           <p className="border-b border-border py-16 text-center text-sm text-muted-foreground">
             No skills in this source.
+          </p>
+        )}
+        {skills.length > 0 && !visible.length && (
+          <p className="border-b border-border py-16 text-center text-sm text-muted-foreground">
+            No skills match your search.
           </p>
         )}
       </div>

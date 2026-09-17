@@ -94,6 +94,20 @@ export function manifestProtocols(m: any): string[] {
   return typeof p === "string" ? p.split(/\s*,\s*/).filter(Boolean) : [];
 }
 
+// Categories are an optional metadata extension the marketplace supports: a
+// single metadata.category string, or a metadata.categories array or
+// comma-separated string. They group and filter the skills of one source.
+export function manifestCategories(m: any): string[] {
+  const c = m?.metadata?.categories ?? m?.metadata?.category;
+  if (Array.isArray(c)) return c.map((x) => String(x).trim()).filter(Boolean);
+  return typeof c === "string"
+    ? c
+        .split(/\s*,\s*/)
+        .map((x) => x.trim())
+        .filter(Boolean)
+    : [];
+}
+
 export function providerView(r: any) {
   return {
     id: r.id,
@@ -137,5 +151,6 @@ export function marketplaceEntry(r: any) {
     description: manifest.description ?? "",
     license: manifest.license ?? "",
     protocols: manifestProtocols(manifest),
+    categories: manifestCategories(manifest),
   };
 }
