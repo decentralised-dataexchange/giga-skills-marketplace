@@ -1,9 +1,7 @@
 # Per-portal build prompts
 
-Extremely detailed, code-accurate prompts to rebuild the education showcase one
-portal at a time with an AI coding agent and the skills from the ITU Skills
-Marketplace. Each prompt is grounded in the running showcase
-(`web/app/showcase`, `web/lib/showcase`, `web/scripts/showcase-provision.mjs`).
+Build the education showcase one portal at a time with an AI coding agent and the
+skills from the ITU Skills Marketplace.
 
 The showcase is three portals on one Next.js origin, so they share one browser
 store:
