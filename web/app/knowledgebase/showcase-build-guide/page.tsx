@@ -26,11 +26,51 @@ export default function ShowcaseBuildGuidePage() {
         maps every step to the skill that carried it, with the kind of prompt an integrator gives.
       </p>
 
+      <h2>Before you start</h2>
+      <p>
+        Two things gate the whole build and are easy to skip. Plan for both from the start; the
+        build works against a real Wallet only when both are done.
+      </p>
+      <ul>
+        <li>
+          <strong>API keys.</strong> One OWS API key per sandbox organisation: the Ministry of
+          Education (issuer and the sign-in and payment verifier) and the employer, CivicWorks (the
+          qualification verifier). Each key stays on the server, in an environment variable or a
+          secret manager; the browser never sees it. Step 2 creates the keys.
+        </li>
+        <li>
+          <strong>Trust list registrations.</strong> One x509 certificate per definition, registered
+          on the trust list, so the Wallet trusts the credentials and the requests. The issuer
+          certificates (Student ID, diploma) go on the NXD Pub-EAA list; the verifier certificates
+          (sign-in, payment, employer) go on the NXD WRPAC list. Until a certificate answers{" "}
+          <code>granted</code>, the Wallet shows an untrusted service provider warning. Step 3
+          covers this.
+        </li>
+      </ul>
+      <p>You also need:</p>
+      <ul>
+        <li>
+          A tenant account on the iGrant.io Organisation Wallet Suite (OWS) with the ability to
+          create sandbox organisations. Environment: demo (<code>https://demo-api.igrant.io</code>).
+        </li>
+        <li>An AI coding agent and a model.</li>
+        <li>
+          The iGrant.io Data Wallet on a phone, with a PID and a payment credential from the two
+          demo issuers.
+        </li>
+        <li>A clean working directory.</li>
+      </ul>
+
       <h2>Setting up</h2>
       <p>Install the skills into your coding agent straight from the source repository:</p>
       <pre>
         <code>npx skills add l3-igrant/skills</code>
       </pre>
+      <p>
+        To pick exactly the skills this showcase uses, open the{" "}
+        <Link href="/marketplace/igrant-io/skills">skills repository</Link>, filter by the{" "}
+        <strong>education</strong> category, select all, and copy the one install command it builds.
+      </p>
       <p>
         Then describe the product you want. The agent picks the right skill per task; your job is to
         make decisions when the skill&apos;s intake asks for them (environment, tenancy, where the
@@ -88,21 +128,29 @@ export default function ShowcaseBuildGuidePage() {
       <p>
         The claim sets came from the schema skills rather than guesswork:{" "}
         <code>igrantio-credential-schema-student-id</code> supplied the sixteen-claim student
-        identity set the registry issues, <code>igrantio-credential-schema-pid</code> described the
-        person identification credential the sign-in relies on, and{" "}
-        <code>igrantio-credential-schema-sca-payment-account</code> (with its card counterpart)
-        described the payment credentials the fee confirmation accepts. The exact resulting
+        identity set the registry issues, <code>igrantio-credential-schema-diploma</code> the
+        nine-claim diploma a graduate later shares with an employer,{" "}
+        <code>igrantio-credential-schema-pid</code> described the person identification credential
+        the sign-in relies on, and <code>igrantio-credential-schema-sca-payment-account</code> (with
+        its card counterpart) described the payment credentials the fee confirmation accepts. The exact resulting
         definitions are on the{" "}
         <Link href="/knowledgebase/showcase-credentials">credentials and presentations</Link> page.
       </p>
+      <Prompt>
+        Create the credential definitions with the exact claim fields but fresh, unique labels so
+        nothing existing breaks: a sixteen-claim Student ID and a nine-claim diploma. Turn on
+        revocation, and enable the interactive authorisation endpoint on the diploma so it can be
+        issued during the payment.
+      </Prompt>
 
       <h2>Step 5: presentation queries</h2>
       <p>
         Each verification is a DCQL query naming exactly the fields it needs, nothing more.{" "}
         <code>igrantio-dcql-query-pid</code> shaped the five-field sign-in request,{" "}
-        <code>igrantio-dcql-query-sca-payment-account</code> the payment presentations, and{" "}
-        <code>igrantio-dcql-query-student-id</code> the education credential requests, including the
-        employer&apos;s combined query for three identity fields plus five diploma fields.
+        <code>igrantio-dcql-query-sca-payment-account</code> (with its card counterpart) the payment
+        presentations, and <code>igrantio-dcql-query-diploma</code> the employer&apos;s combined
+        qualification check: three identity fields from the PID plus five diploma fields in one
+        request.
       </p>
       <Prompt>
         The employer must request only the qualification fields it needs: name, qualification,
