@@ -64,11 +64,13 @@ function CategoryDropdown({
   active,
   onToggle,
   onClear,
+  disabled = false,
 }: {
   categories: string[];
   active: Set<string>;
   onToggle: (category: string) => void;
   onClear: () => void;
+  disabled?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -94,13 +96,17 @@ function CategoryDropdown({
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
+        disabled={disabled}
         aria-haspopup="listbox"
         aria-expanded={open}
+        title={disabled ? "This source has no categories to filter" : undefined}
         className={cn(
           "inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors",
-          active.size > 0
-            ? "border-brand text-brand"
-            : "border-border text-muted-foreground hover:border-brand/40 hover:text-ink",
+          disabled
+            ? "cursor-not-allowed border-border text-muted-foreground opacity-50"
+            : active.size > 0
+              ? "border-brand text-brand"
+              : "border-border text-muted-foreground hover:border-brand/40 hover:text-ink",
         )}
       >
         {active.size === 0
@@ -416,14 +422,13 @@ function SourcePageInner() {
               )}
             </div>
 
-            {allCategories.length > 1 && (
-              <CategoryDropdown
-                categories={allCategories}
-                active={activeCats}
-                onToggle={toggleCat}
-                onClear={() => writeCategoryFilter(new Set())}
-              />
-            )}
+            <CategoryDropdown
+              categories={allCategories}
+              active={activeCats}
+              onToggle={toggleCat}
+              onClear={() => writeCategoryFilter(new Set())}
+              disabled={allCategories.length <= 1}
+            />
           </div>
 
           {allCategories.length > 1 && activeCats.size > 0 && (
