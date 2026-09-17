@@ -2,15 +2,8 @@
 
 import Link from "next/link";
 import { useParams, usePathname, useRouter, useSearchParams } from "next/navigation";
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import { Check, ChevronDown, Copy, ExternalLink, Search, Star, X } from "@/components/icons";
-import {
-  DropdownMenu,
-  DropdownMenuCheckboxItem,
-  DropdownMenuContent,
-  DropdownMenuLabel,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { api, fetchAllProviderSkills, timeAgo } from "@/lib/client";
 import { installRepoCommand, installSkillsCommand } from "@/lib/agents";
 import { providerPath, skillPath } from "@/lib/routes";
@@ -61,6 +54,96 @@ const skillCategories = (s: SkillEntry): string[] =>
 // The query param that carries the active category filters, comma-separated,
 // so a filtered view is shareable by its URL.
 const CATEGORY_PARAM = "category";
+
+// A self-contained multi-select category filter: a trigger button and a panel
+// of checkboxes, toggled by local open state and closed on an outside click or
+// Escape. It is deliberately plain (no portal, no floating-ui) so it can never
+// stall the page; the chosen set is owned by the caller via the URL.
+function CategoryDropdown({
+  categories,
+  active,
+  onToggle,
+  onClear,
+}: {
+  categories: string[];
+  active: Set<string>;
+  onToggle: (category: string) => void;
+  onClear: () => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    function onDocPointer(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    }
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape") setOpen(false);
+    }
+    document.addEventListener("mousedown", onDocPointer);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onDocPointer);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [open]);
+
+  return (
+    <div ref={ref} className="relative shrink-0">
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        className={cn(
+          "inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors",
+          active.size > 0
+            ? "border-brand text-brand"
+            : "border-border text-muted-foreground hover:border-brand/40 hover:text-ink",
+        )}
+      >
+        {active.size === 0
+          ? "All categories"
+          : `${active.size} categor${active.size === 1 ? "y" : "ies"} selected`}
+        <ChevronDown
+          className={cn("size-3.5 transition-transform", open && "rotate-180")}
+          aria-hidden="true"
+        />
+      </button>
+      {open && (
+        <div className="absolute right-0 z-50 mt-2 max-h-72 w-56 overflow-y-auto rounded-lg border border-border bg-white p-1 shadow-lg">
+          <div className="flex items-center justify-between px-2 py-1">
+            <span className="text-xs font-medium text-muted-foreground">Filter by category</span>
+            {active.size > 0 && (
+              <button
+                type="button"
+                onClick={onClear}
+                className="text-xs font-medium text-brand hover:underline"
+              >
+                Clear
+              </button>
+            )}
+          </div>
+          {categories.map((cat) => (
+            <label
+              key={cat}
+              className="flex cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-sm text-ink hover:bg-accent"
+            >
+              <input
+                type="checkbox"
+                checked={active.has(cat)}
+                onChange={() => onToggle(cat)}
+                className="size-4 shrink-0 accent-brand"
+              />
+              <span className="truncate">{cat}</span>
+            </label>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
 // One source of a provider: a GitHub repository (addressed by repo name), or
 // the "bundles" pseudo-source for skills published without a repository.
@@ -302,67 +385,49 @@ function SourcePageInner() {
         </div>
       )}
 
-      {/* Search field and category filter. The filter is a checkbox dropdown so
-          it scales to many categories, and the choice lives in the URL so the
-          filtered view is shareable. Chosen categories also show as removable
-          pills for at-a-glance state. */}
+      {/* Search field with the category filter on its right. The filter is a
+          checkbox dropdown so it scales to many categories, and the choice
+          lives in the URL so the filtered view is shareable. Chosen categories
+          also show as removable pills below for at-a-glance state. */}
       {interactive && (
-        <div className="mb-6 space-y-4">
-          <div className="relative max-w-3xl">
-            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center">
-              <Search className="size-4 text-muted-foreground" aria-hidden="true" />
+        <div className="mb-6 space-y-3">
+          <div className="flex max-w-3xl flex-col gap-3 sm:flex-row sm:items-center">
+            <div className="relative flex-1">
+              <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center">
+                <Search className="size-4 text-muted-foreground" aria-hidden="true" />
+              </div>
+              <input
+                type="search"
+                aria-label="Search skills"
+                className="w-full border-b border-input bg-transparent py-3 pl-8 pr-8 text-base outline-none placeholder:text-muted-foreground focus-visible:border-ink lg:text-sm"
+                placeholder="Search skills…"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+              />
+              {query && (
+                <button
+                  type="button"
+                  onClick={() => setQuery("")}
+                  aria-label="Clear search"
+                  className="absolute inset-y-0 right-0 flex items-center text-muted-foreground hover:text-ink"
+                >
+                  <X className="size-4" />
+                </button>
+              )}
             </div>
-            <input
-              type="search"
-              aria-label="Search skills"
-              className="w-full border-b border-input bg-transparent py-3 pl-8 pr-8 text-base outline-none placeholder:text-muted-foreground focus-visible:border-ink lg:text-sm"
-              placeholder="Search skills…"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-            />
-            {query && (
-              <button
-                type="button"
-                onClick={() => setQuery("")}
-                aria-label="Clear search"
-                className="absolute inset-y-0 right-0 flex items-center text-muted-foreground hover:text-ink"
-              >
-                <X className="size-4" />
-              </button>
+
+            {allCategories.length > 1 && (
+              <CategoryDropdown
+                categories={allCategories}
+                active={activeCats}
+                onToggle={toggleCat}
+                onClear={() => writeCategoryFilter(new Set())}
+              />
             )}
           </div>
 
-          {allCategories.length > 1 && (
+          {allCategories.length > 1 && activeCats.size > 0 && (
             <div className="flex flex-wrap items-center gap-2">
-              <DropdownMenu>
-                <DropdownMenuTrigger
-                  className={cn(
-                    "inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium transition-colors",
-                    activeCats.size > 0
-                      ? "border-brand text-brand"
-                      : "border-border text-muted-foreground hover:border-brand/40 hover:text-ink",
-                  )}
-                >
-                  {activeCats.size === 0
-                    ? "All categories"
-                    : `${activeCats.size} categor${activeCats.size === 1 ? "y" : "ies"} selected`}
-                  <ChevronDown className="size-3.5" aria-hidden="true" />
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="start" className="max-h-80 w-56 overflow-y-auto">
-                  <DropdownMenuLabel>Filter by category</DropdownMenuLabel>
-                  {allCategories.map((cat) => (
-                    <DropdownMenuCheckboxItem
-                      key={cat}
-                      checked={activeCats.has(cat)}
-                      closeOnClick={false}
-                      onCheckedChange={() => toggleCat(cat)}
-                    >
-                      {cat}
-                    </DropdownMenuCheckboxItem>
-                  ))}
-                </DropdownMenuContent>
-              </DropdownMenu>
-
               {[...activeCats].map((cat) => (
                 <span
                   key={cat}
@@ -379,16 +444,13 @@ function SourcePageInner() {
                   </button>
                 </span>
               ))}
-
-              {activeCats.size > 0 && (
-                <button
-                  type="button"
-                  onClick={() => writeCategoryFilter(new Set())}
-                  className="text-xs font-medium text-muted-foreground hover:text-ink"
-                >
-                  Clear
-                </button>
-              )}
+              <button
+                type="button"
+                onClick={() => writeCategoryFilter(new Set())}
+                className="text-xs font-medium text-muted-foreground hover:text-ink"
+              >
+                Clear
+              </button>
             </div>
           )}
         </div>
