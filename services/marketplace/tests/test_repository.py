@@ -23,9 +23,41 @@ def test_entry_preserves_node_catalog_shape() -> None:
         }
     )
     assert result["protocols"] == ["OpenID4VCI", "W3C-VC"]
+    # A manifest without categories carries an empty list, not a missing key.
+    assert result["categories"] == []
     assert result["publishedAt"] == "2026-08-05T05:39:53.229Z"
     # A row from before first-class sources carries no source columns.
     assert result["source"] is None
+
+
+def test_entry_reads_categories() -> None:
+    array = _entry(
+        {
+            "id": "a",
+            "slug": "issuer",
+            "status": "published",
+            "org_id": "o",
+            "org_name": "Provider",
+            "version": "1.0.0",
+            "manifest": {"metadata": {"categories": ["ows-api", "education"]}},
+            "decided_at": None,
+        }
+    )
+    assert array["categories"] == ["ows-api", "education"]
+
+    comma = _entry(
+        {
+            "id": "b",
+            "slug": "diploma",
+            "status": "published",
+            "org_id": "o",
+            "org_name": "Provider",
+            "version": "1.0.0",
+            "manifest": {"metadata": {"category": "credential-schema, education"}},
+            "decided_at": None,
+        }
+    )
+    assert comma["categories"] == ["credential-schema", "education"]
 
 
 def test_entry_carries_source_record() -> None:

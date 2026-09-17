@@ -71,6 +71,20 @@ def _entry(row: dict[str, Any]) -> dict[str, Any]:
     else:
         protocols = []
 
+    # Categories group and filter the skills of one source. Accept an array or a
+    # comma separated string, from metadata.categories or the singular
+    # metadata.category. The first entry is the primary (its section); extra
+    # entries are cross-cutting tags a filter chip can gather.
+    raw_categories = metadata.get("categories")
+    if raw_categories is None:
+        raw_categories = metadata.get("category")
+    if isinstance(raw_categories, list):
+        categories = [str(value).strip() for value in raw_categories if str(value).strip()]
+    elif isinstance(raw_categories, str):
+        categories = [value for value in re.split(r"\s*,\s*", raw_categories) if value]
+    else:
+        categories = []
+
     repo = row.get("repo")
     if not isinstance(repo, dict):
         repo = None
@@ -113,6 +127,7 @@ def _entry(row: dict[str, Any]) -> dict[str, Any]:
         "description": manifest.get("description") or "",
         "license": manifest.get("license") or "",
         "protocols": protocols,
+        "categories": categories,
     }
 
 
