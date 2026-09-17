@@ -112,8 +112,7 @@ export default function SourcePage() {
   const visible = (skills ?? []).filter((s) => {
     const matchesQ =
       !q || s.slug.toLowerCase().includes(q) || (s.description ?? "").toLowerCase().includes(q);
-    const matchesCat =
-      activeCats.size === 0 || skillCategories(s).some((c) => activeCats.has(c));
+    const matchesCat = activeCats.size === 0 || skillCategories(s).some((c) => activeCats.has(c));
     return matchesQ && matchesCat;
   });
 
