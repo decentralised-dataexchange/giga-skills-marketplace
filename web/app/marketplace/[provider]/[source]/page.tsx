@@ -44,6 +44,13 @@ const skillCategory = (s: SkillEntry) => {
   return dir.includes("/") ? dir.split("/")[0] : "skills";
 };
 
+// Every category a skill belongs to: its declared metadata.categories, else the
+// single legacy category. The first entry is the primary (its section home); a
+// skill can carry extra tags (for example "education") so a filter chip gathers
+// a cross-cutting set without moving the skill out of its natural section.
+const skillCategories = (s: SkillEntry): string[] =>
+  s.categories?.length ? s.categories : [skillCategory(s)];
+
 // One source of a provider: a GitHub repository (addressed by repo name), or
 // the "bundles" pseudo-source for skills published without a repository.
 export default function SourcePage() {
@@ -87,21 +94,26 @@ export default function SourcePage() {
   const interactive = !!repo && (skills?.length ?? 0) > 1;
 
   // Every distinct category in the source, most-populated first, for the chips.
+  // A skill counts once per category it carries, so a cross-cutting tag (for
+  // example "education") appears as its own chip alongside the primary ones.
   const allCategories = [
-    ...(skills ?? []).reduce(
-      (m, s) => m.set(skillCategory(s), (m.get(skillCategory(s)) ?? 0) + 1),
-      new Map<string, number>(),
-    ),
+    ...(skills ?? []).reduce((m, s) => {
+      for (const c of skillCategories(s)) m.set(c, (m.get(c) ?? 0) + 1);
+      return m;
+    }, new Map<string, number>()),
   ]
     .sort((a, b) => b[1] - a[1])
     .map(([c]) => c);
 
-  // The skills that pass the search box and the active category filters.
+  // The skills that pass the search box and the active category filters. A skill
+  // matches when any of its categories is active, so the "education" chip
+  // gathers the whole showcase set while each skill keeps its natural section.
   const q = query.trim().toLowerCase();
   const visible = (skills ?? []).filter((s) => {
     const matchesQ =
       !q || s.slug.toLowerCase().includes(q) || (s.description ?? "").toLowerCase().includes(q);
-    const matchesCat = activeCats.size === 0 || activeCats.has(skillCategory(s));
+    const matchesCat =
+      activeCats.size === 0 || skillCategories(s).some((c) => activeCats.has(c));
     return matchesQ && matchesCat;
   });
 
