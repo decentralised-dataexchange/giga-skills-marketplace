@@ -36,7 +36,8 @@ export default function ShowcaseBuildGuidePage() {
           <strong>API keys.</strong> One OWS API key per sandbox organisation: the Ministry of
           Education (issuer and the sign-in and payment verifier) and the employer, CivicWorks (the
           qualification verifier). Each key stays on the server, in an environment variable or a
-          secret manager; the browser never sees it. Step 2 creates the keys.
+          secret manager; the browser never sees it. Step 2 creates the keys. The consent service
+          (Step 9) runs on a third, main-tenant key, not a sandbox key.
         </li>
         <li>
           <strong>Trust list registrations.</strong> One x509 certificate per definition, registered
@@ -114,9 +115,10 @@ export default function ShowcaseBuildGuidePage() {
         the signing keys, generating a certificate signing request per key, and uploading the signed
         chains; <code>igrantio-trustlist-entries</code> covered registering each certificate on the
         trust list as an OAuth2 client; and <code>igrantio-api-trust-anchor</code> explained how the
-        issuer and verifier side consume those registrations. The showcase uses a separate key and
-        certificate for each definition: Student ID issuance, diploma issuance, sign-in
-        verification, payment verification, and the employer&apos;s check.
+        issuer and verifier side consume those registrations. The showcase uses five signing keys
+        and certificates, one per role: Student ID issuance, diploma issuance, sign-in verification,
+        payment verification (shared by the account and card payment definitions), and the
+        employer&apos;s check.
       </p>
       <Prompt>
         I am getting an untrusted service provider warning in the Wallet. Make sure every credential
@@ -164,7 +166,9 @@ export default function ShowcaseBuildGuidePage() {
         The Student ID uses the pre-authorised code flow with a one-time transaction code shown
         under the QR, exactly as the skill documents it.
       </p>
-      <Prompt>All issuances should use the pre-authorised code flow with a user PIN.</Prompt>
+      <Prompt>
+        The Student ID issuance should use the pre-authorised code flow with a one-time user PIN.
+      </Prompt>
 
       <h2>Step 7: verifying, and paying inside an issuance</h2>
       <p>
@@ -180,19 +184,23 @@ export default function ShowcaseBuildGuidePage() {
         diploma is issued automatically in the same session.
       </Prompt>
 
-      <h2>Step 8: hearing back, and showing it live</h2>
+      <h2>Step 8: showing it live</h2>
       <p>
-        The backend learns that a Wallet scanned, presented or accepted through webhooks;{" "}
-        <code>igrantio-backend-webhooks</code> supplied the signature verification (timestamped HMAC
-        compared in constant time), the topic-to-exchange mapping, and the idempotent registration.{" "}
-        <code>igrantio-backend-sse</code> then streams those stored events to the browser, so the QR
-        flips to a progress state the moment the phone scans, with a polling fallback.{" "}
-        <code>igrantio-qr-code</code> set the QR conventions: requests by reference, the right
-        sizing and error correction, and a logo in the centre.
+        OWS makes exactly one webhook delivery attempt with no retry, so the showcase runs no
+        webhook receiver at all: it polls the OWS exchange record, which is the more robust channel.
+        The browser polls a small status route every three seconds; that route reads the credential
+        or verification history straight from OWS and returns the update in the webhook topic
+        vocabulary, so the client reads one language. The QR flips to a progress state the moment the
+        phone scans, with no relay storage and no signed callback to secure.{" "}
+        <code>igrantio-qr-code</code> set the QR conventions: requests by reference, the right sizing
+        and error correction, and a logo in the centre. For a production deployment with a public
+        HTTPS endpoint, <code>igrantio-backend-webhooks</code> adds a verified webhook receiver
+        (timestamped HMAC compared in constant time) and <code>igrantio-backend-sse</code> streams
+        the stored events to the browser.
       </p>
       <Prompt>
-        Make all the QR codes by-reference ones, and detect the scanning so the screen updates the
-        moment the Wallet picks it up.
+        Make all the QR codes by-reference ones. Do not stand up a webhook receiver; poll the OWS
+        exchange record every few seconds and update the screen the moment the Wallet acts.
       </Prompt>
 
       <h2>Step 9: consent and the individual</h2>
