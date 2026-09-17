@@ -141,10 +141,8 @@ and the optional signing key ids (`PID_VERIFY_KID`, `PAYMENT_VERIFY_KID`,
   birthdate)`; the pepper never leaves the server and no raw PID is stored.
   `graduationDecisionHash` = `sha256(decisionText)`, clamped to 64 chars.
 
-## Using these prompts for the video
+## Using these prompts
 
-Record the install and the first product prompt live. Show each prompt as a
-large card, then cut to the result in the browser or the OWS dashboard.
-Speed-ramp the long agent runs and cut retries. The credential and DCQL fields
-above are the exact ones from `web/scripts/showcase-provision.mjs`; only the
-labels and env-var names change for a clean parallel rebuild.
+Give the shared foundation once, then one portal prompt per build. The credential
+and DCQL fields match the deployed definitions; only the labels and env-var names
+change, so a rebuild runs alongside the live showcase without collisions.
