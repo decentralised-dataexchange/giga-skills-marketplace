@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 import { sql } from "@/lib/db";
 import { route } from "@/lib/handler";
 import { providerView } from "@/lib/views";
-import { hasMarketplaceService, marketplaceRequest } from "@/lib/marketplace-client";
 
 const CACHE = "public, max-age=60, s-maxage=300, stale-while-revalidate=86400";
 
@@ -14,13 +13,6 @@ export const GET = route(async ({ req }) => {
   const q = u.searchParams.get("q")?.toLowerCase().trim() ?? "";
   const page = Math.max(1, Number(u.searchParams.get("page")) || 1);
   const pageSize = Math.min(48, Math.max(1, Number(u.searchParams.get("pageSize")) || 12));
-
-  if (hasMarketplaceService) {
-    const qs = new URLSearchParams({ page: String(page), pageSize: String(pageSize) });
-    if (q) qs.set("q", q);
-    const data = await marketplaceRequest(`/v1/providers?${qs.toString()}`);
-    return NextResponse.json(data, { headers: { "Cache-Control": CACHE } });
-  }
 
   const like = `%${q}%`;
   const qCond = q ? sql`AND lower(o.name) LIKE ${like}` : sql``;

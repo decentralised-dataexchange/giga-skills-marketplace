@@ -3,11 +3,6 @@ import { sql } from "@/lib/db";
 import { check, route } from "@/lib/handler";
 import { isUuid } from "@/lib/utils";
 import { providerView } from "@/lib/views";
-import {
-  MarketplaceApiError,
-  hasMarketplaceService,
-  marketplaceRequest,
-} from "@/lib/marketplace-client";
 
 const CACHE = "public, max-age=60, s-maxage=300, stale-while-revalidate=86400";
 
@@ -16,18 +11,6 @@ const CACHE = "public, max-age=60, s-maxage=300, stale-while-revalidate=86400";
 export const GET = route<{ slug: string }>(async ({ params }) => {
   const key = params.slug;
   check(key, 404, "Provider not found");
-
-  if (hasMarketplaceService) {
-    try {
-      const data = await marketplaceRequest(`/v1/providers/${encodeURIComponent(key)}`);
-      return NextResponse.json(data, { headers: { "Cache-Control": CACHE } });
-    } catch (e) {
-      if (e instanceof MarketplaceApiError && e.status === 404) {
-        check(false, 404, "Provider not found");
-      }
-      throw e;
-    }
-  }
 
   const match = isUuid(key) ? sql`o.id = ${key}` : sql`o.slug = ${key}`;
   const [row] = await sql`

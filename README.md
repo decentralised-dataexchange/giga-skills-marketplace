@@ -13,14 +13,13 @@ education wallet building block, with an app-store style review pipeline.
 It is the working outcome of the ITU Knowledge Product "AI-Enabled
 GovBuild Education Wallet Building Block", which demonstrates how an AI
 integration assistant adopts digital identity wallets into a National
-Learner Registry and Digital Credential ecosystem. The repository holds
-two deployables:
+Learner Registry and Digital Credential ecosystem. It is a single Next.js
+deployable:
 
-- `services/marketplace/`: a Python 3.12 FastAPI service (managed with uv)
-  that owns public catalogue reads.
-- `web/`: a Next.js application with the public marketplace, the role-based
-  provider and governance consoles, and the National Learner Registry and
-  Education Wallet showcase under `/showcase`.
+- `web/`: a Next.js application that serves the public marketplace and its
+  catalogue API, the role-based provider and governance consoles, and the
+  National Learner Registry and Education Wallet showcase under `/showcase`.
+  It reads and writes PostgreSQL directly, so no separate backend runs.
 
 The showcase is a self-guided demo inside the web app: its portal sessions
 are fake and its demo state lives in the visitor's browser (localStorage);
@@ -36,20 +35,18 @@ Prerequisites: Docker, Node.js 22 and [uv](https://docs.astral.sh/uv/). A
 Full stack in Docker:
 
 ```bash
-make up          # postgres + marketplace + web
+make up          # postgres + web
 ```
 
-The web app is at http://localhost:4820 and the marketplace API at
-http://localhost:4830 (`/health`, `/v1/skills`).
+The web app is at http://localhost:4820. Its public catalogue API is served
+from the same app under `/api/marketplace` and `/api/providers`.
 
-Hot-reload development runs Postgres in Docker and the two applications on
-the host:
+Hot-reload development runs Postgres in Docker and the web app on the host:
 
 ```bash
 make db          # PostgreSQL in Docker (host port 5433)
-make install     # dependencies for services/marketplace and web
-make marketplace # terminal 1: marketplace service on :4830
-make web         # terminal 2: web app on :4820
+make install     # dependencies for the web app and the root tooling
+make web         # web app on :4820
 ```
 
 The schema bootstraps and demo data seeds on the first web API request.
@@ -66,7 +63,6 @@ the repository or passed through CI.
 | Variable               | Purpose                                                                                         |
 | ---------------------- | ----------------------------------------------------------------------------------------------- |
 | `DATABASE_URL`         | PostgreSQL connection string                                                                    |
-| `MARKETPLACE_API_URL`  | Base URL of the marketplace service                                                             |
 | `MARKETPLACE_MODE`     | Starting mode, `demo` (default) or `production`; see "Demo and production mode" below           |
 | `SUPERADMIN_EMAIL`     | The operator's super admin account, bootstrapped on every boot; required in production mode     |
 | `SUPERADMIN_PASSWORD`  | Its password (at least 12 characters); a secret, never committed                                |
@@ -127,26 +123,20 @@ directly, so the wallet flows work from plain localhost. Run
 `node web/scripts/showcase-provision.mjs` once to create the credential and
 presentation definitions when they do not exist yet.
 
-### Marketplace service (`services/marketplace/`)
-
-| Variable             | Purpose                                   |
-| -------------------- | ----------------------------------------- |
-| `DATABASE_URL`       | PostgreSQL connection string              |
-| `PORT`               | Listen port (default 4830)                |
-| `CORS_ORIGIN`        | Allowed browser origin for the public API |
-| `DB_MAX_CONNECTIONS` | Connection pool size                      |
+The web app also reads `DB_MAX_CONNECTIONS` (pool size, default 10) and the
+standard libpq `PG*` variables when `DATABASE_URL` is unset.
 
 ## Production deployment
 
 The Helm chart in [`deploy/helm/giga`](deploy/helm/giga) provisions the web
-app, the marketplace service, PostgreSQL with a persistent volume, and an
-nginx plus cert-manager ingress with TLS.
+app, PostgreSQL with a persistent volume, and an nginx plus cert-manager
+ingress with TLS.
 
 Prerequisites: a cluster with
 [ingress-nginx](https://kubernetes.github.io/ingress-nginx/) and
 [cert-manager](https://cert-manager.io/) (a `ClusterIssuer` such as
-`letsencrypt-prod`), the `giga-web` and `giga-marketplace` images pushed to
-a registry you control, and DNS pointed at the ingress load balancer.
+`letsencrypt-prod`), the `giga-web` image pushed to a registry you control,
+and DNS pointed at the ingress load balancer.
 
 The chart's default values are neutral placeholders. Set `domain`,
 `image.registry` and `ingress.tlsSecret` in an environment values file —
@@ -179,7 +169,7 @@ Everything else has sensible defaults in `values.yaml`. See
 external-database option and the capacity notes.
 
 On every push to `main`, [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml)
-builds the images and runs the same upgrade with `values-staging.yaml`
+builds the web image and runs the same upgrade with `values-staging.yaml`
 against the maintainers' cluster, authenticating to Google Cloud with
 Workload Identity Federation. No long-lived keys, and forks do not run it.
 The showcase's secrets (OWS API keys, pseudonym pepper) never pass through

@@ -1,21 +1,18 @@
 name: Deploy to GKE
 
-# Builds the images that changed and rolls out the affected Helm releases on
-# every merge to main. Authenticates to GCP with Workload Identity Federation
-# (no long-lived keys): the github-pool provider `ai-integrator` (the GCP
-# resource keeps its pre-rename id) lets this repo impersonate the
+# Builds the giga-web image when its sources change and rolls out the Helm
+# release on every merge to main. Authenticates to GCP with Workload Identity
+# Federation (no long-lived keys): the github-pool provider `ai-integrator`
+# (the GCP resource keeps its pre-rename id) lets this repo impersonate the
 # ddx-github service account.
 #
-# Speed comes from three things:
-# - path filtering: only the applications whose sources changed are rebuilt
-#   and redeployed;
-# - parallel build jobs: the images build side by side, not in sequence;
+# Speed comes from two things:
+# - path filtering: the web image rebuilds only when web/ or the chart change;
 # - BuildKit caching through the GitHub Actions cache: unchanged dependency
 #   and build layers are reused between runs.
-# When a release deploys but one of its images was not rebuilt (for example
-# a chart-only change), the previous image content is retagged to the new
-# commit tag with a manifest-only copy, so Helm always references a tag that
-# exists.
+# When a release deploys after a chart-only change, the web image was not
+# rebuilt, so its previous content is retagged to the new commit tag with a
+# manifest-only copy, so Helm always references a tag that exists.
 
 on:
   push:
@@ -46,7 +43,6 @@ jobs:
     outputs:
       tag: ${{ steps.vars.outputs.tag }}
       web: ${{ steps.filter.outputs.web }}
-      marketplace: ${{ steps.filter.outputs.marketplace }}
       giga_release: ${{ steps.filter.outputs.giga_release }}
     steps:
       - uses: actions/checkout@v5
@@ -64,11 +60,8 @@ jobs:
           filters: |
             web:
               - 'web/**'
-            marketplace:
-              - 'services/marketplace/**'
             giga_release:
               - 'web/**'
-              - 'services/marketplace/**'
               - 'deploy/helm/giga/**'
               - '.github/workflows/deploy.yml'
 
@@ -100,36 +93,8 @@ jobs:
           cache-from: type=gha,scope=giga-web
           cache-to: type=gha,scope=giga-web,mode=max
 
-  build-marketplace:
-    needs: changes
-    if: >-
-      github.repository == 'decentralised-dataexchange/giga-skills-marketplace' &&
-      (needs.changes.outputs.marketplace == 'true' || github.event_name == 'workflow_dispatch')
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v5
-      - name: Authenticate to Google Cloud (WIF)
-        uses: google-github-actions/auth@v2
-        with:
-          workload_identity_provider: ${{ env.WIF_PROVIDER }}
-          service_account: ${{ env.DEPLOY_SA }}
-      - uses: google-github-actions/setup-gcloud@v2
-      - run: gcloud auth configure-docker eu.gcr.io --quiet
-      - uses: docker/setup-buildx-action@v3
-      - name: Build and push giga-marketplace
-        uses: docker/build-push-action@v6
-        with:
-          context: services/marketplace
-          file: services/marketplace/Dockerfile
-          push: true
-          tags: |
-            ${{ env.REGISTRY }}/giga-marketplace:${{ needs.changes.outputs.tag }}
-            ${{ env.REGISTRY }}/giga-marketplace:latest
-          cache-from: type=gha,scope=giga-marketplace
-          cache-to: type=gha,scope=giga-marketplace,mode=max
-
   deploy-giga:
-    needs: [changes, build-web, build-marketplace]
+    needs: [changes, build-web]
     # Runs when anything in the giga release changed; tolerates the build
     # jobs being skipped (unchanged application), never their failure.
     if: >-
@@ -151,15 +116,13 @@ jobs:
       - uses: google-github-actions/setup-gcloud@v2
       - run: gcloud auth configure-docker eu.gcr.io --quiet
 
-      # A release rolls both images under one tag; give an unchanged (and so
-      # unbuilt) image the new tag with a manifest-only copy.
-      - name: Ensure both images carry the release tag
+      # A chart-only deploy does not rebuild the web image, so give giga-web
+      # the new tag with a manifest-only copy of latest, ensuring Helm always
+      # references a tag that exists.
+      - name: Ensure the web image carries the release tag
         run: |
           if [ "${{ needs.changes.outputs.web }}" != "true" ] && [ "${{ github.event_name }}" != "workflow_dispatch" ]; then
             docker buildx imagetools create -t "$REGISTRY/giga-web:${{ needs.changes.outputs.tag }}" "$REGISTRY/giga-web:latest"
-          fi
-          if [ "${{ needs.changes.outputs.marketplace }}" != "true" ] && [ "${{ github.event_name }}" != "workflow_dispatch" ]; then
-            docker buildx imagetools create -t "$REGISTRY/giga-marketplace:${{ needs.changes.outputs.tag }}" "$REGISTRY/giga-marketplace:latest"
           fi
 
       - name: Get GKE credentials

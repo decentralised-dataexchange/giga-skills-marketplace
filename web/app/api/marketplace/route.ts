@@ -3,7 +3,6 @@ import { sql } from "@/lib/db";
 import { route } from "@/lib/handler";
 import { isUuid } from "@/lib/utils";
 import { marketplaceEntry } from "@/lib/views";
-import { hasMarketplaceService, marketplaceRequest } from "@/lib/marketplace-client";
 
 export const GET = route(async ({ req }) => {
   const u = new URL(req.url);
@@ -12,20 +11,6 @@ export const GET = route(async ({ req }) => {
   const page = Math.max(1, Number(u.searchParams.get("page")) || 1);
   // 200 matches the per-submission skill cap, so one page can carry a full source.
   const pageSize = Math.min(200, Math.max(1, Number(u.searchParams.get("pageSize")) || 12));
-
-  if (hasMarketplaceService) {
-    const qs = new URLSearchParams();
-    if (q) qs.set("q", q);
-    if (provider) qs.set("provider", provider);
-    qs.set("page", String(page));
-    qs.set("pageSize", String(pageSize));
-    const data = await marketplaceRequest(`/v1/skills?${qs.toString()}`);
-    return NextResponse.json(data, {
-      headers: {
-        "Cache-Control": "public, max-age=60, s-maxage=300, stale-while-revalidate=86400",
-      },
-    });
-  }
 
   const like = `%${q}%`;
   // A provider is addressed by slug; its UUID is accepted as well.

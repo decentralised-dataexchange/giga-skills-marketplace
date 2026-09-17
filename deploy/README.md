@@ -2,15 +2,14 @@
 
 Kubernetes deployment via the Helm chart in [`helm/giga`](helm/giga). It provisions:
 
-- **giga-web**: the Next.js marketplace and dashboard (Service on port 80 → 4820)
-- **giga-marketplace**: the internal FastAPI catalog API (Service on port 4830)
+- **giga-web**: the Next.js marketplace, dashboard, and public catalog API (Service on port 80 → 4820)
 - **giga-postgres**: PostgreSQL 16 with a PersistentVolumeClaim
 - **Ingress**: nginx + cert-manager TLS for your domain
 
 ## Prerequisites
 
 - A Kubernetes cluster with [ingress-nginx](https://kubernetes.github.io/ingress-nginx/) and [cert-manager](https://cert-manager.io/) (with a `ClusterIssuer`, e.g. `letsencrypt-prod`)
-- Container images `giga-web` and `giga-marketplace` built from the repository Dockerfiles and pushed to a registry you control
+- The `giga-web` container image built from the repository Dockerfile and pushed to a registry you control
 - DNS for your domain pointed at the ingress load balancer
 
 ## Configure your environment
@@ -94,7 +93,7 @@ the real wallet flows:
 
 ## Production capacity
 
-The chart starts two web and two marketplace replicas and enables CPU-based horizontal autoscaling (web 2–6, marketplace 2–4). A metrics server must be installed for the HPAs to work. Pod disruption budgets retain at least one replica during voluntary disruptions, and per-pod database pools are capped so maximum scale does not exhaust PostgreSQL connections.
+The chart starts two web replicas and enables CPU-based horizontal autoscaling (web 2–6). A metrics server must be installed for the HPA to work. Pod disruption budgets retain at least one replica during voluntary disruptions, and per-pod database pools are capped so maximum scale does not exhaust PostgreSQL connections.
 
 The bundled PostgreSQL pod is a single-node convenience for demos and is not highly available. For a production deployment serving 10,000 accounts, use managed PostgreSQL with backups, monitoring, and connection capacity for at least 80 application connections. Put the connection URL only in `values-secret.yaml`:
 
@@ -115,8 +114,8 @@ It fails on any HTTP/network error or p95 latency above 500 ms. This baseline re
 
 ## CI/CD (maintainers)
 
-[`.github/workflows/deploy.yml`](../.github/workflows/deploy.yml) builds both
-images and runs the same `helm upgrade` with `values-staging.yaml` on every
+[`.github/workflows/deploy.yml`](../.github/workflows/deploy.yml) builds the
+web image and runs the same `helm upgrade` with `values-staging.yaml` on every
 push to `main`, authenticating to GCP with Workload Identity Federation (no
 long-lived keys). Secrets come from the repository's GitHub Actions secrets,
 not from git. Forks do not run this workflow: it targets the maintainers'

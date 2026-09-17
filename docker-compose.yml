@@ -15,22 +15,10 @@ services:
       timeout: 5s
       retries: 10
 
-  marketplace:
-    build: ./services/marketplace
-    environment:
-      PORT: 4830
-      DATABASE_URL: postgresql://govbuild:govbuild-dev@postgres:5432/govbuild
-    depends_on:
-      postgres:
-        condition: service_healthy
-    ports:
-      - "4830:4830"
-
   web:
     build: ./web
     environment:
       DATABASE_URL: postgresql://govbuild:govbuild-dev@postgres:5432/govbuild
-      MARKETPLACE_API_URL: http://marketplace:4830
       # Optional: raises GitHub's API limit for repository submissions
       GITHUB_TOKEN: ${GITHUB_TOKEN:-}
       # demo (default) seeds and offers the demo accounts; production does
@@ -42,8 +30,6 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-      marketplace:
-        condition: service_started
     ports:
       - "4820:4820"
 

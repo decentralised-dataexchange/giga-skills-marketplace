@@ -41,8 +41,8 @@ superadmin:
   password: ""
 
 image:
-  # Registry that hosts the giga-web and giga-marketplace images. Build them
-  # from the repository Dockerfiles and push them to a registry you control.
+  # Registry that hosts the giga-web image. Build it from the repository
+  # Dockerfile and push it to a registry you control.
   registry: registry.example.org
   tag: "latest"
   pullPolicy: IfNotPresent
@@ -56,17 +56,6 @@ web:
     enabled: true
     minReplicas: 2
     maxReplicas: 6
-    targetCPUUtilizationPercentage: 70
-
-marketplace:
-  name: giga-marketplace
-  port: 4830
-  replicas: 2
-  dbMaxConnections: 8
-  autoscaling:
-    enabled: true
-    minReplicas: 2
-    maxReplicas: 4
     targetCPUUtilizationPercentage: 70
 
 # Non-secret configuration of the education showcase, served by the web app

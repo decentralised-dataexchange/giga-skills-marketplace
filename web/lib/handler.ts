@@ -3,7 +3,6 @@
 import { NextResponse } from "next/server";
 import { ensureReady } from "./db";
 import { type Role, type User, userFromRequest } from "./auth";
-import { MarketplaceApiError } from "./marketplace-client";
 
 export class ApiError extends Error {
   constructor(
@@ -42,7 +41,7 @@ export function route<P = Record<string, string>>(handler: Handler<P>, opts: Opt
       const result = await handler({ req, user, params, body });
       return result instanceof Response ? result : NextResponse.json(result);
     } catch (err) {
-      if (err instanceof ApiError || err instanceof MarketplaceApiError) {
+      if (err instanceof ApiError) {
         return NextResponse.json({ error: err.message }, { status: err.status });
       }
       console.error(err);

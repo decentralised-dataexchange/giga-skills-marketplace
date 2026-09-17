@@ -2,11 +2,6 @@
 // Skill names are unique per organisation, so one slug can have several
 // published homes; the redirect only fires when the home is unambiguous.
 import { ensureReady, sql } from "./db";
-import {
-  hasMarketplaceService,
-  MarketplaceApiError,
-  marketplaceRequest,
-} from "./marketplace-client";
 import { skillPath } from "./routes";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -33,26 +28,6 @@ export async function canonicalCatalogPath(slug: string): Promise<string | null>
 
 /** Every published home of a slug, one per owning provider. */
 export async function catalogHomes(slug: string): Promise<CatalogHome[]> {
-  if (hasMarketplaceService) {
-    try {
-      const detail = await marketplaceRequest<any>(`/v1/skills/${encodeURIComponent(slug)}`);
-      if (detail?.multiple) {
-        return (detail.matches ?? []).map((m: any) => home(slug, m.org ?? m.provider, m));
-      }
-      if (!detail?.org?.slug) return [];
-      return [
-        home(slug, detail.org, {
-          source: detail.source?.repo ?? detail.version?.repo?.repo ?? null,
-          version: detail.version?.version ?? null,
-          publishedAt: detail.version?.publishedAt ?? null,
-        }),
-      ];
-    } catch (e) {
-      if (e instanceof MarketplaceApiError && e.status === 404) return [];
-      throw e;
-    }
-  }
-
   await ensureReady();
   const rows = await sql`
     SELECT o.slug AS provider, o.name AS provider_name, o.logo AS provider_logo,

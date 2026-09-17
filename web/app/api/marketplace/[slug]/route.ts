@@ -7,7 +7,6 @@ import { sql } from "@/lib/db";
 import { check, route } from "@/lib/handler";
 import { isUuid } from "@/lib/utils";
 import { skillPath } from "@/lib/routes";
-import { hasMarketplaceService, marketplaceRequest } from "@/lib/marketplace-client";
 
 const CACHE = {
   "Cache-Control": "public, max-age=60, s-maxage=300, stale-while-revalidate=86400",
@@ -15,12 +14,6 @@ const CACHE = {
 
 export const GET = route<{ slug: string }>(async ({ req, params }) => {
   const provider = new URL(req.url).searchParams.get("provider") ?? "";
-
-  if (hasMarketplaceService) {
-    const qs = provider ? `?provider=${encodeURIComponent(provider)}` : "";
-    const data = await marketplaceRequest(`/v1/skills/${encodeURIComponent(params.slug)}${qs}`);
-    return NextResponse.json(data, { headers: CACHE });
-  }
 
   const provCond = !provider
     ? sql``

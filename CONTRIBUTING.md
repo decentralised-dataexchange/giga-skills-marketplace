@@ -10,9 +10,8 @@ Prerequisites: Docker, Node.js 22 and [uv](https://docs.astral.sh/uv/). The
 
 ```bash
 make db          # PostgreSQL in Docker (host port 5433)
-make install     # dependencies for services/marketplace and web
-make marketplace # terminal 1: marketplace service on :4830
-make web         # terminal 2: web app on :4820
+make install     # dependencies for the web app and the root tooling
+make web         # web app on :4820
 ```
 
 Or run the full stack in Docker with `make up`. The schema bootstraps and
@@ -28,13 +27,12 @@ Run the same gates as CI before you open a pull request:
 make check
 ```
 
-This runs oxfmt (format check), oxlint, Ruff, pytest for the marketplace
-service, and tsc plus ESLint for the web app. `make fmt` fixes formatting.
+This runs oxfmt (format check), oxlint, and tsc plus ESLint for the web app.
+`make fmt` fixes formatting.
 
-The marketplace tests need PostgreSQL; set `TEST_DATABASE_URL` or keep
-`make db` running. The Playwright end-to-end tests (`npm run test:e2e` in
-`web/`) expect the seeded demo data, so run them against a fresh database
-(`make db-reset` first).
+The Playwright end-to-end tests (`npm run test:e2e` in `web/`) expect the
+seeded demo data, so run them against a fresh database (`make db-reset`
+first).
 
 ## Pull requests
 
