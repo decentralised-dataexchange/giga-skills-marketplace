@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { connection } from "next/server";
 import localFont from "next/font/local";
 import { JetBrains_Mono } from "next/font/google";
 // Geist Sans (vercel.com/font), self-hosted via the official package.
@@ -6,6 +7,7 @@ import { GeistSans } from "geist/font/sans";
 import { AppRouterCacheProvider } from "@mui/material-nextjs/v15-appRouter";
 import { AppShell } from "@/components/app-shell";
 import { ToastHost } from "@/components/toast";
+import { siteUrl } from "@/lib/site-url";
 import "./globals.css";
 
 export const viewport: Viewport = {
@@ -38,24 +40,29 @@ const TITLE = "ITU Skills Marketplace";
 const DESCRIPTION =
   "Provider-published, agent-agnostic skill files for the ITU education wallet building block. Reviewed app-store style and ready to install into any AI coding agent.";
 
-export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "https://skills-marketplace.igrant.io"),
-  title: TITLE,
-  description: DESCRIPTION,
-  openGraph: {
+// Built per request, so the absolute URLs in the social-preview metadata follow
+// the runtime SITE_URL rather than a value frozen into the image at build time.
+export async function generateMetadata(): Promise<Metadata> {
+  await connection();
+  return {
+    metadataBase: new URL(siteUrl()),
     title: TITLE,
     description: DESCRIPTION,
-    siteName: TITLE,
-    url: "/",
-    type: "website",
-    locale: "en_GB",
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: TITLE,
-    description: DESCRIPTION,
-  },
-};
+    openGraph: {
+      title: TITLE,
+      description: DESCRIPTION,
+      siteName: TITLE,
+      url: "/",
+      type: "website",
+      locale: "en_GB",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: TITLE,
+      description: DESCRIPTION,
+    },
+  };
+}
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (

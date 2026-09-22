@@ -34,9 +34,7 @@ spec:
                 secretKeyRef:
                   name: giga-secrets
                   key: DATABASE_URL
-            - name: NEXT_PUBLIC_SITE_URL
-              value: "https://{{ .Values.domain }}"
-            # Read at runtime by web/proxy.ts to redirect earlier hostnames.
+            # The public URL, read at runtime (web/lib/site-url.ts).
             - name: SITE_URL
               value: "https://{{ .Values.domain }}"
             {{- with .Values.redirect.domains }}

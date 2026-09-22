@@ -60,15 +60,15 @@ the repository or passed through CI.
 
 ### Web application (`web/`)
 
-| Variable               | Purpose                                                                                         |
-| ---------------------- | ----------------------------------------------------------------------------------------------- |
-| `DATABASE_URL`         | PostgreSQL connection string                                                                    |
-| `MARKETPLACE_MODE`     | Starting mode, `demo` (default) or `production`; see "Demo and production mode" below           |
-| `SUPERADMIN_EMAIL`     | The operator's super admin account, bootstrapped on every boot; required in production mode     |
-| `SUPERADMIN_PASSWORD`  | Its password (at least 12 characters); a secret, never committed                                |
-| `SUPERADMIN_NAME`      | Optional display name of that account (default "Marketplace Operator")                          |
-| `GITHUB_TOKEN`         | Optional; raises the GitHub API rate limit for repository submissions                           |
-| `NEXT_PUBLIC_SITE_URL` | Optional; canonical site URL for social-preview metadata (the Helm chart sets it from `domain`) |
+| Variable              | Purpose                                                                                                                             |
+| --------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| `DATABASE_URL`        | PostgreSQL connection string                                                                                                        |
+| `MARKETPLACE_MODE`    | Starting mode, `demo` (default) or `production`; see "Demo and production mode" below                                               |
+| `SUPERADMIN_EMAIL`    | The operator's super admin account, bootstrapped on every boot; required in production mode                                         |
+| `SUPERADMIN_PASSWORD` | Its password (at least 12 characters); a secret, never committed                                                                    |
+| `SUPERADMIN_NAME`     | Optional display name of that account (default "Marketplace Operator")                                                              |
+| `GITHUB_TOKEN`        | Optional; raises the GitHub API rate limit for repository submissions                                                               |
+| `SITE_URL`            | Public URL of the deployment, read at runtime for absolute links and social-preview metadata (the Helm chart sets it from `domain`) |
 
 #### Demo and production mode
 

@@ -3,6 +3,7 @@ import "server-only";
 import { randomInt } from "crypto";
 
 import { ows, requiredEnv } from "@/lib/showcase/server/ows";
+import { siteUrl } from "@/lib/site-url";
 
 /**
  * The OWS issuance broker of the showcase: Student ID, the paid diploma
@@ -142,7 +143,7 @@ export async function issueDiplomaWithPayment(
             // The sandbox organisation's seal, so the wallet shows the
             // Ministry rather than an initial avatar.
             logo: "https://demo-api.igrant.io/v2/onboard/image/6a7f19bed22651ae4335d9a9/web",
-            website: "https://skills-marketplace.igrant.io/showcase",
+            website: `${siteUrl()}/showcase`,
           },
           execution_date: new Date().toISOString().slice(0, 10),
           currency: "EUR",
