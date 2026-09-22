@@ -1,9 +1,9 @@
 import { cn } from "@/lib/utils";
 
-// The ITU emblem, served from /public/itu-logo.svg.
+// The marketplace logo, served from /public/logo.png.
 export function Logo({ className }: { className?: string }) {
   return (
-    // eslint-disable-next-line @next/next/no-img-element -- static brand SVG
-    <img src="/itu-logo.svg" alt="ITU" className={cn("h-9 w-auto", className)} />
+    // eslint-disable-next-line @next/next/no-img-element -- static brand image
+    <img src="/logo.png" alt="ITU Skills Marketplace" className={cn("h-9 w-auto", className)} />
   );
 }

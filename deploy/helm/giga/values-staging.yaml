@@ -1,4 +1,4 @@
-# Staging preset of the project maintainers (giga-staging.igrant.io on GKE).
+# Staging preset of the project maintainers (skills-marketplace.igrant.io on GKE).
 # .github/workflows/deploy.yml passes this file on every deploy.
 #
 # Everything here is non-secret and safe to commit: the showcase ids are
@@ -10,7 +10,14 @@
 # To deploy your own environment, copy this file, keep the same shape, and
 # replace every value.
 
-domain: giga-staging.igrant.io
+domain: skills-marketplace.igrant.io
+
+# The first staging hostname; links to it redirect to `domain`. The redirect
+# reuses the certificate that the old hostname already has.
+redirect:
+  domains:
+    - giga-staging.igrant.io
+  tlsSecret: giga-staging-tls
 
 # Staging is a demo deployment: demo accounts seeded and offered on the
 # sign-in page. A production deployment sets mode: production and provides
@@ -34,4 +41,4 @@ showcase:
     AGREEMENT_EMPLOYER_ID: "6a7e4d1ed22651ae4335d603"
 
 ingress:
-  tlsSecret: giga-staging-tls
+  tlsSecret: skills-marketplace-tls

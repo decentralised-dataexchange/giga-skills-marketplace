@@ -39,7 +39,7 @@ const DESCRIPTION =
   "Provider-published, agent-agnostic skill files for the ITU education wallet building block. Reviewed app-store style and ready to install into any AI coding agent.";
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "https://giga-staging.igrant.io"),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "https://skills-marketplace.igrant.io"),
   title: TITLE,
   description: DESCRIPTION,
   openGraph: {

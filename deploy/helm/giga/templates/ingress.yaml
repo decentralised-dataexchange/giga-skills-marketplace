@@ -11,14 +11,25 @@ spec:
     - hosts:
         - {{ .Values.domain }}
       secretName: {{ .Values.ingress.tlsSecret }}
+    {{- with .Values.redirect.domains }}
+    - hosts:
+        {{- range . }}
+        - {{ . }}
+        {{- end }}
+      secretName: {{ $.Values.redirect.tlsSecret }}
+    {{- end }}
   rules:
-    - host: {{ .Values.domain }}
+    # Earlier hostnames (redirect.domains) also route to the web app, and
+    # web/proxy.ts answers them with a permanent redirect to `domain`.
+    {{- range prepend .Values.redirect.domains .Values.domain }}
+    - host: {{ . }}
       http:
         paths:
           - path: /
             pathType: Prefix
             backend:
               service:
-                name: {{ .Values.web.name }}
+                name: {{ $.Values.web.name }}
                 port:
                   number: 80
+    {{- end }}

@@ -36,6 +36,13 @@ spec:
                   key: DATABASE_URL
             - name: NEXT_PUBLIC_SITE_URL
               value: "https://{{ .Values.domain }}"
+            # Read at runtime by web/proxy.ts to redirect earlier hostnames.
+            - name: SITE_URL
+              value: "https://{{ .Values.domain }}"
+            {{- with .Values.redirect.domains }}
+            - name: REDIRECT_HOSTS
+              value: {{ join "," . | quote }}
+            {{- end }}
             - name: DB_MAX_CONNECTIONS
               value: {{ .Values.web.dbMaxConnections | quote }}
             # demo or production; see `mode` in values.yaml.

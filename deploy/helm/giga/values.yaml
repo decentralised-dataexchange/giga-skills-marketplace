@@ -14,6 +14,14 @@
 # Public hostname of the marketplace. Override for your environment.
 domain: marketplace.example.org
 
+# Earlier hostnames of the marketplace. They share one TLS certificate
+# (stored in redirect.tlsSecret), and the web app answers every request to
+# them with a permanent redirect (308) to the same path on `domain`, so old
+# links keep working.
+redirect:
+  domains: []
+  tlsSecret: giga-redirect-tls
+
 # Optional GitHub token for repository submissions; raises GitHub's API rate
 # limit (60/hour per IP unauthenticated). Supply it like the database password,
 # via values-secret.yaml or --set githubToken=... - never commit it here.
