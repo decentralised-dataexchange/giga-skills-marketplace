@@ -19,8 +19,9 @@ export default function LandingPage() {
               Agent skills for AI-built DPI
             </h1>
             <p className="mt-5 text-pretty text-lg leading-relaxed text-[#374151]">
-              Reviewed, agent-agnostic skills for the education wallet building block - published
-              from public GitHub repositories, installable into any AI coding agent.
+              Explore and build interoperable digital education services that brings reusable AI
+              agent skills (published by providers) and standards (published by government or
+              institutions) together to accelerate education wallet prototyping
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Link
