@@ -1,0 +1,53 @@
+name: Publish image to GHCR
+
+# Publishes the giga-web image to the public GitHub Container Registry, so an
+# environment outside the maintainers' GCP project (such as the GovStack
+# sandbox) can pull it without registry credentials. Deploy to GKE keeps its
+# own copy in GCR. Tags: the 12-character commit SHA and latest.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "web/**"
+      - ".github/workflows/publish-image.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+env:
+  IMAGE: ghcr.io/decentralised-dataexchange/giga-web
+
+jobs:
+  publish:
+    if: github.repository == 'decentralised-dataexchange/giga-skills-marketplace'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Resolve image tag
+        id: vars
+        run: echo "tag=${GITHUB_SHA::12}" >> "$GITHUB_OUTPUT"
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build and push giga-web
+        uses: docker/build-push-action@v6
+        with:
+          context: web
+          file: web/Dockerfile
+          platforms: linux/amd64
+          push: true
+          tags: |
+            ${{ env.IMAGE }}:${{ steps.vars.outputs.tag }}
+            ${{ env.IMAGE }}:latest
+          labels: |
+            org.opencontainers.image.source=https://github.com/${{ github.repository }}
+            org.opencontainers.image.description=ITU Skills Marketplace web application
+            org.opencontainers.image.licenses=Apache-2.0
+          cache-from: type=gha,scope=giga-web-ghcr
+          cache-to: type=gha,scope=giga-web-ghcr,mode=max

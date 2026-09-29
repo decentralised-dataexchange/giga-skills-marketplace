@@ -120,3 +120,24 @@ push to `main`, authenticating to GCP with Workload Identity Federation (no
 long-lived keys). Secrets come from the repository's GitHub Actions secrets,
 not from git. Forks do not run this workflow: it targets the maintainers'
 cluster and needs their federation trust and secrets.
+
+[`.github/workflows/publish-image.yml`](../.github/workflows/publish-image.yml)
+also publishes the web image to the public registry
+`ghcr.io/decentralised-dataexchange/giga-web` (tags: the 12-character commit
+SHA and `latest`), so any cluster can pull it without credentials.
+
+## GovStack sandbox
+
+The GovStack sandbox cluster is reachable only over its WireGuard VPN, so CI
+does not deploy there. From a machine on the VPN, with the sandbox kubeconfig:
+
+```bash
+helm upgrade --install giga ./deploy/helm/giga \
+  -n giga --create-namespace \
+  -f ./deploy/helm/giga/values-govstack.yaml \
+  -f ./deploy/helm/giga/values-secret-govstack.yaml \
+  --set image.tag=<commit-sha-12>
+```
+
+`values-secret-govstack.yaml` holds `postgres.password` and is gitignored.
+Keep the same password on every upgrade: the database keeps the first one.

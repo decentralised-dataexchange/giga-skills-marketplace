@@ -1,0 +1,26 @@
+# GovStack sandbox preset: the Kubernetes cluster that VanillaCore runs for
+# the marketplace, reached over WireGuard. Deployed by hand with Helm from a
+# machine on the VPN (see deploy/README.md); CI cannot reach this cluster.
+#
+# Non-secret and safe to commit. The database password comes from --set or
+# a gitignored values-secret file.
+
+# Placeholder until VanillaCore gives the public hostname and routes it to the
+# Contour load balancer (10.0.0.100). Then set it here and set
+# ingress.clusterIssuer to letsencrypt-prod to get a certificate.
+domain: skills-marketplace.govstack.internal
+
+mode: demo
+
+# Public image, published by .github/workflows/publish-image.yml.
+image:
+  registry: ghcr.io/decentralised-dataexchange
+
+web:
+  # The cluster has no metrics server, so the autoscaler cannot work.
+  autoscaling:
+    enabled: false
+
+ingress:
+  className: contour
+  clusterIssuer: ""

@@ -94,6 +94,8 @@ postgres:
 
 ingress:
   className: nginx
+  # cert-manager ClusterIssuer for the TLS certificate. Leave empty to serve
+  # plain HTTP with no TLS section, e.g. before the public DNS exists.
   clusterIssuer: letsencrypt-prod
   # cert-manager stores the issued certificate in this secret.
   tlsSecret: giga-tls

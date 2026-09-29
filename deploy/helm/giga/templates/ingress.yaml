@@ -3,10 +3,13 @@ kind: Ingress
 metadata:
   name: giga
   annotations:
+    {{- if .Values.ingress.clusterIssuer }}
     cert-manager.io/cluster-issuer: {{ .Values.ingress.clusterIssuer }}
+    {{- end }}
     nginx.ingress.kubernetes.io/proxy-body-size: "8m"
 spec:
   ingressClassName: {{ .Values.ingress.className }}
+  {{- if .Values.ingress.clusterIssuer }}
   tls:
     - hosts:
         - {{ .Values.domain }}
@@ -18,6 +21,7 @@ spec:
         {{- end }}
       secretName: {{ $.Values.redirect.tlsSecret }}
     {{- end }}
+  {{- end }}
   rules:
     # Earlier hostnames (redirect.domains) also route to the web app, and
     # web/proxy.ts answers them with a permanent redirect to `domain`.
