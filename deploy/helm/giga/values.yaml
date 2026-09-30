@@ -93,7 +93,7 @@ postgres:
   # storageClassName: ""   # unset -> cluster default
 
 ingress:
-  className: nginx
+  className: contour
   clusterIssuer: letsencrypt-prod
   # cert-manager stores the issued certificate in this secret.
   tlsSecret: giga-tls
