@@ -5,10 +5,9 @@
 # Non-secret and safe to commit. The database password comes from --set or
 # a gitignored values-secret file.
 
-# Placeholder until VanillaCore gives the public hostname and routes it to the
-# Contour load balancer (10.0.0.100). Then set it here and set
-# ingress.clusterIssuer to letsencrypt-prod to get a certificate.
-domain: skills-marketplace.govstack.internal
+# Public hostname given by VanillaCore; its gateway forwards it to the Contour
+# load balancer (10.0.0.100).
+domain: giga-marketplace.assembly.govstack.global
 
 mode: demo
 
@@ -40,4 +39,8 @@ web:
 
 ingress:
   className: contour
-  clusterIssuer: ""
+  clusterIssuer: letsencrypt-prod
+  tlsSecret: giga-marketplace-tls
+  annotations:
+    # Contour serves plain HTTP unless told to redirect it to HTTPS.
+    ingress.kubernetes.io/force-ssl-redirect: "true"

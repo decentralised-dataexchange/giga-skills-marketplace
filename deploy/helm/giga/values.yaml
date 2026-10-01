@@ -99,3 +99,5 @@ ingress:
   clusterIssuer: letsencrypt-prod
   # cert-manager stores the issued certificate in this secret.
   tlsSecret: giga-tls
+  # Extra annotations for the ingress controller in use.
+  annotations: {}
