@@ -93,7 +93,7 @@ postgres:
   # storageClassName: ""   # unset -> cluster default
 
 ingress:
-  className: nginx
+  className: contour
   # cert-manager ClusterIssuer for the TLS certificate. Leave empty to serve
   # plain HTTP with no TLS section, e.g. before the public DNS exists.
   clusterIssuer: letsencrypt-prod
