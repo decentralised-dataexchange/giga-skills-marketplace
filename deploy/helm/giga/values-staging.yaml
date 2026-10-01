@@ -41,4 +41,6 @@ showcase:
     AGREEMENT_EMPLOYER_ID: "6a7e4d1ed22651ae4335d603"
 
 ingress:
+  # The maintainers' GKE cluster runs ingress-nginx; the chart default is Contour.
+  className: nginx
   tlsSecret: skills-marketplace-tls
