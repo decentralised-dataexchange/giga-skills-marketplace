@@ -187,22 +187,23 @@ async function main() {
     clientIdScheme: "x509_hash",
     trustAnchor: "x509",
     kid: env.PID_VERIFY_KID || undefined,
+    // Either PID: the earlier PID or the EU ARF 2.8.0 rulebook PID. Both
+    // use the same claim names for these fields.
     dcqlQuery: {
-      credentials: [
-        {
-          id: "pid-login",
-          format: "dc+sd-jwt",
-          meta: { vct_values: ["urn:eu.europa.ec.eudi:pid:1"] },
-          claims: [
-            { path: ["given_name"] },
-            { path: ["family_name"] },
-            { path: ["birthdate"] },
-            // Prefill the registration form: contact and address.
-            { path: ["email"] },
-            { path: ["address"] },
-          ],
-        },
-      ],
+      credentials: ["urn:eu.europa.ec.eudi:pid:1", "urn:eudi:pid:1"].map((vct, i) => ({
+        id: i === 0 ? "pid-login" : "pid-rulebook",
+        format: "dc+sd-jwt",
+        meta: { vct_values: [vct] },
+        claims: [
+          { path: ["given_name"] },
+          { path: ["family_name"] },
+          { path: ["birthdate"] },
+          // Prefill the registration form: contact and address.
+          { path: ["email"] },
+          { path: ["address"] },
+        ],
+      })),
+      credential_sets: [{ options: [["pid-login"], ["pid-rulebook"]], required: true }],
     },
   });
   if (pidId) saveEnvValue("PID_PRESENTATION_DEFINITION_ID", pidId);
@@ -326,12 +327,13 @@ async function main() {
     kid: env.DIPLOMA_CHECK_KID || undefined,
     dcqlQuery: {
       credentials: [
-        {
-          id: "pid",
+        // Either PID: the earlier PID or the EU ARF 2.8.0 rulebook PID.
+        ...["urn:eu.europa.ec.eudi:pid:1", "urn:eudi:pid:1"].map((vct, i) => ({
+          id: i === 0 ? "pid" : "pid-rulebook",
           format: "dc+sd-jwt",
-          meta: { vct_values: ["urn:eu.europa.ec.eudi:pid:1"] },
+          meta: { vct_values: [vct] },
           claims: [{ path: ["given_name"] }, { path: ["family_name"] }, { path: ["email"] }],
-        },
+        })),
         {
           id: "diploma",
           format: "dc+sd-jwt",
@@ -344,6 +346,10 @@ async function main() {
             { path: ["awardDate"] },
           ],
         },
+      ],
+      credential_sets: [
+        { options: [["pid"], ["pid-rulebook"]], required: true },
+        { options: [["diploma"]], required: true },
       ],
     },
   });
