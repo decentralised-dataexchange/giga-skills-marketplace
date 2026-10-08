@@ -103,3 +103,32 @@ export async function ows(
 
   return data;
 }
+
+const DECISION_WAIT_MS = 10_000;
+const DECISION_POLL_MS = 1_000;
+
+/**
+ * Read a V3 verification record once OWS has decided it. The holder's answer
+ * lands on the record before OWS finishes the signature, revocation and
+ * trust checks, so an early read sees `verified: false` for a presentation
+ * that verifies a moment later. The record counts as decided when
+ * `verified` is true or `presentationValidity` holds the check results.
+ * Returns the last record read when no decision comes in time.
+ */
+export async function readVerificationDecision(
+  org: OwsOrg,
+  presentationExchangeId: string,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- OWS answers are shape-checked at each call site
+): Promise<any> {
+  const path = `/v3/config/digital-wallet/openid/sdjwt/verification/history/${encodeURIComponent(presentationExchangeId)}`;
+  const deadline = Date.now() + DECISION_WAIT_MS;
+  for (;;) {
+    const record = await ows(org, "GET", path);
+    const history = record?.verificationHistory ?? record;
+    const decided =
+      history?.verified === true ||
+      (Array.isArray(history?.presentationValidity) && history.presentationValidity.length > 0);
+    if (decided || Date.now() >= deadline) return record;
+    await new Promise((resolve) => setTimeout(resolve, DECISION_POLL_MS));
+  }
+}

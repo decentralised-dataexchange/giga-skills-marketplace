@@ -1,6 +1,6 @@
 import "server-only";
 
-import { ows } from "@/lib/showcase/server/ows";
+import { readVerificationDecision } from "@/lib/showcase/server/ows";
 
 /**
  * Read one CivicWorks verification record and reduce it to what the result
@@ -31,11 +31,7 @@ export async function readVerification(exchangeId: string): Promise<Verification
   // eslint-disable-next-line @typescript-eslint/no-explicit-any -- OWS answer shapes vary
   let record: any;
   try {
-    record = await ows(
-      "civicworks",
-      "GET",
-      `/v3/config/digital-wallet/openid/sdjwt/verification/history/${encodeURIComponent(exchangeId)}`,
-    );
+    record = await readVerificationDecision("civicworks", exchangeId);
   } catch {
     return null;
   }
