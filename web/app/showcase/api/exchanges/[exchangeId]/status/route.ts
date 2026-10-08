@@ -58,14 +58,12 @@ export async function GET(req: Request, ctx: { params: Promise<{ exchangeId: str
         `/v3/config/digital-wallet/openid/sdjwt/verification/history/${encodeURIComponent(exchangeId)}`,
       );
       const history = record?.verificationHistory ?? record;
-      // The holder answered: verified decision made, a vpTokenResponse
-      // present, or the terminal status. The client then reads the full
-      // record through its own broker, which re-checks `verified`.
-      const answered =
-        history?.verified === true ||
-        (Array.isArray(history?.vpTokenResponse) && history.vpTokenResponse.length > 0) ||
-        history?.status === "presentation_acked";
-      if (answered) {
+      // Only the terminal status. OWS saves the vpTokenResponse first and
+      // sets presentation_acked, verified and presentationValidity together
+      // once its checks finish, so an earlier signal would let the client
+      // read `verified: false` before the decision. The client then reads
+      // the full record through its own broker, which re-checks `verified`.
+      if (history?.status === "presentation_acked") {
         events.push({ topic: "digitalwallet.presentation.verified", org });
       }
     }

@@ -2,7 +2,7 @@ import "server-only";
 
 import { createHmac } from "crypto";
 
-import { ows, owsLog, readVerificationDecision, requiredEnv } from "@/lib/showcase/server/ows";
+import { ows, owsLog, requiredEnv } from "@/lib/showcase/server/ows";
 
 /**
  * The learner wallet login, server side. Stateless by design: the browser
@@ -107,7 +107,11 @@ export type PidLoginResult = {
 export async function completePidLoginRequest(
   presentationExchangeId: string,
 ): Promise<PidLoginResult | null> {
-  const record = await readVerificationDecision("moe", presentationExchangeId);
+  const record = await ows(
+    "moe",
+    "GET",
+    `/v3/config/digital-wallet/openid/sdjwt/verification/history/${presentationExchangeId}`,
+  );
 
   const history = record?.verificationHistory ?? record;
   if (history?.verified !== true) {

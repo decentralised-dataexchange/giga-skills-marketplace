@@ -1,6 +1,6 @@
 import "server-only";
 
-import { readVerificationDecision } from "@/lib/showcase/server/ows";
+import { ows } from "@/lib/showcase/server/ows";
 
 /**
  * Read one CivicWorks verification record and reduce it to what the result
@@ -31,7 +31,11 @@ export async function readVerification(exchangeId: string): Promise<Verification
   // eslint-disable-next-line @typescript-eslint/no-explicit-any -- OWS answer shapes vary
   let record: any;
   try {
-    record = await readVerificationDecision("civicworks", exchangeId);
+    record = await ows(
+      "civicworks",
+      "GET",
+      `/v3/config/digital-wallet/openid/sdjwt/verification/history/${encodeURIComponent(exchangeId)}`,
+    );
   } catch {
     return null;
   }
@@ -39,7 +43,8 @@ export async function readVerification(exchangeId: string): Promise<Verification
   if (!history) return null;
 
   const verified = history.verified === true;
-  const answered = Array.isArray(history.vpTokenResponse) && history.vpTokenResponse.length > 0;
+  // OWS sets presentation_acked together with `verified`, after its checks.
+  const answered = history.status === "presentation_acked";
 
   const claims: Record<string, string> = {};
   const pid = { givenName: "", familyName: "", email: "" };
